@@ -9,6 +9,8 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -17,18 +19,52 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 
 	"fitglue-strava-uploader/pkg/shared"
+	"fitglue-strava-uploader/pkg/shared/adapters"
 	pb "fitglue-strava-uploader/pkg/shared/types/pb/proto"
 )
 
+var svc *Service
+
 func init() {
-	functions.CloudEvent("UploadToStrava", UploadToStrava)
+	ctx := context.Background()
+	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	if projectID == "" {
+		projectID = shared.ProjectID
+	}
+
+	fsClient, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Printf("Warning: Firestore init failed: %v", err)
+	}
+	gcsClient, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Printf("Warning: Storage init failed: %v", err)
+	}
+
+	svc = &Service{
+		DB:         &adapters.FirestoreAdapter{Client: fsClient},
+		Store:      &adapters.StorageAdapter{Client: gcsClient},
+		Secrets:    &adapters.SecretsAdapter{},
+		HTTPClient: http.DefaultClient,
+	}
+
+	functions.CloudEvent("UploadToStrava", svc.UploadToStrava)
+}
+
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type Service struct {
+	DB         shared.Database
+	Store      shared.BlobStore
+	Secrets    shared.SecretStore
+	HTTPClient HTTPClient
 }
 
 type PubSubMessage struct {
 	Data []byte `json:"data"`
 }
-
-// EnrichedActivityEvent imported from pb
 
 type UserTokens struct {
 	AccessToken  string    `firestore:"strava_access_token"`
@@ -36,7 +72,7 @@ type UserTokens struct {
 	ExpiresAt    time.Time `firestore:"strava_expires_at"`
 }
 
-func UploadToStrava(ctx context.Context, e event.Event) error {
+func (s *Service) UploadToStrava(ctx context.Context, e event.Event) error {
 	var msg PubSubMessage
 	if err := e.DataAs(&msg); err != nil {
 		return fmt.Errorf("failed to get data: %v", err)
@@ -47,48 +83,45 @@ func UploadToStrava(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("json unmarshal: %v", err)
 	}
 
-	client, _ := firestore.NewClient(ctx, shared.ProjectID)
-	defer client.Close()
-	execRef := client.Collection("executions").NewDoc()
-	execRef.Set(ctx, map[string]interface{}{
+	// Logging setup
+	execID := fmt.Sprintf("uploader-%s-%d", eventPayload.UserId, time.Now().UnixNano())
+	execData := map[string]interface{}{
 		"service":   "strava-uploader",
 		"status":    "STARTED",
 		"inputs":    eventPayload.UserId,
 		"startTime": time.Now(),
-	})
+	}
+	if err := s.DB.SetExecution(ctx, execID, execData); err != nil {
+		log.Printf("Failed to log start: %v", err)
+	}
 
 	// 1. Get Tokens & Rotate if needed
-	userRef := client.Collection("users").Doc(eventPayload.UserId)
-	docSnap, err := userRef.Get(ctx)
+	userData, err := s.DB.GetUser(ctx, eventPayload.UserId)
 	if err != nil {
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "User tokens not found"})
 		return err
 	}
 
-	var tokens UserTokens
-	docSnap.DataTo(&tokens)
+	// Extract Tokens manually from map
+	token, _ := userData["strava_access_token"].(string)
+	// refreshToken, _ := userData["strava_refresh_token"].(string)
+	expiresAt, _ := userData["strava_expires_at"].(time.Time)
 
-	token := tokens.AccessToken
-	if time.Now().After(tokens.ExpiresAt.Add(-5 * time.Minute)) {
+	if time.Now().After(expiresAt.Add(-5 * time.Minute)) {
 		// TODO: Implement Token Rotation using RefreshToken
-		// token = RefreshStravaToken(tokens.RefreshToken)
-		// userRef.Update(ctx, ...)
 		log.Println("Token expiring soon - rotation required")
 	}
 
 	// 2. Download FIT from GCS
-	// Parse GCS URI gs://bucket/path
-	bucketName := "fitglue-artifacts" // simplified
-	objectName := eventPayload.GcsUri[len("gs://fitglue-artifacts/"):]
+	bucketName := "fitglue-artifacts"
+	// Parse GCS URI: assume "gs://bucket/path" format
+	objectName := strings.TrimPrefix(eventPayload.GcsUri, "gs://"+bucketName+"/")
 
-	gcsClient, _ := storage.NewClient(ctx)
-	defer gcsClient.Close()
-	rc, err := gcsClient.Bucket(bucketName).Object(objectName).NewReader(ctx)
+	fileData, err := s.Store.Read(ctx, bucketName, objectName)
 	if err != nil {
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "GCS Read Error: " + err.Error()})
 		return err
 	}
-	defer rc.Close()
-
-	fileData, _ := io.ReadAll(rc)
 
 	// 3. Upload to Strava
 	body := &bytes.Buffer{}
@@ -102,25 +135,28 @@ func UploadToStrava(ctx context.Context, e event.Event) error {
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-	httpResp, err := http.DefaultClient.Do(req)
+	httpResp, err := s.HTTPClient.Do(req)
 	if err != nil {
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "Strava API Error: " + err.Error()})
 		return err
 	}
 	defer httpResp.Body.Close()
 
-	// 4. Handle Response & Poll (Mocked)
-	// var uploadResp UploadResponse
-	// json.NewDecoder(httpResp.Body).Decode(&uploadResp)
-	// activityId := PollUploadStatus(uploadResp.Id, token)
+	if httpResp.StatusCode >= 400 {
+		bodyBytes, _ := io.ReadAll(httpResp.Body)
+		errStr := fmt.Sprintf("Strava Error %d: %s", httpResp.StatusCode, string(bodyBytes))
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": errStr})
+		return fmt.Errorf(errStr)
+	}
+
+	// 4. Handle Response & Poll (Mocked for now)
 
 	// 5. Update Description
-	// reqUpdate, _ := http.NewRequest("PUT", fmt.Sprintf(".../activities/%d", activityId), ...)
-	// ...
 
-	execRef.Set(ctx, map[string]interface{}{
+	s.DB.UpdateExecution(ctx, execID, map[string]interface{}{
 		"status":  "SUCCESS",
 		"endTime": time.Now(),
-	}, firestore.MergeAll)
+	})
 
 	return nil
 }

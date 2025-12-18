@@ -1,6 +1,6 @@
 module fitglue-enricher
 
-go 1.21
+go 1.24.0
 
 require (
 	cloud.google.com/go/firestore v1.9.0

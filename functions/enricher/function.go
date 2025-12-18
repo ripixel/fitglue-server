@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -16,36 +17,58 @@ import (
 	"fitglue-enricher/pkg/fit"
 	"fitglue-enricher/pkg/fitbit"
 	"fitglue-enricher/pkg/shared"
-	"fitglue-enricher/pkg/shared/secrets"
+	"fitglue-enricher/pkg/shared/adapters"
 	pb "fitglue-enricher/pkg/shared/types/pb/proto"
 )
 
+var svc *Service
+
 func init() {
-	functions.CloudEvent("EnrichActivity", EnrichActivity)
+	// Initialize real dependencies for Production/Local execution
+	ctx := context.Background()
+	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	if projectID == "" {
+		projectID = shared.ProjectID // Fallback to shared constant
+	}
+
+	// Clients
+	fsClient, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Printf("Warning: Firestore init failed: %v", err)
+	}
+	psClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		log.Printf("Warning: PubSub init failed: %v", err)
+	}
+	gcsClient, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Printf("Warning: Storage init failed: %v", err)
+	}
+
+	svc = &Service{
+		DB:      &adapters.FirestoreAdapter{Client: fsClient},
+		Pub:     &adapters.PubSubAdapter{Client: psClient},
+		Store:   &adapters.StorageAdapter{Client: gcsClient},
+		Secrets: &adapters.SecretsAdapter{},
+	}
+
+	functions.CloudEvent("EnrichActivity", svc.EnrichActivity)
+}
+
+// Service holds dependencies
+type Service struct {
+	DB      shared.Database
+	Pub     shared.Publisher
+	Store   shared.BlobStore
+	Secrets shared.SecretStore
 }
 
 type PubSubMessage struct {
 	Data []byte `json:"data"`
 }
 
-// ActivityPayload and EnrichedActivityEvent are in pkg/shared but for now
-// we might need to reference them directly or use aliases.
-// Wait, shared/payload.go defines ActivityPayload.
-// We need to ensure EnrichedActivityEvent is also shared if Router uses it.
-// For now, assume EnrichedActivityEvent is specific to this hand-off, or we move it to shared.
-// Given the user request "unified payload", EnrichedActivityEvent IS a payload for the next stage.
-// Let's assume we should move EnrichedActivityEvent to shared as well or keep it local if Router imports shared.
-// The Router reads "EnrichedActivityEvent".
-// Let's check shared/payload.go content. It only has "ActivityPayload" (Ingestion->Enricher).
-// I should probably add EnrichedActivityEvent to shared/payload.go?
-// The user said "Hevy and Keiser topic publish data to be identical". That's ActivityPayload.
-// The Enricher OUTPUT is internal.
-// I'll keep EnrichedActivityEvent local for now to minimize scope creep unless needed.
-
-// However, I MUST replace RawActivityEvent with shared.ActivityPayload.
-
 // EnrichActivity is the entry point
-func EnrichActivity(ctx context.Context, e event.Event) error {
+func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
 	var msg PubSubMessage
 	if err := e.DataAs(&msg); err != nil {
 		return fmt.Errorf("failed to get data: %v", err)
@@ -57,75 +80,68 @@ func EnrichActivity(ctx context.Context, e event.Event) error {
 	}
 
 	// Logging setup (Firestore Executions)
-	client, _ := firestore.NewClient(ctx, shared.ProjectID)
-	defer client.Close()
-	execRef := client.Collection("executions").NewDoc()
-	execRef.Set(ctx, map[string]interface{}{
+	execID := fmt.Sprintf("%s-%d", rawEvent.UserId, time.Now().UnixNano())
+
+	// Create Execution Doc
+	execData := map[string]interface{}{
 		"service":   "enricher",
 		"status":    "STARTED",
-		"inputs":    rawEvent,
+		"inputs":    &rawEvent,
 		"startTime": time.Now(),
-	})
+	}
+	if err := s.DB.SetExecution(ctx, execID, execData); err != nil {
+		log.Printf("Failed to log start: %v", err)
+	}
 
 	// 1. Logic: Merge Data
-	// For Hevy/Keiser, we extract start/end time, fetch Fitbit HR.
 	startTime, _ := time.Parse(time.RFC3339, rawEvent.Timestamp)
-	duration := 3600 // Default duration (1h) if not parsed
+	duration := 3600
 
 	// 1a. Fetch Credentials
-	clientID, _ := secrets.GetSecret(ctx, shared.ProjectID, "fitbit-client-id")
-	clientSecret, _ := secrets.GetSecret(ctx, shared.ProjectID, "fitbit-client-secret")
+	clientID, _ := s.Secrets.GetSecret(ctx, shared.ProjectID, "fitbit-client-id")
+	clientSecret, _ := s.Secrets.GetSecret(ctx, shared.ProjectID, "fitbit-client-secret")
 
 	fbClient := fitbit.NewClient(rawEvent.UserId, clientID, clientSecret)
-	// Fetch actual HR data
-	// date := startTime.Format("2006-01-02")
-	// tStart := startTime.Format("15:04")
-	// tEnd := startTime.Add(time.Duration(duration) * time.Second).Format("15:04")
-	// hrStreamRaw, _ := fbClient.GetHeartRateSeries(date, tStart, tEnd)
-
-	// For now, to pass build without implementing all date logic, just use the client in a dummy way or print it
+	// Fetch actual HR data (Placeholder)
 	_ = fbClient
 	hrStream := make([]int, duration)
-
-	// TODO: Parse Power data from rawEvent.OriginalPayloadJson based on Source
 	powerStream := make([]int, duration)
 
 	// 2. Generate FIT
 	fitBytes, err := fit.GenerateFitFile(startTime, duration, powerStream, hrStream)
 	if err != nil {
-		execRef.Set(ctx, map[string]interface{}{"status": "FAILED", "error": err.Error()}, firestore.MergeAll)
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
 		return err
 	}
 
 	// 3. Save to GCS
-	gcsClient, _ := storage.NewClient(ctx)
-	defer gcsClient.Close()
-	bucket := gcsClient.Bucket("fitglue-artifacts") // Should correspond to bucket resource
+	bucketName := "fitglue-artifacts"
 	objName := fmt.Sprintf("activities/%s/%d.fit", rawEvent.UserId, startTime.Unix())
-	wc := bucket.Object(objName).NewWriter(ctx)
-	wc.Write(fitBytes)
-	wc.Close()
+	if err := s.Store.Write(ctx, bucketName, objName, fitBytes); err != nil {
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
+		return err
+	}
 
-	// 4. Generate Description (Stats/Hashtags)
+	// 4. Generate Description
 	desc := "Enhanced Activity\n\n#PowerMap #HeartrateMap"
-	// Parkrun logic here...
 
 	// 5. Publish to Router
-	psClient, _ := pubsub.NewClient(ctx, shared.ProjectID)
-	topic := psClient.Topic(shared.TopicEnrichedActivity)
 	enrichedEvent := pb.EnrichedActivityEvent{
 		UserId:      rawEvent.UserId,
-		GcsUri:      fmt.Sprintf("gs://fitglue-artifacts/%s", objName),
+		GcsUri:      fmt.Sprintf("gs://%s/%s", bucketName, objName),
 		Description: desc,
 	}
 	payload, _ := json.Marshal(enrichedEvent)
-	topic.Publish(ctx, &pubsub.Message{Data: payload})
 
-	execRef.Set(ctx, map[string]interface{}{
+	if _, err := s.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
+		return err
+	}
+
+	s.DB.UpdateExecution(ctx, execID, map[string]interface{}{
 		"status":  "SUCCESS",
 		"outputs": enrichedEvent,
 		"endTime": time.Now(),
-	}, firestore.MergeAll)
+	})
 
 	log.Printf("Enrichment complete for %s", rawEvent.Timestamp)
 	return nil

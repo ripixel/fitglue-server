@@ -1,5 +1,5 @@
+const baseConfig = require('../../shared/typescript/jest.config.base.js');
+
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  testPathIgnorePatterns: ['/node_modules/', '/build/'],
+  ...baseConfig,
 };

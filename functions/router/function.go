@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -13,25 +14,51 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 
 	"fitglue-router/pkg/shared"
+	"fitglue-router/pkg/shared/adapters"
 	pb "fitglue-router/pkg/shared/types/pb/proto"
 )
 
+var svc *Service
+
 func init() {
-	functions.CloudEvent("RouteActivity", RouteActivity)
+	ctx := context.Background()
+	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	if projectID == "" {
+		projectID = shared.ProjectID
+	}
+
+	fsClient, err := firestore.NewClient(ctx, projectID)
+	if err != nil {
+		log.Printf("Warning: Firestore init failed: %v", err)
+	}
+	psClient, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		log.Printf("Warning: PubSub init failed: %v", err)
+	}
+
+	svc = &Service{
+		DB:  &adapters.FirestoreAdapter{Client: fsClient},
+		Pub: &adapters.PubSubAdapter{Client: psClient},
+	}
+
+	functions.CloudEvent("RouteActivity", svc.RouteActivity)
+}
+
+type Service struct {
+	DB  shared.Database
+	Pub shared.Publisher
 }
 
 type PubSubMessage struct {
 	Data []byte `json:"data"`
 }
 
-// EnrichedActivityEvent is now imported from pb
-
 type UserConfig struct {
 	StravaEnabled bool `firestore:"strava_enabled"`
 	OtherEnabled  bool `firestore:"other_enabled"`
 }
 
-func RouteActivity(ctx context.Context, e event.Event) error {
+func (s *Service) RouteActivity(ctx context.Context, e event.Event) error {
 	var msg PubSubMessage
 	if err := e.DataAs(&msg); err != nil {
 		return fmt.Errorf("failed to get data: %v", err)
@@ -42,47 +69,46 @@ func RouteActivity(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("json unmarshal: %v", err)
 	}
 
-	client, _ := firestore.NewClient(ctx, shared.ProjectID)
-	defer client.Close()
-	execRef := client.Collection("executions").NewDoc()
-	execRef.Set(ctx, map[string]interface{}{
+	// Logging setup
+	execID := fmt.Sprintf("router-%s-%d", eventPayload.UserId, time.Now().UnixNano())
+	execRefData := map[string]interface{}{
 		"service":   "router",
 		"status":    "STARTED",
 		"inputs":    eventPayload.UserId,
 		"startTime": time.Now(),
-	})
+	}
+	if err := s.DB.SetExecution(ctx, execID, execRefData); err != nil {
+		log.Printf("Failed to log start: %v", err)
+	}
 
 	// 1. Fetch User Config
-	docSnap, err := client.Collection("users").Doc(eventPayload.UserId).Get(ctx)
+	userData, err := s.DB.GetUser(ctx, eventPayload.UserId)
 	if err != nil {
-		execRef.Set(ctx, map[string]interface{}{"status": "FAILED", "error": "User config not found"}, firestore.MergeAll)
+		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "User config not found"})
 		return err
 	}
 
-	var config UserConfig
-	docSnap.DataTo(&config)
+	// Manual Mapping from Map to Config (Interface Abstraction)
+	stravaEnabled, _ := userData["strava_enabled"].(bool)
+	// otherEnabled, _ := userData["other_enabled"].(bool)
 
 	// 2. Fan-out
-	// 2. Fan-out
-	psClient, _ := pubsub.NewClient(ctx, shared.ProjectID)
-	defer psClient.Close()
-
 	routings := []string{}
 
-	if config.StravaEnabled {
-		topic := psClient.Topic(shared.TopicJobUploadStrava)
-		res := topic.Publish(ctx, &pubsub.Message{Data: msg.Data})
-		id, _ := res.Get(ctx)
-		routings = append(routings, "strava:"+id)
+	if stravaEnabled {
+		resID, err := s.Pub.Publish(ctx, shared.TopicJobUploadStrava, msg.Data)
+		if err != nil {
+			log.Printf("Failed to publish to Strava queue: %v", err)
+		} else {
+			routings = append(routings, "strava:"+resID)
+		}
 	}
 
-	// Future: if config.OtherEnabled ...
-
-	execRef.Set(ctx, map[string]interface{}{
+	s.DB.UpdateExecution(ctx, execID, map[string]interface{}{
 		"status":  "SUCCESS",
 		"outputs": routings,
 		"endTime": time.Now(),
-	}, firestore.MergeAll)
+	})
 
 	log.Printf("Routed activity for %s to %v", eventPayload.UserId, routings)
 	return nil
