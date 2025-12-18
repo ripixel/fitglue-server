@@ -66,3 +66,7 @@ build-go:
 	@for func in $(GO_FUNCTIONS); do \
 		(cd $(FUNCTIONS_DIR)/$$func && go mod tidy && go build -v ./...); \
 	done
+
+local:
+	@./scripts/local_run.sh
+

@@ -31,3 +31,6 @@ fitglue-strava-uploader
 
 # Zip Archives (Terraform Artifacts)
 *.zip
+
+# Logs
+*.log
