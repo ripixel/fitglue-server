@@ -12,11 +12,23 @@ const pubsub = new PubSub();
 const TOPIC_NAME = TOPICS.RAW_ACTIVITY;
 
 // Retrieve secret from environment (secret manager injection)
-const HEVY_SIGNING_SECRET = process.env.HEVY_SIGNING_SECRET || '';
+import { getSecret } from './shared/secrets/secrets';
 
 export const hevyWebhookHandler: HttpFunction = async (req, res) => {
   const executionRef = db.collection('executions').doc();
   const timestamp = new Date().toISOString();
+
+  // Cache check or fetch
+  let signingSecret = process.env.HEVY_SIGNING_SECRET;
+  if (!signingSecret) {
+      try {
+          // Fallback to project ID or default
+          const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'fitglue-project';
+          signingSecret = await getSecret(projectId, 'hevy-signing-secret');
+      } catch (e) {
+          console.warn('Could not fetch secret from GSM:', e);
+      }
+  }
 
   // 1. Initial Log (Audit Trail)
   try {
@@ -38,8 +50,8 @@ export const hevyWebhookHandler: HttpFunction = async (req, res) => {
     const signature = req.headers['x-hevy-signature'] as string;
 
     // In production, we MUST return 401 if secret is configured but signature missing/invalid.
-    if (HEVY_SIGNING_SECRET) {
-         if (!verifySignature(req.body, signature, HEVY_SIGNING_SECRET)) {
+    if (signingSecret) {
+         if (!verifySignature(req.body, signature, signingSecret)) {
             console.warn('Invalid signature attempt');
             await executionRef.update({
                 status: 'FAILED',

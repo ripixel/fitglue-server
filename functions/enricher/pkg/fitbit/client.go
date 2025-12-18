@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 type Client struct {
-	UserID string
-	Client *http.Client // Authenticated client
+	UserID       string
+	ClientID     string
+	ClientSecret string
+	Client       *http.Client // Authenticated client
 }
 
 type HeartRateIntraday struct {
@@ -26,16 +27,23 @@ type HeartRateIntraday struct {
 	} `json:"activities-heart-intraday"`
 }
 
-func NewClient(userID string) *Client {
-	// In real impl: fetch token from Firestore, handle refresh.
+// HeartRateIntraday struct...
+
+func NewClient(userID, clientID, clientSecret string) *Client {
+	// In real impl: fetch token from Firestore using these creds to refresh if needed.
 	return &Client{
-		UserID: userID,
-		Client: http.DefaultClient,
+		UserID:       userID,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Client:       http.DefaultClient,
 	}
 }
 
 // GetHeartRateSeries fetches 1sec resolution HR data for the window
-func (c *Client) GetHeartRateSeries(date string, startTime, endTime string) ([]struct{Time string; Value int}, error) {
+func (c *Client) GetHeartRateSeries(date string, startTime, endTime string) ([]struct {
+	Time  string
+	Value int
+}, error) {
 	// Endpoint: /1/user/[user-id]/activities/heart/date/[date]/1d/1sec/time/[start-time]/[end-time].json
 	// startTime format: HH:MM
 	url := fmt.Sprintf("https://api.fitbit.com/1/user/%s/activities/heart/date/%s/1d/1sec/time/%s/%s.json",
@@ -62,5 +70,21 @@ func (c *Client) GetHeartRateSeries(date string, startTime, endTime string) ([]s
 		return nil, err
 	}
 
-	return data.ActivitiesHeartIntraday.Dataset, nil
+	// Map to return type
+	result := make([]struct {
+		Time  string
+		Value int
+	}, len(data.ActivitiesHeartIntraday.Dataset))
+
+	for i, d := range data.ActivitiesHeartIntraday.Dataset {
+		result[i] = struct {
+			Time  string
+			Value int
+		}{
+			Time:  d.Time,
+			Value: d.Value,
+		}
+	}
+
+	return result, nil
 }

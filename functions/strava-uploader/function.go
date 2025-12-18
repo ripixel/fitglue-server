@@ -15,6 +15,9 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+
+	"fitglue-strava-uploader/pkg/shared"
+	pb "fitglue-strava-uploader/pkg/shared/types/pb/proto"
 )
 
 func init() {
@@ -66,10 +69,10 @@ func UploadToStrava(ctx context.Context, e event.Event) error {
 
 	token := tokens.AccessToken
 	if time.Now().After(tokens.ExpiresAt.Add(-5 * time.Minute)) {
-		// Mock Rotation Logic
+		// TODO: Implement Token Rotation using RefreshToken
 		// token = RefreshStravaToken(tokens.RefreshToken)
 		// userRef.Update(ctx, ...)
-		log.Println("Token refresh mock executed")
+		log.Println("Token expiring soon - rotation required")
 	}
 
 	// 2. Download FIT from GCS

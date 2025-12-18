@@ -11,6 +11,9 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+
+	"fitglue-router/pkg/shared"
+	pb "fitglue-router/pkg/shared/types/pb/proto"
 )
 
 func init() {

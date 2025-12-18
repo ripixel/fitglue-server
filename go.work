@@ -1,0 +1,7 @@
+go 1.21
+
+use (
+	./functions/enricher
+	./functions/router
+	./functions/strava-uploader
+)

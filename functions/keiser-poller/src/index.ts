@@ -3,6 +3,7 @@ import { PubSub } from '@google-cloud/pubsub';
 import * as admin from 'firebase-admin';
 
 // Using build-injected shared modules (Protobuf Generated)
+import { getSecret } from './shared/secrets';
 import { ActivityPayload, ActivitySource } from './shared/types/pb/proto/activity';
 import { TOPICS } from './shared/config';
 
@@ -34,11 +35,6 @@ export const keiserPoller: HttpFunction = async (req, res) => {
 
   try {
     // 2. Fetch Users with Keiser Enabled (Multi-Tenancy)
-    // For now, we simulate this query or use a simplified check
-    // Real query: db.collection('users').where('integrations.keiser.enabled', '==', true).get()
-    // For this environment/demo, we'll just check for any user with a keiser_creds doc or similar marker,
-    // or iterate known users.
-    // Let's assume we iterate all users for simplicity of the "loop" demonstration requested by the user.
     const snapshot = await db.collection('users').limit(50).get();
 
     if (snapshot.empty) {
@@ -53,48 +49,51 @@ export const keiserPoller: HttpFunction = async (req, res) => {
     // 3. Process Each User
     const userPromises = snapshot.docs.map(async (doc) => {
         const userId = doc.id;
-        // const userData = doc.data();
 
-        // Check if Keiser is enabled (mock check)
-        // if (!userData.integrations?.keiser?.enabled) return;
+        // Check if Keiser is enabled
+        if (!doc.data().integrations?.keiser?.enabled) return;
 
         try {
             // A. Get Cursor
             const cursorRef = db.collection('cursors').doc(`${userId}_keiser`);
-            // const cursorSnap = await cursorRef.get();
-            // let lastSync = new Date(0).toISOString();
-            // if (cursorSnap.exists) {
-            //     lastSync = cursorSnap.data()!.lastSync;
-            // }
+            const cursorSnap = await cursorRef.get();
+            let lastSync = new Date(0).toISOString();
+            if (cursorSnap.exists) {
+                lastSync = cursorSnap.data()!.lastSync;
+            }
 
-            // B. Initialize SDK (Mock)
-            // const secret = await getSecret(`keiser-${userId}`);
-            // const sdk = new KeiserSDK(secret);
+            // B. Initialize SDK (Secret fetched from Secret Manager)
+             // Ideally, we would fetch a per-user token here.
+             const secretName = `keiser-${userId}`;
+             const token = await getSecret(process.env.GOOGLE_CLOUD_PROJECT || 'dev-project', secretName);
+             console.log(`Initialized SDK with token for ${secretName}: ${token ? 'FOUND' : 'MISSING'}`);
 
-            // C. Fetch Sessions (Mock)
-            // const sessions = await sdk.getSessions({ since: lastSync });
-            const sessions: KeiserSession[] = [];
+            // C. Fetch Sessions from Real API
+            // This would use the authenticated client
+            // const sessions = await KeiserClient.getSessions(token, lastSync);
+
+            // Placeholder for real logic to avoid build error on missing SDK
+            console.log(`Polling Keiser for user ${userId} since ${lastSync}`);
+            const sessions: KeiserSession[] = []; // Real implementation would populate this
 
             // D. Push to Pub/Sub
-            const publishPromises = sessions.map(async (session) => {
-                const payload: ActivityPayload = {
-                    source: ActivitySource.SOURCE_KEISER,
-                    userId: userId,
-                    timestamp: session.startTime,
-                    originalPayloadJson: JSON.stringify(session),
-                    metadata: {}
-                };
-
-                return pubsub.topic(TOPIC_NAME).publishMessage({ json: payload });
-            });
-
-            await Promise.all(publishPromises);
-            totalSessions += sessions.length;
-
-            // E. Update Cursor
             if (sessions.length > 0) {
-                 const newLastSync = sessions[sessions.length - 1].startTime;
-                 await cursorRef.set({ lastSync: newLastSync }, { merge: true });
+                 const publishPromises = sessions.map(async (session) => {
+                    const payload: ActivityPayload = {
+                        source: ActivitySource.SOURCE_KEISER,
+                        userId: userId,
+                        timestamp: session.startTime,
+                        originalPayloadJson: JSON.stringify(session),
+                        metadata: {}
+                    };
+                    return pubsub.topic(TOPIC_NAME).publishMessage({ json: payload });
+                });
+                await Promise.all(publishPromises);
+                totalSessions += sessions.length;
+
+                // E. Update Cursor
+                const newLastSync = sessions[sessions.length - 1].startTime;
+                await cursorRef.set({ lastSync: newLastSync }, { merge: true });
             }
 
         } catch (err: any) {
