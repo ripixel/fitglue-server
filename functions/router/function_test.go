@@ -42,7 +42,7 @@ func TestRouteActivity(t *testing.T) {
 		UserId: "user_router",
 		GcsUri: "gs://bucket/file.fit",
 	}
-	payloadBytes, _ := json.Marshal(eventPayload)
+	payloadBytes, _ := json.Marshal(&eventPayload)
 
 	psMsg := PubSubMessage{
 		Data: payloadBytes,

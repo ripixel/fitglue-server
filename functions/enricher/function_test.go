@@ -41,7 +41,7 @@ func TestEnrichActivity(t *testing.T) {
 		UserId:    "user_123",
 		Timestamp: time.Now().Format(time.RFC3339),
 	}
-	activityBytes, _ := json.Marshal(activity)
+	activityBytes, _ := json.Marshal(&activity)
 
 	// Create CloudEvent
 	e := event.New()

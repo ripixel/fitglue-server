@@ -146,7 +146,7 @@ func (s *Service) UploadToStrava(ctx context.Context, e event.Event) error {
 		bodyBytes, _ := io.ReadAll(httpResp.Body)
 		errStr := fmt.Sprintf("Strava Error %d: %s", httpResp.StatusCode, string(bodyBytes))
 		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": errStr})
-		return fmt.Errorf(errStr)
+		return fmt.Errorf("%s", errStr)
 	}
 
 	// 4. Handle Response & Poll (Mocked for now)

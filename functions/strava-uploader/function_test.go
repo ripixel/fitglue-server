@@ -76,7 +76,7 @@ func TestUploadToStrava(t *testing.T) {
 		UserId: "user_upload",
 		GcsUri: "gs://fitglue-artifacts/activities/user_upload/123.fit",
 	}
-	payloadBytes, _ := json.Marshal(eventPayload)
+	payloadBytes, _ := json.Marshal(&eventPayload)
 
 	psMsg := PubSubMessage{
 		Data: payloadBytes,

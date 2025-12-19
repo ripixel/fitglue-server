@@ -126,7 +126,7 @@ func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
 	desc := "Enhanced Activity\n\n#PowerMap #HeartrateMap"
 
 	// 5. Publish to Router
-	enrichedEvent := pb.EnrichedActivityEvent{
+	enrichedEvent := &pb.EnrichedActivityEvent{
 		UserId:      rawEvent.UserId,
 		GcsUri:      fmt.Sprintf("gs://%s/%s", bucketName, objName),
 		Description: desc,
