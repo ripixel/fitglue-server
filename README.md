@@ -1,89 +1,123 @@
-# Local Development
+# FitGlue
 
-This guide explains how to run the entire FitGlue stack locally without deploying to Google Cloud.
+**FitGlue** is a serverless fitness data aggregation and routing platform built on Google Cloud Platform. It ingests workout data from multiple sources (Hevy, Keiser, Fitbit), enriches it with standardized formats (FIT files), and routes it to connected services like Strava.
 
-## Prerequisites
-See [README.md](README.md) for core prerequisites.
-- **Functions Framework**: Installed via `npm` (TS) and `go.mod` (Go).
+## Architecture
 
-**Tip:** Run `make setup` first to install all dependencies and generate necessary code.
+FitGlue uses an event-driven, microservices architecture deployed as Google Cloud Functions (Gen 2):
 
-## 1. Configuration (`.env`)
-
-Create a `.env` file to configure local secrets (bypassing Google Secret Manager).
-
-```bash
-cp .env.example .env
+```
+┌─────────────────┐
+│  Data Sources   │
+│  (Hevy, Keiser) │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐      ┌──────────────┐
+│ Ingestion Layer │─────▶│  Pub/Sub     │
+│ (Webhooks/Poll) │      │ (Raw Events) │
+└─────────────────┘      └──────┬───────┘
+                                │
+                                ▼
+                         ┌──────────────┐
+                         │  Enricher    │
+                         │ (FIT Gen)    │
+                         └──────┬───────┘
+                                │
+                                ▼
+                         ┌──────────────┐
+                         │    Router    │
+                         └──────┬───────┘
+                                │
+                                ▼
+                         ┌──────────────┐
+                         │   Strava     │
+                         │  Uploader    │
+                         └──────────────┘
 ```
 
-Edit `.env` to set your mock secrets:
+### Components
+
+- **Hevy Handler** (TypeScript): Webhook receiver for Hevy workout data
+- **Keiser Poller** (TypeScript): Scheduled poller for Keiser M3i bike sessions
+- **Enricher** (Go): Converts raw activity data to FIT files and stores in GCS
+- **Router** (Go): Routes enriched activities to configured destinations
+- **Strava Uploader** (Go): Uploads FIT files to Strava via OAuth
+
+## Features
+
+- 🔄 **Multi-source ingestion**: Hevy webhooks, Keiser polling, extensible for Fitbit/Garmin
+- 📦 **Standardized output**: Generates industry-standard FIT files
+- 🚀 **Serverless**: Auto-scaling Cloud Functions with Pub/Sub event routing
+- 🔐 **Secure**: Secret Manager integration, HMAC signature verification
+- 🧪 **Testable**: Comprehensive unit tests and local development environment
+- 📊 **Observable**: Structured logging with Cloud Logging integration
+
+## Tech Stack
+
+- **Languages**: Go 1.25, TypeScript 5.x
+- **Infrastructure**: Terraform, Google Cloud Functions v2
+- **Storage**: Cloud Storage (FIT files), Firestore (metadata)
+- **Messaging**: Cloud Pub/Sub
+- **CI/CD**: CircleCI with OIDC authentication
+
+## Documentation
+
+- **[Local Development](docs/LOCAL_DEVELOPMENT.md)** - Running the stack locally
+- **[CI/CD Guide](docs/CICD.md)** - Deployment pipeline and infrastructure
+- **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
+- **[Initial Research](docs/INITIAL_RESEARCH.md)** - Background and feasibility analysis
+
+## Quick Start
+
+### Prerequisites
+
+- Go 1.25+
+- Node.js 20+
+- `protoc` (Protocol Buffers compiler)
+- Google Cloud SDK (for deployment)
+
+### Setup
+
 ```bash
-GOOGLE_CLOUD_PROJECT=fitglue-local
-HEVY_SIGNING_SECRET=local-secret
-```
+# Install dependencies and generate code
+make setup
 
-## 2. Starting Services
+# Build all services
+make build
 
-You can start all 5 services simultaneously using the orchestration script.
+# Run tests
+make test
 
-```bash
+# Start local development environment
 make local
 ```
 
-This will spin up:
-- **Hevy Handler** (:8080)
-- **Enricher** (:8081)
-- **Router** (:8082)
-- **Strava Uploader** (:8083)
-- **Keiser Poller** (:8084)
+See [Local Development](docs/LOCAL_DEVELOPMENT.md) for detailed instructions.
 
-Logs are written to individual log files in the root directory (`hevy.log`, `enricher.log`, etc.).
-Press **Ctrl+C** to stop all services.
+## Project Structure
 
-### Manual Start (Debugging)
-If you need to debug a single service, you can run it in isolation:
-
-| Service | Port | Command |
-|---------|------|---------|
-| Hevy Handler | 8080 | `cd src/typescript/hevy-handler && npm run dev` |
-| Enricher | 8081 | `cd src/go/functions/enricher && go run cmd/main.go` |
-| Router | 8082 | `cd src/go/functions/router && go run cmd/main.go` |
-| Strava Uploader | 8083 | `cd src/go/functions/strava-uploader && go run cmd/main.go` |
-| Keiser Poller | 8084 | `cd src/typescript/keiser-poller && PORT=8084 npm run dev` |
-
-## 3. Triggering Events (Simulations)
-
-We provide Node.js scripts to simulate various events in the pipeline. These scripts construct the correct CloudEvent or HTTP payloads expected by the functions.
-
-### A. Ingestion Layer
-**Simulate Hevy Webhook**
-Sends a signed JSON payload to the Hevy Handler.
-```bash
-node scripts/trigger_hevy.js
+```
+fitglue-server/
+├── src/
+│   ├── go/                 # Go monorepo
+│   │   ├── functions/      # Cloud Functions
+│   │   └── pkg/            # Shared libraries
+│   ├── typescript/         # TypeScript workspace
+│   │   ├── hevy-handler/
+│   │   ├── keiser-poller/
+│   │   └── shared/         # @fitglue/shared
+│   └── proto/              # Protocol Buffer definitions
+├── terraform/              # Infrastructure as Code
+├── scripts/                # Local development scripts
+├── integration-tests/      # E2E tests
+└── docs/                   # Documentation
 ```
 
-**Simulate Keiser Poll**
-Trigger the Keiser Poller schedule.
-```bash
-node scripts/trigger_keiser.js
-```
+## Contributing
 
-### B. Transformation Layer
-**Simulate Raw Activity Event**
-Injects a Pub/Sub message (RawActivity protobuffer) into the Enricher.
-```bash
-node scripts/trigger_enricher.js
-```
+This is a personal project, but suggestions and feedback are welcome via issues.
 
-### C. Routing & Egress
-**Simulate Enrichment Complete**
-Injects an EnrichedActivity event into the Router.
-```bash
-node scripts/trigger_router.js
-```
+## License
 
-**Simulate Strava Upload Job**
-Injects an upload job directly to the Strava Uploader.
-```bash
-node scripts/trigger_uploader.js
-```
+MIT

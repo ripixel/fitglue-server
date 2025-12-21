@@ -39,6 +39,9 @@ jobs:
             - ~/.npm
             - src/typescript/node_modules
       - run:
+          name: Build
+          command: make build
+      - run:
           name: Linting
           command: make lint
       - run:
