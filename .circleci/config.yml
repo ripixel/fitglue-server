@@ -69,14 +69,17 @@ jobs:
       - run:
           name: Authenticate with GCP via OIDC
           command: |
+            # Install dependencies for gcloud CLI (Alpine Linux)
+            apk add --no-cache python3 py3-pip curl bash
+
+            # Download and install gcloud SDK
+            curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
+            tar -xf google-cloud-cli-linux-x86_64.tar.gz
+            ./google-cloud-sdk/install.sh --quiet
+            export PATH=$PATH:$(pwd)/google-cloud-sdk/bin
+
             # Create OIDC token file
             echo $CIRCLE_OIDC_TOKEN > /tmp/oidc_token.txt
-
-            # Install gcloud if not present
-            if ! command -v gcloud &> /dev/null; then
-              curl https://sdk.cloud.google.com | bash
-              exec -l $SHELL
-            fi
 
             # Configure credential config for Workload Identity
             gcloud iam workload-identity-pools create-cred-config \
@@ -89,6 +92,7 @@ jobs:
             # Set credentials for terraform
             export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json
             echo "export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json" >> $BASH_ENV
+            echo "export PATH=\$PATH:$(pwd)/google-cloud-sdk/bin" >> $BASH_ENV
       - terraform/init:
           path: ./terraform
       - run:
