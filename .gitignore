@@ -35,6 +35,3 @@ functions/*/vendor/*
 
 # Logs
 *.log
-
-# Agent
-.agent/
