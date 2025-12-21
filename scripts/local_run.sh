@@ -24,23 +24,23 @@ echo "Starting generic services..."
 # 2. Start Services
 # Hevy Handler (TS) - Port 8080
 echo "[Hevy Handler] Starting on :8080..."
-(cd functions/hevy-handler && npm run dev > ../../hevy.log 2>&1) &
+(cd src/typescript/hevy-handler && npm run dev > ../../../hevy.log 2>&1) &
 
 # Keiser Poller (TS) - Port 8084
 echo "[Keiser Poller] Starting on :8084..."
-(cd functions/keiser-poller && PORT=8084 npm run dev > ../../keiser.log 2>&1) &
+(cd src/typescript/keiser-poller && PORT=8084 npm run dev > ../../../keiser.log 2>&1) &
 
 # Enricher (Go) - Port 8081
 echo "[Enricher] Starting on :8081..."
-(cd functions/enricher && FUNCTION_TARGET=EnrichActivity go run cmd/main.go > ../../enricher.log 2>&1) &
+(cd src/go/functions/enricher && FUNCTION_TARGET=EnrichActivity go run cmd/main.go > ../../../../enricher.log 2>&1) &
 
 # Router (Go) - Port 8082
 echo "[Router] Starting on :8082..."
-(cd functions/router && FUNCTION_TARGET=RouteActivity go run cmd/main.go > ../../router.log 2>&1) &
+(cd src/go/functions/router && FUNCTION_TARGET=RouteActivity go run cmd/main.go > ../../../../router.log 2>&1) &
 
 # Strava Uploader (Go) - Port 8083
 echo "[Strava Uploader] Starting on :8083..."
-(cd functions/strava-uploader && FUNCTION_TARGET=UploadToStrava go run cmd/main.go > ../../uploader.log 2>&1) &
+(cd src/go/functions/strava-uploader && FUNCTION_TARGET=UploadToStrava go run cmd/main.go > ../../../../uploader.log 2>&1) &
 
 echo "All services started. Logs are being written to *.log files in root."
 echo "Press Ctrl+C to stop."

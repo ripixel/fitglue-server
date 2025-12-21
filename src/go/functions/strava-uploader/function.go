@@ -17,7 +17,7 @@ import (
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/types"
-	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb/proto"
+	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
 // HTTPClient interface for mocking
