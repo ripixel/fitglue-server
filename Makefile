@@ -44,7 +44,7 @@ inject-shared:
 	@rm -rf functions/*/pkg/shared
 	@echo "Injecting shared code..."
 	# TypeScript Injection
-	# Source: shared/typescript/src/* -> Target: functions/DIR/src/shared/
+	# Source: shared/typescript/src/* -> Target: functions/DIR/src/shared/ (Includes framework)
 	@for func in $(TS_FUNCTIONS); do \
 		echo "Injected TS into $$func"; \
 		mkdir -p $(FUNCTIONS_DIR)/$$func/src/shared; \
@@ -77,5 +77,31 @@ build-go:
 		(cd $(FUNCTIONS_DIR)/$$func && go mod tidy && go build -v ./...); \
 	done
 
-local:
+local: inject-shared
 	@./scripts/local_run.sh
+
+# --- Unified Operations ---
+
+test:
+	@echo "Running all tests..."
+	@echo ">> Go Tests"
+	@for func in $(GO_FUNCTIONS); do \
+		echo "Testing $$func..."; \
+		(cd $(FUNCTIONS_DIR)/$$func && go test ./...); \
+	done
+	@echo ">> Go Tests (Shared)"
+	@(cd shared/go && go test ./...)
+	@echo ">> TypeScript Tests (Hevy)"
+	@(cd functions/hevy-handler && npm test)
+	@echo ">> TypeScript Tests (Keiser)"
+	@(cd functions/keiser-poller && npm test)
+	@echo ">> TypeScript Tests (Shared)"
+	@(cd shared/typescript && npm test)
+
+deploy-dev:
+	@echo "Deploying to Dev (fitglue-server-dev)..."
+	@terraform -chdir=terraform apply -auto-approve -var="project_id=fitglue-server-dev"
+
+verify-dev:
+	@echo "Verifying Dev Environment..."
+	@npx ts-node scripts/verify_cloud.ts

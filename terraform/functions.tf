@@ -37,10 +37,21 @@ resource "google_cloudfunctions2_function" "hevy_handler" {
     max_instance_count = 10
     available_memory   = "256Mi"
     timeout_seconds    = 60
-    environment_variables = {
-      HEVY_SIGNING_SECRET = "projects/${var.project_id}/secrets/hevy-api-key/versions/latest"
+    secret_environment_variables {
+      key        = "HEVY_SIGNING_SECRET"
+      project_id = var.project_id
+      secret     = "hevy-api-key"
+      version    = "latest"
     }
   }
+}
+
+resource "google_cloud_run_service_iam_member" "hevy_handler_invoker" {
+  project  = google_cloudfunctions2_function.hevy_handler.project
+  location = google_cloudfunctions2_function.hevy_handler.location
+  service  = google_cloudfunctions2_function.hevy_handler.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
 
 # ----------------- Keiser Poller -----------------
@@ -48,6 +59,7 @@ data "archive_file" "keiser_poller_zip" {
   type        = "zip"
   source_dir  = "../functions/keiser-poller"
   output_path = "/tmp/keiser-poller.zip"
+  excludes    = ["node_modules", "build"]
 }
 
 resource "google_storage_bucket_object" "keiser_poller_zip" {
@@ -95,7 +107,7 @@ resource "google_cloudfunctions2_function" "enricher" {
   location    = var.region
 
   build_config {
-    runtime     = "go121"
+    runtime     = "go125"
     entry_point = "EnrichActivity"
     source {
       storage_source {
@@ -139,7 +151,7 @@ resource "google_cloudfunctions2_function" "router" {
   location    = var.region
 
   build_config {
-    runtime     = "go121"
+    runtime     = "go125"
     entry_point = "RouteActivity"
     source {
       storage_source {
@@ -175,7 +187,7 @@ resource "google_cloudfunctions2_function" "strava_uploader" {
   location    = var.region
 
   build_config {
-    runtime     = "go121"
+    runtime     = "go125"
     entry_point = "UploadToStrava"
     source {
       storage_source {

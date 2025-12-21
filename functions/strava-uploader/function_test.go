@@ -11,9 +11,10 @@ import (
 
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"fitglue-strava-uploader/pkg/shared/mocks"
-	"fitglue-strava-uploader/pkg/shared/types"
-	pb "fitglue-strava-uploader/pkg/shared/types/pb/proto"
+	"github.com/ripixel/fitglue/shared/go/mocks"
+	"github.com/ripixel/fitglue/shared/go/pkg/bootstrap"
+	"github.com/ripixel/fitglue/shared/go/types"
+	pb "github.com/ripixel/fitglue/shared/go/types/pb/proto"
 )
 
 // MockHTTPClient
@@ -65,10 +66,17 @@ func TestUploadToStrava(t *testing.T) {
 		},
 	}
 
-	svc := &Service{
-		DB:         mockDB,
-		Store:      mockStore,
-		Secrets:    &mocks.MockSecretStore{},
+	// Inject Mocks into Global Service
+	svc = &UploaderService{
+		Service: &bootstrap.Service{
+			DB:      mockDB,
+			Store:   mockStore,
+			Secrets: &mocks.MockSecretStore{},
+			Config: &bootstrap.Config{
+				ProjectID:         "test-project",
+				GCSArtifactBucket: "test-bucket",
+			},
+		},
 		HTTPClient: mockHTTP,
 	}
 
@@ -94,7 +102,7 @@ func TestUploadToStrava(t *testing.T) {
 	e.SetData(event.ApplicationJSON, psMsg)
 
 	// Execute
-	err := svc.UploadToStrava(context.Background(), e)
+	err := UploadToStrava(context.Background(), e)
 	if err != nil {
 		t.Fatalf("UploadToStrava failed: %v", err)
 	}

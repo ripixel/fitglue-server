@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	_ "fitglue-router" // Import function/init
+	_ "github.com/ripixel/fitglue/functions/router" // Import function/init
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )

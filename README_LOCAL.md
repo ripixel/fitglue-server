@@ -3,9 +3,7 @@
 This guide explains how to run the entire FitGlue stack locally without deploying to Google Cloud.
 
 ## Prerequisites
-- **Node.js**: v18+
-- **Go**: v1.21+
-- **Make**: For running orchestration commands.
+See [README.md](README.md) for core prerequisites.
 - **Functions Framework**: Installed via `npm` (TS) and `go.mod` (Go).
 
 ## 1. Configuration (`.env`)

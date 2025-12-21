@@ -5,22 +5,25 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
+    "gcp-build": "npm run build",
     "test": "jest",
     "start": "functions-framework --target=hevyWebhookHandler",
     "dev": "concurrently \"tsc -w\" \"functions-framework --target=hevyWebhookHandler\""
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.10.2",
     "@google-cloud/functions-framework": "^3.0.0",
     "@google-cloud/pubsub": "^4.0.0",
     "@google-cloud/secret-manager": "^5.0.0",
-    "firebase-admin": "^11.8.0"
+    "firebase-admin": "^11.8.0",
+    "typescript": "^5.0.0",
+    "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
     "concurrently": "^8.0.0",
     "jest": "^30.2.0",
-    "ts-jest": "^29.4.6",
-    "typescript": "^5.0.0"
+    "ts-jest": "^29.4.6"
   }
 }

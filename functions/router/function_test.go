@@ -7,9 +7,10 @@ import (
 
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"fitglue-router/pkg/shared/mocks"
-	"fitglue-router/pkg/shared/types"
-	pb "fitglue-router/pkg/shared/types/pb/proto"
+	"github.com/ripixel/fitglue/shared/go/mocks"
+	"github.com/ripixel/fitglue/shared/go/pkg/bootstrap"
+	"github.com/ripixel/fitglue/shared/go/types"
+	pb "github.com/ripixel/fitglue/shared/go/types/pb/proto"
 )
 
 func TestRouteActivity(t *testing.T) {
@@ -33,9 +34,13 @@ func TestRouteActivity(t *testing.T) {
 		},
 	}
 
-	svc := &Service{
+	// Inject Mocks into Global Service
+	svc = &bootstrap.Service{
 		DB:  mockDB,
 		Pub: mockPub,
+		Config: &bootstrap.Config{
+			ProjectID: "test-project",
+		},
 	}
 
 	// Prepare Input
@@ -60,7 +65,7 @@ func TestRouteActivity(t *testing.T) {
 	e.SetData(event.ApplicationJSON, psMsg)
 
 	// Execute
-	err := svc.RouteActivity(context.Background(), e)
+	err := RouteActivity(context.Background(), e)
 	if err != nil {
 		t.Fatalf("RouteActivity failed: %v", err)
 	}

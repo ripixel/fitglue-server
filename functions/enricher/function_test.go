@@ -8,9 +8,10 @@ import (
 
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"fitglue-enricher/pkg/shared/mocks"
-	"fitglue-enricher/pkg/shared/types"
-	pb "fitglue-enricher/pkg/shared/types/pb/proto"
+	"github.com/ripixel/fitglue/shared/go/mocks"
+	"github.com/ripixel/fitglue/shared/go/pkg/bootstrap"
+	"github.com/ripixel/fitglue/shared/go/types"
+	pb "github.com/ripixel/fitglue/shared/go/types/pb/proto"
 )
 
 func TestEnrichActivity(t *testing.T) {
@@ -29,11 +30,16 @@ func TestEnrichActivity(t *testing.T) {
 	mockStore := &mocks.MockBlobStore{} // Default successful write
 	mockSecrets := &mocks.MockSecretStore{}
 
-	svc := &Service{
+	// Inject Mocks into Global Service
+	svc = &bootstrap.Service{
 		DB:      mockDB,
 		Pub:     mockPub,
 		Store:   mockStore,
 		Secrets: mockSecrets,
+		Config: &bootstrap.Config{
+			ProjectID:     "test-project",
+			EnablePublish: false,
+		},
 	}
 
 	// Prepare Input
@@ -63,7 +69,7 @@ func TestEnrichActivity(t *testing.T) {
 	e.SetData(event.ApplicationJSON, psMsg)
 
 	// Execute
-	err := svc.EnrichActivity(context.Background(), e)
+	err := EnrichActivity(context.Background(), e)
 	if err != nil {
 		t.Fatalf("EnrichActivity failed: %v", err)
 	}

@@ -4,80 +4,42 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
-	"os"
+	"log/slog"
 	"time"
 
-	"cloud.google.com/go/firestore"
-	"cloud.google.com/go/pubsub"
-	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"fitglue-enricher/pkg/fit"
-	"fitglue-enricher/pkg/fitbit"
-	"fitglue-enricher/pkg/shared"
-	"fitglue-enricher/pkg/shared/adapters"
-	"fitglue-enricher/pkg/shared/types"
-	pb "fitglue-enricher/pkg/shared/types/pb/proto"
+	"github.com/ripixel/fitglue/functions/enricher/pkg/fit"
+	"github.com/ripixel/fitglue/functions/enricher/pkg/fitbit"
+	shared "github.com/ripixel/fitglue/shared/go"
+	"github.com/ripixel/fitglue/shared/go/pkg/bootstrap"
+	"github.com/ripixel/fitglue/shared/go/types"
+	pb "github.com/ripixel/fitglue/shared/go/types/pb/proto"
 )
 
-var svc *Service
+var svc *bootstrap.Service
 
 func init() {
-	// Initialize real dependencies for Production/Local execution
+	var err error
 	ctx := context.Background()
-	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
-	if projectID == "" {
-		projectID = shared.ProjectID // Fallback to shared constant
-	}
 
-	// Clients
-	fsClient, err := firestore.NewClient(ctx, projectID)
+	// Unified Bootstrap
+	svc, err = bootstrap.NewService(ctx)
 	if err != nil {
-		log.Printf("Warning: Firestore init failed: %v", err)
-	}
-	// Pub/Sub Client
-	var pubAdapter shared.Publisher
-	if os.Getenv("ENABLE_PUBLISH") == "true" {
-		psClient, err := pubsub.NewClient(ctx, projectID)
-		if err != nil {
-			log.Printf("Warning: PubSub init failed: %v", err)
-		}
-		pubAdapter = &adapters.PubSubAdapter{Client: psClient}
-		log.Println("Pub/Sub: REAL (ENABLE_PUBLISH=true)")
-	} else {
-		pubAdapter = &adapters.LogPublisher{}
-		log.Println("Pub/Sub: MOCK (LogPublisher)")
+		slog.Error("Failed to initialize service", "error", err)
+		// We can't really recover here, but Functions runtime will restart us
 	}
 
-	gcsClient, err := storage.NewClient(ctx)
-	if err != nil {
-		log.Printf("Warning: Storage init failed: %v", err)
-	}
-
-	svc = &Service{
-		DB:      &adapters.FirestoreAdapter{Client: fsClient},
-		Pub:     pubAdapter,
-		Store:   &adapters.StorageAdapter{Client: gcsClient},
-		Secrets: &adapters.SecretsAdapter{},
-	}
-
-	functions.CloudEvent("EnrichActivity", svc.EnrichActivity)
+	functions.CloudEvent("EnrichActivity", EnrichActivity)
 }
-
-// Service holds dependencies
-type Service struct {
-	DB      shared.Database
-	Pub     shared.Publisher
-	Store   shared.BlobStore
-	Secrets shared.SecretStore
-}
-
-// PubSubMessage is imported from shared types
 
 // EnrichActivity is the entry point
-func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
+func EnrichActivity(ctx context.Context, e event.Event) error {
+	if svc == nil {
+		return fmt.Errorf("service not initialized")
+	}
+
 	var msg types.PubSubMessage
 	if err := e.DataAs(&msg); err != nil {
 		return fmt.Errorf("failed to get data: %v", err)
@@ -88,8 +50,11 @@ func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("json unmarshal: %v", err)
 	}
 
-	// Logging setup (Firestore Executions)
+	// Structured Logging
 	execID := fmt.Sprintf("%s-%d", rawEvent.UserId, time.Now().UnixNano())
+	logger := slog.With("execution_id", execID, "user_id", rawEvent.UserId, "service", "enricher")
+
+	logger.Info("Starting enrichment", "timestamp", rawEvent.Timestamp)
 
 	// Create Execution Doc
 	execData := map[string]interface{}{
@@ -98,8 +63,8 @@ func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
 		"inputs":    &rawEvent,
 		"startTime": time.Now(),
 	}
-	if err := s.DB.SetExecution(ctx, execID, execData); err != nil {
-		log.Printf("Failed to log start: %v", err)
+	if err := svc.DB.SetExecution(ctx, execID, execData); err != nil {
+		logger.Error("Failed to log start", "error", err)
 	}
 
 	// 1. Logic: Merge Data
@@ -107,30 +72,29 @@ func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
 	duration := 3600
 
 	// 1a. Fetch Credentials
-	clientID, _ := s.Secrets.GetSecret(ctx, shared.ProjectID, "fitbit-client-id")
-	clientSecret, _ := s.Secrets.GetSecret(ctx, shared.ProjectID, "fitbit-client-secret")
+	clientID, _ := svc.Secrets.GetSecret(ctx, svc.Config.ProjectID, "fitbit-client-id")
+	clientSecret, _ := svc.Secrets.GetSecret(ctx, svc.Config.ProjectID, "fitbit-client-secret")
 
 	fbClient := fitbit.NewClient(rawEvent.UserId, clientID, clientSecret)
-	// Fetch actual HR data (Placeholder)
-	_ = fbClient
-	hrStream := make([]int, duration)
-	powerStream := make([]int, duration)
+	_ = fbClient // Placeholder
 
 	// 2. Generate FIT
+	hrStream := make([]int, duration)
+	powerStream := make([]int, duration)
 	fitBytes, err := fit.GenerateFitFile(startTime, duration, powerStream, hrStream)
 	if err != nil {
-		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
+		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
 		return err
 	}
 
 	// 3. Save to GCS
-	bucketName := os.Getenv("GCS_ARTIFACT_BUCKET")
+	bucketName := svc.Config.GCSArtifactBucket
 	if bucketName == "" {
-		bucketName = "fitglue-artifacts" // Default fallback
+		bucketName = "fitglue-artifacts"
 	}
 	objName := fmt.Sprintf("activities/%s/%d.fit", rawEvent.UserId, startTime.Unix())
-	if err := s.Store.Write(ctx, bucketName, objName, fitBytes); err != nil {
-		s.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
+	if err := svc.Store.Write(ctx, bucketName, objName, fitBytes); err != nil {
+		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
 		return err
 	}
 
@@ -145,16 +109,17 @@ func (s *Service) EnrichActivity(ctx context.Context, e event.Event) error {
 	}
 	payload, _ := json.Marshal(enrichedEvent)
 
-	if _, err := s.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
+	if _, err := svc.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
+		logger.Error("Failed to publish", "error", err)
 		return err
 	}
 
-	s.DB.UpdateExecution(ctx, execID, map[string]interface{}{
+	svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{
 		"status":  "SUCCESS",
 		"outputs": enrichedEvent,
 		"endTime": time.Now(),
 	})
 
-	log.Printf("Enrichment complete for %s", rawEvent.Timestamp)
+	logger.Info("Enrichment complete")
 	return nil
 }

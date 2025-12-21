@@ -10,7 +10,7 @@ bin/
 
 # Terraform
 .terraform/
-*.tfstate
+*.tfstate*
 *.tfstate.backup
 .terraform.lock.hcl
 
@@ -28,6 +28,7 @@ go.sum
 fitglue-enricher
 fitglue-router
 fitglue-strava-uploader
+functions/*/vendor/*
 
 # Zip Archives (Terraform Artifacts)
 *.zip

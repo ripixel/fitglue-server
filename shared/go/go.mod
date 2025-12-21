@@ -1,4 +1,4 @@
-module fitglue-shared
+module github.com/ripixel/fitglue/shared/go
 
 go 1.25.5
 

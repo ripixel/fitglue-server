@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	_ "fitglue-strava-uploader" // Import function/init
+	_ "github.com/ripixel/fitglue/functions/strava-uploader" // Import function/init
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
 )

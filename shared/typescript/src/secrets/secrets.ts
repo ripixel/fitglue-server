@@ -1,6 +1,13 @@
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 
-const client = new SecretManagerServiceClient();
+let client: SecretManagerServiceClient;
+
+function getClient() {
+    if (!client) {
+        client = new SecretManagerServiceClient();
+    }
+    return client;
+}
 
 /**
  * Fetches the latest version of a secret from Google Secret Manager.
@@ -20,7 +27,7 @@ export async function getSecret(projectId: string, secretName: string): Promise<
     const name = `projects/${projectId}/secrets/${secretName}/versions/latest`;
 
     try {
-        const [version] = await client.accessSecretVersion({
+        const [version] = await getClient().accessSecretVersion({
             name: name,
         });
 
