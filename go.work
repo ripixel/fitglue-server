@@ -6,5 +6,3 @@ use (
 	./functions/strava-uploader
 	./shared/go
 )
-
-replace github.com/ripixel/fitglue/shared/go => ./shared/go
