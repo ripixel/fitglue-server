@@ -2,6 +2,7 @@ version: 2.1
 
 orbs:
   terraform: circleci/terraform@3.2.0
+  gcp-cli: circleci/gcp-cli@3.2.0
 
 executors:
   unified-executor:
@@ -60,42 +61,31 @@ jobs:
     steps:
       - attach_workspace:
           at: .
+      - gcp-cli/setup:
+          version: latest
       - run:
           name: Authenticate with GCP via OIDC
           command: |
-            # Install dependencies for gcloud CLI (Alpine Linux)
-            apk add --no-cache python3 py3-pip curl bash
-
-            # Download and install gcloud SDK
-            curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
-            tar -xf google-cloud-cli-linux-x86_64.tar.gz
-            ./google-cloud-sdk/install.sh --quiet
-            export PATH=$PATH:$(pwd)/google-cloud-sdk/bin
-
-            # Create OIDC token file
+            # Store OIDC token
             echo $CIRCLE_OIDC_TOKEN > /tmp/oidc_token.txt
 
-            # Configure credential config for Workload Identity
+            # Create credential config
             gcloud iam workload-identity-pools create-cred-config \
               "projects/911679924866/locations/global/workloadIdentityPools/circleci-pool/providers/circleci-provider" \
               --service-account=circleci-deployer@fitglue-server-dev.iam.gserviceaccount.com \
               --output-file=/tmp/gcp_cred_config.json \
               --credential-source-file=/tmp/oidc_token.txt
 
-            # Authenticate with GCP using the credential config
+            # Authenticate
             gcloud auth login --brief --cred-file=/tmp/gcp_cred_config.json
 
             # Set credentials for terraform
-            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json
             echo "export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json" >> $BASH_ENV
-            echo "export PATH=\$PATH:$(pwd)/google-cloud-sdk/bin" >> $BASH_ENV
       - terraform/init:
           path: ./terraform
       - run:
           name: Deploy to << parameters.target >>
-          command: |
-            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json
-            terraform -chdir=terraform apply -auto-approve -var="project_id=fitglue-server-<< parameters.target >>"
+          command: terraform -chdir=terraform apply -auto-approve -var="project_id=fitglue-server-<< parameters.target >>"
 
 workflows:
   version: 2
