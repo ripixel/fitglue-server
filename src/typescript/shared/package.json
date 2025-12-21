@@ -5,6 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
+    "lint": "echo 'No lint configured' && exit 0",
     "build": "tsc"
   },
   "keywords": [],

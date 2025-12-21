@@ -7,6 +7,7 @@
     "build": "tsc",
     "gcp-build": "npm run build",
     "test": "jest",
+    "lint": "echo 'No lint configured' && exit 0",
     "start": "functions-framework --target=hevyWebhookHandler",
     "dev": "concurrently \"tsc -w\" \"functions-framework --target=hevyWebhookHandler\""
   },

@@ -24,7 +24,6 @@ functions/*/src/shared/
 functions/*/pkg/shared/
 
 # Go
-go.sum
 fitglue-enricher
 fitglue-router
 fitglue-strava-uploader
