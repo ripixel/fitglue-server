@@ -93,7 +93,9 @@ jobs:
           path: ./terraform
       - run:
           name: Deploy to << parameters.target >>
-          command: terraform -chdir=terraform apply -auto-approve -var="project_id=fitglue-server-<< parameters.target >>"
+          command: |
+            export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json
+            terraform -chdir=terraform apply -auto-approve -var="project_id=fitglue-server-<< parameters.target >>"
 
 workflows:
   version: 2
