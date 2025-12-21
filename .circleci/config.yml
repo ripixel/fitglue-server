@@ -4,7 +4,6 @@ orbs:
   terraform: circleci/terraform@3.2.0
 
 executors:
-  # unified-executor has Go, Node, and utilities to run 'make setup' and tests
   unified-executor:
     docker:
       - image: cimg/go:1.25.5-node
@@ -25,11 +24,7 @@ jobs:
       - restore_cache:
           keys:
             - go-mod-v1-{{ checksum "go.work.sum" }}
-            - go-mod-v1-
-      - restore_cache:
-          keys:
             - npm-v1-{{ checksum "package-lock.json" }}-{{ checksum "functions/hevy-handler/package-lock.json" }}-{{ checksum "functions/keiser-poller/package-lock.json" }}-{{ checksum "shared/typescript/package-lock.json" }}
-            - npm-v1-
       - run:
           name: Setup Environment (Fresh Clone Simulation)
           command: make setup
@@ -54,7 +49,12 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - .
+            - ~/go/pkg/mod
+            - ~/.npm
+            - node_modules
+            - functions/hevy-handler/node_modules
+            - functions/keiser-poller/node_modules
+            - shared/typescript/node_modules
 
   deploy:
     parameters:
