@@ -63,9 +63,11 @@ inject-shared:
 	@for func in $(GO_FUNCTIONS); do \
 		echo "Injected Go into $$func"; \
 		mkdir -p $(FUNCTIONS_DIR)/$$func/pkg/shared; \
-		rsync -av --exclude='node_modules' --exclude='*_test.go' shared/go/ $(FUNCTIONS_DIR)/$$func/pkg/shared/; \
+		rsync -av --exclude='node_modules' --exclude='*_test.go' --exclude='go.mod' --exclude='go.sum' shared/go/ $(FUNCTIONS_DIR)/$$func/pkg/shared/; \
 		mkdir -p $(FUNCTIONS_DIR)/$$func/pkg/shared/proto; \
 		cp -r shared/proto/* $(FUNCTIONS_DIR)/$$func/pkg/shared/proto/; \
+		# Rewrite imports in injected code to point to local package \
+		find $(FUNCTIONS_DIR)/$$func/pkg/shared -name "*.go" -type f -exec sed -i "s|github.com/ripixel/fitglue/shared/go|github.com/ripixel/fitglue/functions/$$func/pkg/shared|g" {} +; \
 	done
 
 clean:

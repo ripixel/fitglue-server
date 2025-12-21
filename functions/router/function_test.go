@@ -7,10 +7,10 @@ import (
 
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"github.com/ripixel/fitglue/shared/go/mocks"
-	"github.com/ripixel/fitglue/shared/go/pkg/bootstrap"
-	"github.com/ripixel/fitglue/shared/go/types"
-	pb "github.com/ripixel/fitglue/shared/go/types/pb/proto"
+	"github.com/ripixel/fitglue/functions/router/pkg/shared/mocks"
+	"github.com/ripixel/fitglue/functions/router/pkg/shared/pkg/bootstrap"
+	"github.com/ripixel/fitglue/functions/router/pkg/shared/types"
+	pb "github.com/ripixel/fitglue/functions/router/pkg/shared/types/pb/proto"
 )
 
 func TestRouteActivity(t *testing.T) {

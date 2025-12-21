@@ -12,10 +12,10 @@ import (
 
 	"github.com/ripixel/fitglue/functions/enricher/pkg/fit"
 	"github.com/ripixel/fitglue/functions/enricher/pkg/fitbit"
-	shared "github.com/ripixel/fitglue/shared/go"
-	"github.com/ripixel/fitglue/shared/go/pkg/bootstrap"
-	"github.com/ripixel/fitglue/shared/go/types"
-	pb "github.com/ripixel/fitglue/shared/go/types/pb/proto"
+	shared "github.com/ripixel/fitglue/functions/enricher/pkg/shared"
+	"github.com/ripixel/fitglue/functions/enricher/pkg/shared/pkg/bootstrap"
+	"github.com/ripixel/fitglue/functions/enricher/pkg/shared/types"
+	pb "github.com/ripixel/fitglue/functions/enricher/pkg/shared/types/pb/proto"
 )
 
 var svc *bootstrap.Service
