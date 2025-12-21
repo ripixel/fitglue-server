@@ -98,7 +98,7 @@ lint:
 	@echo "Linting Go..."
 	@for func in $(GO_FUNCTIONS); do \
 		echo "Linting $$func..."; \
-		(cd $(FUNCTIONS_DIR)/$$func && go vet ./...); \
+		(cd $(FUNCTIONS_DIR)/$$func && GOWORK=off go vet ./...); \
 	done
 	@(cd shared/go && go vet ./...)
 	@echo "Linting TypeScript (Type Check)..."
