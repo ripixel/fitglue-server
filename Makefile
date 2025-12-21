@@ -82,7 +82,7 @@ build-ts:
 build-go:
 	@echo "Building Go functions..."
 	@for func in $(GO_FUNCTIONS); do \
-		(cd $(FUNCTIONS_DIR)/$$func && go mod tidy && GOWORK=off go build -v ./...); \
+		(cd $(FUNCTIONS_DIR)/$$func && GOWORK=off go mod tidy && GOWORK=off go build -v ./...); \
 	done
 
 prepare-shared-ts:
