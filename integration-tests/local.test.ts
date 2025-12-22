@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { randomUUID, createHmac } from 'crypto';
-import { setupTestUser, cleanupTestUser } from './setup';
+import { setupTestUser } from './setup';
+import { cleanupTestUser } from './cleanup';
 
 const HEVY_SECRET = 'local-secret'; // Matches .env
 

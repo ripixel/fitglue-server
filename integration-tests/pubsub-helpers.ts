@@ -47,13 +47,16 @@ export async function publishRawActivity(
  * Publish a message to the enriched-activity topic
  * Triggers the Router function
  */
-export async function publishEnrichedActivity(payload: {
-  user_id: string;
-  activity_id: string;
-  gcs_uri: string;
-  description: string;
-  metadata_json: string;
-}): Promise<string> {
+export async function publishEnrichedActivity(
+  payload: {
+    user_id: string;
+    activity_id?: string;
+    gcs_uri: string;
+    description: string;
+    metadata_json?: string;
+  },
+  testRunId?: string
+): Promise<string> {
   if (!config.topics) {
     throw new Error('Pub/Sub topics not configured for this environment');
   }
@@ -62,7 +65,10 @@ export async function publishEnrichedActivity(payload: {
   const topic = pubsub.topic(config.topics.enrichedActivity);
 
   const dataBuffer = Buffer.from(JSON.stringify(payload));
-  const messageId = await topic.publishMessage({ data: dataBuffer });
+  const messageId = await topic.publishMessage({
+    data: dataBuffer,
+    ...(testRunId && { attributes: { test_run_id: testRunId } })
+  });
 
   return messageId;
 }
@@ -71,12 +77,14 @@ export async function publishEnrichedActivity(payload: {
  * Publish a message to the upload-strava topic
  * Triggers the Strava Uploader function
  */
-export async function publishUploadJob(payload: {
-  user_id: string;
-  activity_id: string;
-  gcs_uri: string;
-  description: string;
-}): Promise<string> {
+export async function publishUploadJob(
+  payload: {
+    user_id: string;
+    gcs_uri: string;
+    description?: string;
+  },
+  testRunId?: string
+): Promise<string> {
   if (!config.topics) {
     throw new Error('Pub/Sub topics not configured for this environment');
   }
@@ -85,7 +93,10 @@ export async function publishUploadJob(payload: {
   const topic = pubsub.topic(config.topics.uploadStrava);
 
   const dataBuffer = Buffer.from(JSON.stringify(payload));
-  const messageId = await topic.publishMessage({ data: dataBuffer });
+  const messageId = await topic.publishMessage({
+    data: dataBuffer,
+    ...(testRunId && { attributes: { test_run_id: testRunId } })
+  });
 
   return messageId;
 }

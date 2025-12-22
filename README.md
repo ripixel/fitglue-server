@@ -51,9 +51,10 @@ FitGlue uses an event-driven, microservices architecture deployed as Google Clou
 - 📦 **Standardized output**: Generates industry-standard FIT files
 - 🚀 **Serverless**: Auto-scaling Cloud Functions with Pub/Sub event routing
 - 🔐 **Secure**: Secret Manager integration, HMAC signature verification
-- 🧪 **Testable**: Comprehensive unit tests and local development environment
-- 📊 **Observable**: Structured logging with Cloud Logging integration
+- 🧪 **Testable**: Comprehensive unit tests, integration tests with test run ID tracking
+- 📊 **Observable**: Structured logging, automatic execution tracking, Firestore audit logs
 
+- 🎯 **Framework-driven**: Consistent execution logging across all functions (Go & TypeScript)
 ## Tech Stack
 
 - **Languages**: Go 1.25, TypeScript 5.x
@@ -64,10 +65,12 @@ FitGlue uses an event-driven, microservices architecture deployed as Google Clou
 
 ## Documentation
 
+- **[Initial Research](docs/INITIAL_RESEARCH.md)** - Background and feasibility analysis
+- **[Execution Logging](docs/EXECUTION_LOGGING.md)** - Framework architecture and patterns
 - **[Local Development](docs/LOCAL_DEVELOPMENT.md)** - Running the stack locally
 - **[CI/CD Guide](docs/CICD.md)** - Deployment pipeline and infrastructure
 - **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
-- **[Initial Research](docs/INITIAL_RESEARCH.md)** - Background and feasibility analysis
+- **[Integration Tests](docs/INTEGRATION_TESTS.md)** - Integration tests and verification
 
 ## Quick Start
 

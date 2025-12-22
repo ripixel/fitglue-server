@@ -102,15 +102,25 @@ func extractEventMetadata(e event.Event) (userID string, testRunID string) {
 				userID = uid
 			}
 		}
+
+		// Extract test_run_id from Pub/Sub message attributes
+		if msg.Message.Attributes != nil {
+			if trid, ok := msg.Message.Attributes["test_run_id"]; ok {
+				testRunID = trid
+			}
+		}
 	}
 
-	// Check event extensions for test_run_id (from HTTP headers or Pub/Sub attributes)
-	extensions := e.Extensions()
-	if trid, ok := extensions["test_run_id"].(string); ok {
-		testRunID = trid
-	}
-	if trid, ok := extensions["testrunid"].(string); ok {
-		testRunID = trid
+	// For HTTP requests, check CloudEvent extensions
+	// (HTTP headers are mapped to extensions by Functions Framework)
+	if testRunID == "" {
+		extensions := e.Extensions()
+		if trid, ok := extensions["test_run_id"].(string); ok {
+			testRunID = trid
+		}
+		if trid, ok := extensions["testrunid"].(string); ok {
+			testRunID = trid
+		}
 	}
 
 	return userID, testRunID

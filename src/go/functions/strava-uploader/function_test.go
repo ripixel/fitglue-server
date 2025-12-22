@@ -89,7 +89,8 @@ func TestUploadToStrava(t *testing.T) {
 
 	psMsg := types.PubSubMessage{
 		Message: struct {
-			Data []byte `json:"data"`
+			Data       []byte            `json:"data"`
+			Attributes map[string]string `json:"attributes"`
 		}{
 			Data: payloadBytes,
 		},
