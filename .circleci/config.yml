@@ -55,6 +55,8 @@ jobs:
     parameters:
       target:
         type: string
+      project_number:
+        type: string
     executor:
       name: terraform/default
       tag: "1.5.7"
@@ -68,6 +70,9 @@ jobs:
       - run:
           name: Authenticate with GCP via OIDC
           command: |
+            PROJECT_ID="fitglue-server-<< parameters.target >>"
+            PROJECT_NUMBER="<< parameters.project_number >>"
+
             # Download and install gcloud SDK
             curl -O https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
             tar -xf google-cloud-cli-linux-x86_64.tar.gz
@@ -79,8 +84,8 @@ jobs:
 
             # Create credential config
             gcloud iam workload-identity-pools create-cred-config \
-              "projects/911679924866/locations/global/workloadIdentityPools/circleci-pool/providers/circleci-provider" \
-              --service-account=circleci-deployer@fitglue-server-dev.iam.gserviceaccount.com \
+              "projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/circleci-pool/providers/circleci-provider" \
+              --service-account=circleci-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
               --output-file=/tmp/gcp_cred_config.json \
               --credential-source-file=/tmp/oidc_token.txt
 
@@ -97,7 +102,7 @@ jobs:
           name: Terraform Init
           command: |
              export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_cred_config.json
-             terraform -chdir=terraform init
+             terraform -chdir=terraform init -backend-config=envs/<< parameters.target >>.backend.tfvars
       - run:
           name: Deploy to << parameters.target >>
           command: |
@@ -112,6 +117,7 @@ workflows:
       - deploy:
           name: deploy-dev
           target: dev
+          project_number: "911679924866"
           requires:
             - build-and-test
           filters:
@@ -120,6 +126,7 @@ workflows:
       - deploy:
           name: deploy-test
           target: test
+          project_number: "797085295878"
           requires:
             - deploy-dev
       - approve-prod:
@@ -129,5 +136,6 @@ workflows:
       - deploy:
           name: deploy-prod
           target: prod
+          project_number: "605889586984"
           requires:
             - approve-prod

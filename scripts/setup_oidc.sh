@@ -3,16 +3,38 @@ set -e
 
 # GCP OIDC Setup for CircleCI
 # This script configures Workload Identity Federation for keyless authentication
+#
+# Usage: ./scripts/setup_oidc.sh <environment>
+# Example: ./scripts/setup_oidc.sh test
 
-PROJECT_ID="fitglue-server-dev"
-PROJECT_NUMBER="911679924866"
+# Validate environment argument
+ENV=${1:-dev}
+if [[ ! "$ENV" =~ ^(dev|test|prod)$ ]]; then
+  echo "❌ Error: Invalid environment '$ENV'"
+  echo "Usage: $0 <dev|test|prod>"
+  exit 1
+fi
+
+PROJECT_ID="fitglue-server-${ENV}"
 CIRCLECI_ORG_ID="b2fc92f7-4f8d-4676-95b1-94d7f15c0a8e"
 POOL_NAME="circleci-pool"
 PROVIDER_NAME="circleci-provider"
 SA_NAME="circleci-deployer"
 
 echo "🔧 Setting up OIDC for CircleCI -> GCP authentication"
+echo "Environment: $ENV"
 echo "Project: $PROJECT_ID"
+echo ""
+
+# Get project number dynamically
+echo "📊 Fetching project number..."
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
+if [ -z "$PROJECT_NUMBER" ]; then
+  echo "❌ Error: Could not fetch project number for $PROJECT_ID"
+  echo "Make sure the project exists and you have access to it."
+  exit 1
+fi
+echo "Project Number: $PROJECT_NUMBER"
 echo ""
 
 # 1. Create Workload Identity Pool

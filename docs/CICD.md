@@ -11,8 +11,10 @@ We use **CircleCI** for our CI/CD pipeline, connecting to **GCP** using **OpenID
 The CI/CD pipeline automatically:
 1. **Builds and tests** all code on every commit
 2. **Deploys to Dev** automatically on `main` branch
-3. **Deploys to Test** after manual approval
+3. **Deploys to Test** automatically after Dev deployment succeeds
 4. **Deploys to Prod** after manual approval
+
+All three environments (Dev, Test, Prod) are configured with OIDC authentication.
 
 ## Setting Up OIDC for a New Environment
 
