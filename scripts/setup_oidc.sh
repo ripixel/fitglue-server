@@ -37,6 +37,14 @@ fi
 echo "Project Number: $PROJECT_NUMBER"
 echo ""
 
+# Enable required APIs
+echo "🔌 Enabling required APIs..."
+gcloud services enable iamcredentials.googleapis.com --project="$PROJECT_ID"
+gcloud services enable cloudresourcemanager.googleapis.com --project="$PROJECT_ID"
+gcloud services enable iam.googleapis.com --project="$PROJECT_ID"
+echo "APIs enabled"
+echo ""
+
 # 1. Create Workload Identity Pool
 echo "📦 Creating Workload Identity Pool..."
 gcloud iam workload-identity-pools create "$POOL_NAME" \
@@ -53,6 +61,7 @@ gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_NAME" \
   --workload-identity-pool="$POOL_NAME" \
   --display-name="CircleCI OIDC Provider" \
   --issuer-uri="https://oidc.circleci.com/org/$CIRCLECI_ORG_ID" \
+  --allowed-audiences="$CIRCLECI_ORG_ID" \
   --attribute-mapping="google.subject=assertion.sub,attribute.project_id=assertion.aud" \
   --attribute-condition="assertion.aud=='$CIRCLECI_ORG_ID'" || echo "Provider already exists, continuing..."
 

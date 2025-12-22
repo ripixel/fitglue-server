@@ -20,28 +20,36 @@ All three environments (Dev, Test, Prod) are configured with OIDC authentication
 
 ### Step 1: Run the Setup Script
 
-We provide `scripts/setup_oidc.sh` to automate the GCP configuration. Run it for each environment:
+We provide `scripts/setup_oidc.sh` to automate the GCP configuration. The script accepts the environment as a parameter:
 
 ```bash
-# For Dev (already configured)
-./scripts/setup_oidc.sh
+# Usage: ./scripts/setup_oidc.sh <environment>
+# Valid environments: dev, test, prod
 
-# For Test (update script with test project ID)
-# Edit scripts/setup_oidc.sh: PROJECT_ID="fitglue-server-test"
-./scripts/setup_oidc.sh
-
-# For Prod (update script with prod project ID)
-# Edit scripts/setup_oidc.sh: PROJECT_ID="fitglue-server-prod"
-./scripts/setup_oidc.sh
+./scripts/setup_oidc.sh dev   # For Dev
+./scripts/setup_oidc.sh test  # For Test
+./scripts/setup_oidc.sh prod  # For Prod
 ```
 
-### Step 2: Enable Required APIs
+The script will automatically:
+- Validate the environment parameter
+- Fetch the project number dynamically
+- **Enable required APIs** (IAM Credentials, Cloud Resource Manager, IAM)
+- Create the Workload Identity Pool
+- Create the OIDC Provider
+- Create the CircleCI deployer service account
+- Grant necessary IAM permissions
 
-```bash
-gcloud services enable cloudresourcemanager.googleapis.com --project=fitglue-server-<ENV>
-gcloud services enable iam.googleapis.com --project=fitglue-server-<ENV>
-gcloud services enable iamcredentials.googleapis.com --project=fitglue-server-<ENV>
-```
+### Step 2: Verify OIDC Provider Configuration (Optional)
+
+After running the script, you can optionally verify the OIDC provider configuration:
+
+1. Go to [IAM & Admin → Workload Identity Federation](https://console.cloud.google.com/iam-admin/workload-identity-pools)
+2. Select the `circleci-pool`
+3. Click on `circleci-provider`
+4. Verify **Allowed audiences** contains your CircleCI Organization ID: `b2fc92f7-4f8d-4676-95b1-94d7f15c0a8e`
+
+> **Note**: The setup script automatically configures the allowed audiences, so this verification step is optional.
 
 ### Step 3: Update CircleCI Config
 
