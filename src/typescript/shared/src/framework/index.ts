@@ -1,6 +1,7 @@
 import { HttpFunction } from '@google-cloud/functions-framework';
 import * as admin from 'firebase-admin';
 import * as winston from 'winston';
+import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from '../execution/logger';
 
 // Initialize Firebase (Idempotent)
 if (admin.apps.length === 0) {
@@ -48,11 +49,18 @@ export type FrameworkHandler = (
 
 export function createCloudFunction(handler: FrameworkHandler): HttpFunction {
   return async (req, res) => {
-    const timestamp = new Date().toISOString();
+    const serviceName = process.env.K_SERVICE || 'unknown-function';
 
-    // Auto-create Execution ID
-    const executionRef = db.collection('executions').doc();
-    const executionId = executionRef.id;
+    // Log execution start
+    let executionId: string;
+    try {
+      executionId = await logExecutionStart(db, serviceName, {
+        triggerType: 'http',
+      });
+    } catch (e) {
+      logger.warn('Failed to log execution start', { error: e });
+      executionId = 'unknown';
+    }
 
     const ctx: FrameworkContext = {
       db,
@@ -60,51 +68,18 @@ export function createCloudFunction(handler: FrameworkHandler): HttpFunction {
       executionId
     };
 
-    // 1. Audit Log Start
     try {
-        // Try to identify service name from env or default
-        const serviceName = process.env.K_SERVICE || 'unknown-function';
-
-        await executionRef.set({
-            service: serviceName,
-            status: 'STARTED',
-            startTime: timestamp,
-            trigger: 'http'
-        });
-    } catch (e) {
-        ctx.logger.warn('Failed to write audit log start', { error: e });
-    }
-
-    try {
-      // 2. Execute Handler
+      // Execute Handler
       const result = await handler(req, res, ctx);
 
-      // 3. Audit Log Success
-      if (!res.headersSent) {
-          // If handler didn't send response, we send a default one?
-          // Use Case: Handler might just return data and we send it.
-          // For now, assume handler manages response OR returns data.
-          // Let's assume handler sends response for flexibility, but returns output for logging.
-      }
-
-      // Update execution with result if provided (optional)
-      const outputs = result || {};
-
-      await executionRef.update({
-          status: 'SUCCESS',
-          outputs: outputs,
-          endTime: new Date().toISOString()
-      });
+      // Log execution success
+      await logExecutionSuccess(db, executionId, result || {});
 
     } catch (err: any) {
-      // 4. Audit Log Failure
+      // Log execution failure
       ctx.logger.error('Function failed', { error: err.message, stack: err.stack });
 
-      await executionRef.update({
-          status: 'FAILED',
-          error: err.message || 'Unknown error',
-          endTime: new Date().toISOString()
-      });
+      await logExecutionFailure(db, executionId, err);
 
       if (!res.headersSent) {
         res.status(500).send('Internal Server Error');
