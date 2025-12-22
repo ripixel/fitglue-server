@@ -64,6 +64,7 @@ func RouteActivity(ctx context.Context, e event.Event) error {
 
 	execRefData := map[string]interface{}{
 		"service":   "router",
+		"user_id":   eventPayload.UserId,
 		"status":    "STARTED",
 		"inputs":    eventPayload.UserId,
 		"timestamp": time.Now(),

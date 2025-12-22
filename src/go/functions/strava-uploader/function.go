@@ -88,6 +88,7 @@ func UploadToStrava(ctx context.Context, e event.Event) error {
 
 	execData := map[string]interface{}{
 		"service":   "strava-uploader",
+		"user_id":   eventPayload.UserId,
 		"status":    "STARTED",
 		"inputs":    eventPayload.UserId,
 		"timestamp": time.Now(),

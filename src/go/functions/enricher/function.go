@@ -68,6 +68,7 @@ func EnrichActivity(ctx context.Context, e event.Event) error {
 	// Create Execution Doc
 	execData := map[string]interface{}{
 		"service":   "enricher",
+		"user_id":   rawEvent.UserId,
 		"status":    "STARTED",
 		"inputs":    &rawEvent,
 		"timestamp": time.Now(),
