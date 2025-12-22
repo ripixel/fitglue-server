@@ -53,6 +53,17 @@ describe('Deployed Environment Integration Tests', () => {
           validateStatus: () => true, // Accept any status
         });
 
+        // We expect either:
+        // - 401/403 (signature verification failed - good!)
+        // - 200 (signature verification passed or disabled - also acceptable for test)
+        expect([200, 401, 403]).toContain(res.status);
+        console.log(`[Hevy Webhook] Response status: ${res.status}`);
+      } catch (e: any) {
+        // Network errors are failures
+        throw new Error(`Failed to reach Hevy webhook: ${e.message}`);
+      }
+    });
+
     it('should trigger Keiser Poller manually', async () => {
       if (!config.endpoints?.keiserPoller) {
         throw new Error('Keiser Poller endpoint not configured');
@@ -73,17 +84,6 @@ describe('Deployed Environment Integration Tests', () => {
         console.log(`[Keiser Poller] Response status: ${res.status}`);
       } catch (e: any) {
         throw new Error(`Failed to reach Keiser Poller: ${e.message}`);
-      }
-    });
-
-        // We expect either:
-        // - 401/403 (signature verification failed - good!)
-        // - 200 (signature verification passed or disabled - also acceptable for test)
-        expect([200, 401, 403]).toContain(res.status);
-        console.log(`[Hevy Webhook] Response status: ${res.status}`);
-      } catch (e: any) {
-        // Network errors are failures
-        throw new Error(`Failed to reach Hevy webhook: ${e.message}`);
       }
     });
   });
