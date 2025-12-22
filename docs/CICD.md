@@ -34,11 +34,15 @@ We provide `scripts/setup_oidc.sh` to automate the GCP configuration. The script
 The script will automatically:
 - Validate the environment parameter
 - Fetch the project number dynamically
-- **Enable required APIs** (IAM Credentials, Cloud Resource Manager, IAM)
+- **Enable required APIs** (IAM Credentials, Cloud Resource Manager, IAM, Cloud Functions, Cloud Run, Cloud Build, Artifact Registry, Eventarc, Pub/Sub, Firestore, Cloud Scheduler, Cloud Storage)
 - Create the Workload Identity Pool
-- Create the OIDC Provider
+- Create the OIDC Provider with allowed audiences
 - Create the CircleCI deployer service account
-- Grant necessary IAM permissions
+- **Grant necessary IAM permissions**:
+  - `roles/editor` - Broad permissions for most resources
+  - `roles/datastore.owner` - Firestore database creation
+  - `roles/run.admin` - Cloud Run IAM policy management
+  - `roles/resourcemanager.projectIamAdmin` - Project-level IAM bindings
 
 ### Step 2: Verify OIDC Provider Configuration (Optional)
 

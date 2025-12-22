@@ -85,10 +85,32 @@ gcloud iam service-accounts create "$SA_NAME" \
 
 # 4. Grant permissions to Service Account
 echo "🔐 Granting permissions to Service Account..."
+
+# Grant Editor role (broad permissions for most resources)
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
   --role="roles/editor" \
   --condition=None
+
+# Grant Datastore Owner (required for Firestore database creation)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/datastore.owner" \
+  --condition=None
+
+# Grant Cloud Run Admin (required for setting IAM policies on Cloud Run services)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/run.admin" \
+  --condition=None
+
+# Grant Project IAM Admin (required for setting project-level IAM bindings)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/resourcemanager.projectIamAdmin" \
+  --condition=None
+
+echo "Permissions granted"
 
 # 5. Allow CircleCI to impersonate the Service Account
 echo "🎭 Configuring Workload Identity binding..."
