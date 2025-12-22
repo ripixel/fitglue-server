@@ -46,7 +46,7 @@ export const cleanupTestUser = async (userId: string) => {
   // For now: Skip execution cleanup to avoid complexity, or try to list collection and filter manually (slow).
   // Let's implement GCS cleanup as it's more important for cost/storage.
 
-  // 3. Delete GCS Folder
+  // Delete GCS artifacts for this test user
   const bucket = storage.bucket(GCS_BUCKET);
   const prefix = `activities/${userId}/`;
   console.log(`[Cleanup] Deleting GCS folder: gs://${GCS_BUCKET}/${prefix}`);

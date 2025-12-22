@@ -42,9 +42,8 @@ describe('Deployed Environment Integration Tests', () => {
         },
       };
 
-      // Note: In deployed environment, we need the actual HEVY_SIGNING_SECRET
-      // For now, we'll test that the endpoint is reachable and returns a response
-      // A 401/403 would indicate signature verification is working
+      // Testing endpoint reachability with invalid signature
+      // Expected: 200 (no signature check), 401/403 (signature verification enabled)
       try {
         const res = await axios.post(config.endpoints.hevyWebhook, payload, {
           headers: {
@@ -131,9 +130,6 @@ describe('Deployed Environment Integration Tests', () => {
       const messageId = await publishUploadJob(payload);
       console.log(`[Uploader] Published message: ${messageId}`);
 
-      // Wait for function execution
-      // Note: This will likely fail due to missing GCS file or invalid Strava token
-      // But we're verifying the function is triggered and processes the message
       console.log('[Uploader] Waiting for execution activity...');
       await waitForExecutionActivity({
         timeout: 45000,
