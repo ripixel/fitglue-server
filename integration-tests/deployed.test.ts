@@ -1,12 +1,14 @@
 import axios from 'axios';
 import { randomUUID } from 'crypto';
-import { setupTestUser, cleanupTestUser } from './setup';
+import { setupTestUser } from "./setup";
+import { cleanupTestUser, cleanupExecutions, cleanupGCSArtifacts } from "./cleanup";
 import { publishRawActivity, publishEnrichedActivity, publishUploadJob } from './pubsub-helpers';
 import { waitForExecutionActivity } from './verification-helpers';
 import { config } from './config';
 
 describe('Deployed Environment Integration Tests', () => {
   let userId: string;
+  const testRunIds: string[] = []; // Track all test run IDs for cleanup
 
   beforeAll(async () => {
     // Verify we're not running in local mode
@@ -23,13 +25,23 @@ describe('Deployed Environment Integration Tests', () => {
   });
 
   afterAll(async () => {
+    // Clean up all executions from all tests
+    if (testRunIds.length > 0) {
+      await cleanupExecutions(testRunIds);
+    }
+
+    // Clean up user and GCS artifacts
     if (userId) {
+      await cleanupGCSArtifacts(userId);
       await cleanupTestUser(userId);
     }
   });
 
   describe('HTTP-triggered functions', () => {
     it('should accept Hevy webhook', async () => {
+      const testRunId = randomUUID();
+      testRunIds.push(testRunId);
+
       if (!config.endpoints?.hevyWebhook) {
         throw new Error('Hevy webhook endpoint not configured');
       }
@@ -49,6 +61,7 @@ describe('Deployed Environment Integration Tests', () => {
           headers: {
             'Content-Type': 'application/json',
             'X-Hevy-Signature': 'invalid-signature-for-testing',
+            'X-Test-Run-Id': testRunId,
           },
           validateStatus: () => true, // Accept any status
         });
@@ -65,6 +78,9 @@ describe('Deployed Environment Integration Tests', () => {
     });
 
     it('should trigger Keiser Poller manually', async () => {
+      const testRunId = randomUUID();
+      testRunIds.push(testRunId);
+
       if (!config.endpoints?.keiserPoller) {
         throw new Error('Keiser Poller endpoint not configured');
       }
@@ -75,6 +91,7 @@ describe('Deployed Environment Integration Tests', () => {
         const res = await axios.post(config.endpoints.keiserPoller, {}, {
           headers: {
             'Content-Type': 'application/json',
+            'X-Test-Run-Id': testRunId,
           },
           validateStatus: () => true,
         });
@@ -89,10 +106,13 @@ describe('Deployed Environment Integration Tests', () => {
   });
 
   describe('Pub/Sub-triggered functions', () => {
-    // Increase timeout for these tests as Cloud Functions can ta time to cold start
+    // Increase timeout for these tests as Cloud Functions can take time to cold start
     jest.setTimeout(60000); // 60 seconds
 
     it('should trigger Enricher via Pub/Sub', async () => {
+      const testRunId = randomUUID();
+      testRunIds.push(testRunId);
+
       const payload = {
         source: 2, // HEVY
         user_id: userId,
@@ -102,13 +122,13 @@ describe('Deployed Environment Integration Tests', () => {
       };
 
       console.log('[Enricher] Publishing to raw-activity topic...');
-      const messageId = await publishRawActivity(payload);
+      const messageId = await publishRawActivity(payload, testRunId);
       console.log(`[Enricher] Published message: ${messageId}`);
 
       // Wait for function execution
-      // The enricher should process the message and create an execution record
       console.log('[Enricher] Waiting for execution activity...');
       await waitForExecutionActivity({
+        testRunId,
         timeout: 45000, // 45s - Cloud Functions can take time to cold start
         checkInterval: 3000, // Check every 3s
         minExecutions: 1,
@@ -118,21 +138,23 @@ describe('Deployed Environment Integration Tests', () => {
     });
 
     it('should trigger Router via Pub/Sub', async () => {
+      const testRunId = randomUUID();
+      testRunIds.push(testRunId);
+
       const payload = {
         user_id: userId,
-        activity_id: `act_${randomUUID()}`,
-        gcs_uri: `gs://${config.gcsBucket}/activities/${userId}/test.fit`,
-        description: 'Deployed Integration Test Activity',
-        metadata_json: JSON.stringify({ test: true }),
+        gcs_uri: 'gs://test-bucket/test.fit',
+        description: 'Test activity',
       };
 
       console.log('[Router] Publishing to enriched-activity topic...');
-      const messageId = await publishEnrichedActivity(payload);
+      const messageId = await publishEnrichedActivity(payload, testRunId);
       console.log(`[Router] Published message: ${messageId}`);
 
       // Wait for function execution
       console.log('[Router] Waiting for execution activity...');
       await waitForExecutionActivity({
+        testRunId,
         timeout: 45000,
         checkInterval: 3000,
         minExecutions: 1,
@@ -142,19 +164,22 @@ describe('Deployed Environment Integration Tests', () => {
     });
 
     it('should trigger Strava Uploader via Pub/Sub', async () => {
+      const testRunId = randomUUID();
+      testRunIds.push(testRunId);
+
       const payload = {
         user_id: userId,
-        activity_id: `act_${randomUUID()}`,
-        gcs_uri: `gs://${config.gcsBucket}/activities/${userId}/test.fit`,
-        description: 'Deployed Integration Test Upload',
+        gcs_uri: 'gs://test-bucket/test.fit',
+        description: 'Test upload',
       };
 
       console.log('[Uploader] Publishing to upload-strava topic...');
-      const messageId = await publishUploadJob(payload);
+      const messageId = await publishUploadJob(payload, testRunId);
       console.log(`[Uploader] Published message: ${messageId}`);
 
       console.log('[Uploader] Waiting for execution activity...');
       await waitForExecutionActivity({
+        testRunId,
         timeout: 45000,
         checkInterval: 3000,
         minExecutions: 1,
@@ -164,37 +189,38 @@ describe('Deployed Environment Integration Tests', () => {
     });
   });
 
-  describe('End-to-end flow', () => {
+  describe('End-to-end pipeline', () => {
     jest.setTimeout(90000); // 90 seconds for full pipeline
 
     it('should process activity through entire pipeline', async () => {
-      // This test publishes to raw-activity and verifies the entire pipeline executes
+      const testRunId = randomUUID();
+      testRunIds.push(testRunId);
+
       const payload = {
-        source: 2, // HEVY
+        source: 1, // HEVY
         user_id: userId,
         timestamp: new Date().toISOString(),
         original_payload_json: JSON.stringify({
-          workout: {
-            title: 'E2E Test Workout',
-            exercises: [],
-          },
+          workout_title: 'E2E Test Workout',
+          exercises: [],
         }),
-        metadata: { e2e_test: 'true' }, // map<string, string> per protobuf
+        metadata: { e2e_test: 'true' },
       };
 
       console.log('[E2E] Publishing to raw-activity topic...');
-      const messageId = await publishRawActivity(payload);
+      const messageId = await publishRawActivity(payload, testRunId);
       console.log(`[E2E] Published message: ${messageId}`);
 
       // Wait for multiple executions (enricher -> router -> uploader)
       console.log('[E2E] Waiting for pipeline execution...');
       await waitForExecutionActivity({
-        timeout: 60000, // 60s for full pipeline
-        checkInterval: 3000,
-        minExecutions: 2, // At least enricher + router (uploader may fail on Strava)
+        testRunId,
+        timeout: 75000, // 75s for full pipeline
+        checkInterval: 5000, // Check every 5s
+        minExecutions: 3, // enricher + router + uploader
       });
 
-      console.log('[E2E] ✓ Pipeline executed successfully');
+      console.log('[E2E] ✓ Full pipeline executed successfully');
     });
   });
 });

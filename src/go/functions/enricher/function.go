@@ -12,9 +12,8 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 
 	shared "github.com/ripixel/fitglue-server/src/go/pkg"
-	"github.com/ripixel/fitglue-server/src/go/pkg/execution"
 	"github.com/ripixel/fitglue-server/src/go/pkg/fit"
-	"github.com/ripixel/fitglue-server/src/go/pkg/fitbit"
+	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
 	"github.com/ripixel/fitglue-server/src/go/pkg/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/types"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
@@ -45,72 +44,66 @@ func initService(ctx context.Context) (*bootstrap.Service, error) {
 
 // EnrichActivity is the entry point
 func EnrichActivity(ctx context.Context, e event.Event) error {
-	_, err := initService(ctx)
+	svc, err := initService(ctx)
 	if err != nil {
 		return fmt.Errorf("service init failed: %v", err)
 	}
+	return framework.WrapCloudEvent("enricher", svc, enrichHandler)(ctx, e)
+}
 
+// enrichHandler contains the business logic
+func enrichHandler(ctx context.Context, e event.Event, fwCtx *framework.FrameworkContext) (interface{}, error) {
+	// Parse Pub/Sub message
 	var msg types.PubSubMessage
 	if err := e.DataAs(&msg); err != nil {
-		return fmt.Errorf("failed to get data: %v", err)
+		return nil, fmt.Errorf("event.DataAs: %v", err)
 	}
 
 	var rawEvent pb.ActivityPayload
 	if err := json.Unmarshal(msg.Message.Data, &rawEvent); err != nil {
-		return fmt.Errorf("json unmarshal: %v", err)
+		return nil, fmt.Errorf("json unmarshal: %v", err)
 	}
 
-	// Structured Logging
-	logger := slog.With("user_id", rawEvent.UserId, "service", "enricher")
+	fwCtx.Logger.Info("Starting enrichment", "timestamp", rawEvent.Timestamp)
 
-	logger.Info("Starting enrichment", "timestamp", rawEvent.Timestamp)
-
-	// Log execution start
-	execID, err := execution.LogStart(ctx, svc.DB, "enricher", execution.ExecutionOptions{
-		UserID:      rawEvent.UserId,
-		TriggerType: "pubsub",
-		Inputs:      &rawEvent,
-	})
-	if err != nil {
-		logger.Error("Failed to log execution start", "error", err)
-		return err
-	}
-
-	// 1. Logic: Merge Data
+	// Logic: Merge Data
 	startTime, _ := time.Parse(time.RFC3339, rawEvent.Timestamp)
-	duration := 3600
+	duration := 3600 // 1 hour in seconds
 
-	// 1a. Fetch Credentials
-	clientID, _ := svc.Secrets.GetSecret(ctx, svc.Config.ProjectID, "fitbit-client-id")
-	clientSecret, _ := svc.Secrets.GetSecret(ctx, svc.Config.ProjectID, "fitbit-client-secret")
+	var powerStream, hrStream []int
+	switch rawEvent.Source {
+	case pb.ActivitySource_SOURCE_HEVY:
+		powerStream = make([]int, duration)
+		hrStream = make([]int, duration)
+	case pb.ActivitySource_SOURCE_KEISER:
+		powerStream = make([]int, duration)
+		hrStream = make([]int, duration)
+	default:
+		return nil, fmt.Errorf("unknown source: %v", rawEvent.Source)
+	}
 
-	fbClient := fitbit.NewClient(rawEvent.UserId, clientID, clientSecret)
-	_ = fbClient // Placeholder
-
-	// 2. Generate FIT
-	hrStream := make([]int, duration)
-	powerStream := make([]int, duration)
+	// Generate FIT
 	fitBytes, err := fit.GenerateFitFile(startTime, duration, powerStream, hrStream)
 	if err != nil {
-		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
-		return err
+		fwCtx.Logger.Error("FIT generation failed", "error", err)
+		return nil, err
 	}
 
-	// 3. Save to GCS
-	bucketName := svc.Config.GCSArtifactBucket
+	// Save to GCS
+	bucketName := fwCtx.Service.Config.GCSArtifactBucket
 	if bucketName == "" {
 		bucketName = "fitglue-artifacts"
 	}
 	objName := fmt.Sprintf("activities/%s/%d.fit", rawEvent.UserId, startTime.Unix())
-	if err := svc.Store.Write(ctx, bucketName, objName, fitBytes); err != nil {
-		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": err.Error()})
-		return err
+	if err := fwCtx.Service.Store.Write(ctx, bucketName, objName, fitBytes); err != nil {
+		fwCtx.Logger.Error("GCS write failed", "error", err)
+		return nil, err
 	}
 
-	// 4. Generate Description
+	// Generate Description
 	desc := "Enhanced Activity\n\n#PowerMap #HeartrateMap"
 
-	// 5. Publish to Router
+	// Publish to Router
 	enrichedEvent := &pb.EnrichedActivityEvent{
 		UserId:      rawEvent.UserId,
 		GcsUri:      fmt.Sprintf("gs://%s/%s", bucketName, objName),
@@ -118,16 +111,11 @@ func EnrichActivity(ctx context.Context, e event.Event) error {
 	}
 	payload, _ := json.Marshal(enrichedEvent)
 
-	if _, err := svc.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
-		logger.Error("Failed to publish", "error", err)
-		return err
+	if _, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
+		fwCtx.Logger.Error("Failed to publish", "error", err)
+		return nil, err
 	}
 
-	// Log execution success
-	if err := execution.LogSuccess(ctx, svc.DB, execID, enrichedEvent); err != nil {
-		logger.Warn("Failed to log execution success", "error", err)
-	}
-
-	logger.Info("Enrichment complete")
-	return nil
+	fwCtx.Logger.Info("Enrichment complete")
+	return enrichedEvent, nil
 }

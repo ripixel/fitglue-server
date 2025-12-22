@@ -17,13 +17,16 @@ function getPubSubClient(): PubSub {
  * Publish a message to the raw-activity topic
  * Triggers the Enricher function
  */
-export async function publishRawActivity(payload: {
-  source: number;
-  user_id: string;
-  timestamp: string;
-  original_payload_json: string;
-  metadata: Record<string, any>;
-}): Promise<string> {
+export async function publishRawActivity(
+  payload: {
+    source: number;
+    user_id: string;
+    timestamp: string;
+    original_payload_json: string;
+    metadata: Record<string, any>;
+  },
+  testRunId?: string
+): Promise<string> {
   if (!config.topics) {
     throw new Error('Pub/Sub topics not configured for this environment');
   }
@@ -32,7 +35,10 @@ export async function publishRawActivity(payload: {
   const topic = pubsub.topic(config.topics.rawActivity);
 
   const dataBuffer = Buffer.from(JSON.stringify(payload));
-  const messageId = await topic.publishMessage({ data: dataBuffer });
+  const messageId = await topic.publishMessage({
+    data: dataBuffer,
+    ...(testRunId && { attributes: { test_run_id: testRunId } })
+  });
 
   return messageId;
 }

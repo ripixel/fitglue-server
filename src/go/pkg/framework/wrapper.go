@@ -2,39 +2,71 @@ package framework
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 
 	"github.com/cloudevents/sdk-go/v2/event"
 	"github.com/ripixel/fitglue-server/src/go/pkg/execution"
 	"github.com/ripixel/fitglue-server/src/go/pkg/pkg/bootstrap"
+	"github.com/ripixel/fitglue-server/src/go/pkg/types"
 )
 
-// HandlerFunc is the signature for a cloud function handler
-// It receives the context, event, service, logger, and execution ID
-// Returns outputs (for logging) and error
-type HandlerFunc func(ctx context.Context, e event.Event, svc *bootstrap.Service, logger *slog.Logger, execID string) (interface{}, error)
+// FrameworkContext contains dependencies injected by the framework
+// Similar to TypeScript's FrameworkContext
+type FrameworkContext struct {
+	Service     *bootstrap.Service
+	Logger      *slog.Logger
+	ExecutionID string
+}
 
-// WrapHandler wraps a handler with automatic execution logging
+// HandlerFunc is the signature for a cloud function handler
+// Similar to TypeScript's FrameworkHandler
+type HandlerFunc func(ctx context.Context, e event.Event, fwCtx *FrameworkContext) (interface{}, error)
+
+// WrapCloudEvent wraps a handler with automatic execution logging
+// Handles both HTTP and Pub/Sub triggers
 // Similar to TypeScript's createCloudFunction
-func WrapHandler(serviceName string, svc *bootstrap.Service, handler HandlerFunc) func(context.Context, event.Event) error {
+func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerFunc) func(context.Context, event.Event) error {
 	return func(ctx context.Context, e event.Event) error {
-		// Create logger
+		// Extract metadata from event
+		userID, testRunID := extractEventMetadata(e)
+
+		// Determine trigger type
+		triggerType := "pubsub"
+		if e.Type() == "google.cloud.functions.http" {
+			triggerType = "http"
+		}
+
+		// Create base logger
 		logger := slog.With("service", serviceName)
+		if userID != "" {
+			logger = logger.With("user_id", userID)
+		}
 
 		// Log execution start
 		execID, err := execution.LogStart(ctx, svc.DB, serviceName, execution.ExecutionOptions{
-			TriggerType: "pubsub",
+			UserID:      userID,
+			TestRunID:   testRunID,
+			TriggerType: triggerType,
 		})
 		if err != nil {
 			logger.Error("Failed to log execution start", "error", err)
 			// Continue anyway - don't fail the function just because logging failed
 		}
 
+		// Add execution ID to logger
 		logger = logger.With("execution_id", execID)
 		logger.Info("Function started")
 
+		// Create framework context
+		fwCtx := &FrameworkContext{
+			Service:     svc,
+			Logger:      logger,
+			ExecutionID: execID,
+		}
+
 		// Execute handler
-		outputs, handlerErr := handler(ctx, e, svc, logger, execID)
+		outputs, handlerErr := handler(ctx, e, fwCtx)
 
 		// Log execution result
 		if handlerErr != nil {
@@ -52,4 +84,34 @@ func WrapHandler(serviceName string, svc *bootstrap.Service, handler HandlerFunc
 
 		return nil
 	}
+}
+
+// extractEventMetadata extracts user_id and test_run_id from the event
+// Handles both Pub/Sub messages and HTTP requests
+func extractEventMetadata(e event.Event) (userID string, testRunID string) {
+	// Try to extract from Pub/Sub message
+	var msg types.PubSubMessage
+	if err := e.DataAs(&msg); err == nil {
+		// Try to parse the message data to extract user_id
+		var payload map[string]interface{}
+		if err := json.Unmarshal(msg.Message.Data, &payload); err == nil {
+			if uid, ok := payload["user_id"].(string); ok {
+				userID = uid
+			}
+			if uid, ok := payload["userId"].(string); ok {
+				userID = uid
+			}
+		}
+	}
+
+	// Check event extensions for test_run_id (from HTTP headers or Pub/Sub attributes)
+	extensions := e.Extensions()
+	if trid, ok := extensions["test_run_id"].(string); ok {
+		testRunID = trid
+	}
+	if trid, ok := extensions["testrunid"].(string); ok {
+		testRunID = trid
+	}
+
+	return userID, testRunID
 }

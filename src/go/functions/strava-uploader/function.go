@@ -16,7 +16,7 @@ import (
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 
-	"github.com/ripixel/fitglue-server/src/go/pkg/execution"
+	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
 	"github.com/ripixel/fitglue-server/src/go/pkg/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/types"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
@@ -27,7 +27,7 @@ type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// Extending Bootstrap Service with HTTP Client
+// UploaderService wraps bootstrap.Service with HTTP client
 type UploaderService struct {
 	*bootstrap.Service
 	HTTPClient HTTPClient
@@ -50,114 +50,103 @@ func initService(ctx context.Context) (*UploaderService, error) {
 	svcOnce.Do(func() {
 		baseSvc, err := bootstrap.NewService(ctx)
 		if err != nil {
-			slog.Error("Failed to initialize base service", "error", err)
+			slog.Error("Failed to initialize service", "error", err)
 			svcErr = err
 			return
 		}
 		svc = &UploaderService{
 			Service:    baseSvc,
-			HTTPClient: http.DefaultClient,
+			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 		}
 	})
 	return svc, svcErr
 }
 
+// UploadToStrava is the entry point
 func UploadToStrava(ctx context.Context, e event.Event) error {
-	_, err := initService(ctx)
+	svc, err := initService(ctx)
 	if err != nil {
 		return fmt.Errorf("service init failed: %v", err)
 	}
-	if svc == nil || svc.Service == nil {
-		return fmt.Errorf("service not initialized properly")
+	return framework.WrapCloudEvent("strava-uploader", svc.Service, uploadHandler(svc))(ctx, e)
+}
+
+// uploadHandler contains the business logic
+func uploadHandler(svc *UploaderService) framework.HandlerFunc {
+	return func(ctx context.Context, e event.Event, fwCtx *framework.FrameworkContext) (interface{}, error) {
+		// Parse Pub/Sub message
+		var msg types.PubSubMessage
+		if err := e.DataAs(&msg); err != nil {
+			return nil, fmt.Errorf("event.DataAs: %v", err)
+		}
+
+		var eventPayload pb.EnrichedActivityEvent
+		if err := json.Unmarshal(msg.Message.Data, &eventPayload); err != nil {
+			return nil, fmt.Errorf("json unmarshal: %v", err)
+		}
+
+		fwCtx.Logger.Info("Starting upload")
+
+		// Get Tokens & Rotate if needed
+		userData, err := fwCtx.Service.DB.GetUser(ctx, eventPayload.UserId)
+		if err != nil {
+			fwCtx.Logger.Error("User tokens not found")
+			return nil, fmt.Errorf("user tokens not found")
+		}
+
+		token, _ := userData["strava_access_token"].(string)
+		expiresAt, _ := userData["strava_expires_at"].(time.Time)
+
+		if time.Now().After(expiresAt.Add(-5 * time.Minute)) {
+			fwCtx.Logger.Info("Token expiring soon - rotation required")
+		}
+
+		// Download FIT from GCS
+		bucketName := fwCtx.Service.Config.GCSArtifactBucket
+		if bucketName == "" {
+			bucketName = "fitglue-artifacts"
+		}
+		objectName := strings.TrimPrefix(eventPayload.GcsUri, "gs://"+bucketName+"/")
+
+		fileData, err := fwCtx.Service.Store.Read(ctx, bucketName, objectName)
+		if err != nil {
+			fwCtx.Logger.Error("GCS Read Error", "error", err)
+			return nil, fmt.Errorf("GCS Read Error: %w", err)
+		}
+
+		// Upload to Strava
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		part, _ := writer.CreateFormFile("file", "activity.fit")
+		part.Write(fileData)
+		writer.WriteField("data_type", "fit")
+		writer.Close()
+
+		req, _ := http.NewRequest("POST", "https://www.strava.com/api/v3/uploads", body)
+		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+
+		httpResp, err := svc.HTTPClient.Do(req)
+		if err != nil {
+			fwCtx.Logger.Error("Strava API Error", "error", err)
+			return nil, fmt.Errorf("Strava API Error: %w", err)
+		}
+		defer httpResp.Body.Close()
+
+		if httpResp.StatusCode >= 400 {
+			bodyBytes, _ := io.ReadAll(httpResp.Body)
+			fwCtx.Logger.Error("Strava upload failed", "status", httpResp.StatusCode, "body", string(bodyBytes))
+			return nil, fmt.Errorf("strava upload failed: status %d", httpResp.StatusCode)
+		}
+
+		var uploadResp struct {
+			ID int64 `json:"id"`
+		}
+		json.NewDecoder(httpResp.Body).Decode(&uploadResp)
+
+		fwCtx.Logger.Info("Upload success")
+		return map[string]interface{}{
+			"strava_activity_id": uploadResp.ID,
+		}, nil
 	}
-
-	var msg types.PubSubMessage
-	if err := e.DataAs(&msg); err != nil {
-		return fmt.Errorf("failed to get data: %v", err)
-	}
-
-	var eventPayload pb.EnrichedActivityEvent
-	if err := json.Unmarshal(msg.Message.Data, &eventPayload); err != nil {
-		return fmt.Errorf("json unmarshal: %v", err)
-	}
-
-	// Logging setup
-	execID := fmt.Sprintf("uploader-%s-%d", eventPayload.UserId, time.Now().UnixNano())
-	logger := slog.With("execution_id", execID, "user_id", eventPayload.UserId, "service", "strava-uploader")
-
-	logger.Info("Starting upload")
-
-	// Log execution start
-	execID, err = execution.LogStart(ctx, svc.DB, "strava-uploader", execution.ExecutionOptions{
-		UserID:      eventPayload.UserId,
-		TriggerType: "pubsub",
-		Inputs:      eventPayload.UserId,
-	})
-	if err != nil {
-		logger.Error("Failed to log execution start", "error", err)
-		return err
-	}
-
-	// 1. Get Tokens & Rotate if needed
-	userData, err := svc.DB.GetUser(ctx, eventPayload.UserId)
-	if err != nil {
-		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "User tokens not found"})
-		return err
-	}
-
-	token, _ := userData["strava_access_token"].(string)
-	expiresAt, _ := userData["strava_expires_at"].(time.Time)
-
-	if time.Now().After(expiresAt.Add(-5 * time.Minute)) {
-		logger.Info("Token expiring soon - rotation required")
-	}
-
-	// 2. Download FIT from GCS
-	bucketName := svc.Config.GCSArtifactBucket
-	if bucketName == "" {
-		bucketName = "fitglue-artifacts"
-	}
-	// Parse GCS URI: assume "gs://bucket/path"
-	objectName := strings.TrimPrefix(eventPayload.GcsUri, "gs://"+bucketName+"/")
-
-	fileData, err := svc.Store.Read(ctx, bucketName, objectName)
-	if err != nil {
-		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "GCS Read Error: " + err.Error()})
-		return err
-	}
-
-	// 3. Upload to Strava
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("file", "activity.fit")
-	part.Write(fileData)
-	writer.WriteField("data_type", "fit")
-	writer.Close()
-
-	req, _ := http.NewRequest("POST", "https://www.strava.com/api/v3/uploads", body)
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	httpResp, err := svc.HTTPClient.Do(req)
-	if err != nil {
-		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": "Strava API Error: " + err.Error()})
-		return err
-	}
-	defer httpResp.Body.Close()
-
-	if httpResp.StatusCode >= 400 {
-		bodyBytes, _ := io.ReadAll(httpResp.Body)
-		errStr := fmt.Sprintf("Strava Error %d: %s", httpResp.StatusCode, string(bodyBytes))
-		svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{"status": "FAILED", "error": errStr})
-		return fmt.Errorf("%s", errStr)
-	}
-
-	svc.DB.UpdateExecution(ctx, execID, map[string]interface{}{
-		"status":    "SUCCESS",
-		"timestamp": time.Now(),
-		"endTime":   time.Now(),
-	})
-
-	logger.Info("Upload success")
-	return nil
 }
