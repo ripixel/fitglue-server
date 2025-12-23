@@ -4,11 +4,16 @@ import * as winston from 'winston';
 import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from '../execution/logger';
 import { AuthStrategy, ApiKeyStrategy } from './auth';
 
+import { PubSub } from '@google-cloud/pubsub';
+
 // Initialize Firebase (Idempotent)
 if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 const db = admin.firestore();
+
+// Initialize PubSub
+const pubsub = new PubSub();
 
 // Configure Structured Logging
 const logger = winston.createLogger({
@@ -38,6 +43,7 @@ const logger = winston.createLogger({
 
 export interface FrameworkContext {
   db: admin.firestore.Firestore;
+  pubsub: PubSub;
   logger: winston.Logger;
   executionId: string;
   userId?: string;
@@ -119,7 +125,12 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
         let authenticated = false;
 
         // Prepare context for Auth Strategy
-        const tempCtx: FrameworkContext = { db, logger: preambleLogger, executionId: 'pre-auth' };
+        const tempCtx: FrameworkContext = {
+            db,
+            pubsub,
+            logger: preambleLogger,
+            executionId: 'pre-auth'
+        };
 
         for (const strategyName of options.auth.strategies) {
             const strategy = AUTHORIZED_STRATEGIES[strategyName];
@@ -177,6 +188,7 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
 
     const ctx: FrameworkContext = {
       db,
+      pubsub,
       logger: contextLogger,
       executionId,
       userId,

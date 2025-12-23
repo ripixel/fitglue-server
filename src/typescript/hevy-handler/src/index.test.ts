@@ -4,22 +4,16 @@ jest.mock('@fitglue/shared', () => ({
   createCloudFunction: (handler: any) => handler,
   FrameworkContext: jest.fn(),
   TOPICS: { RAW_ACTIVITY: 'test-topic' },
-  ActivitySource: { SOURCE_HEVY: 'HEVY' } // Mock enum
+  ActivitySource: { SOURCE_HEVY: 'HEVY' }, // Mock enum
+  createHevyClient: jest.fn()
 }));
-
-jest.mock('@google-cloud/pubsub', () => {
-    const publishMessage = jest.fn().mockResolvedValue('msg-id-123');
-    const topic = jest.fn().mockReturnValue({ publishMessage });
-    return {
-        PubSub: jest.fn().mockImplementation(() => ({ topic }))
-    };
-});
 
 import { hevyWebhookHandler } from './index';
 
+import * as path from 'path';
+import * as fs from 'fs';
 
-// Mock Fetch
-global.fetch = jest.fn();
+const mockWorkout = JSON.parse(fs.readFileSync(path.join(__dirname, '../test-data/mock_workout.json'), 'utf-8'));
 
 describe('hevyWebhookHandler', () => {
     let req: any; let res: any;
@@ -28,9 +22,15 @@ describe('hevyWebhookHandler', () => {
     let mockUserGet: jest.Mock;
     let mockDb: any;
     let mockLogger: any;
+    let mockPubSub: any;
+    let mockPublishMessage: jest.Mock;
+
+    let mockClientGet: jest.Mock;
 
     beforeEach(() => {
         jest.clearAllMocks();
+
+
         mockStatus = jest.fn().mockReturnThis();
         mockSend = jest.fn();
         res = { status: mockStatus, send: mockSend };
@@ -48,16 +48,28 @@ describe('hevyWebhookHandler', () => {
             })
         };
 
+        mockPublishMessage = jest.fn().mockResolvedValue('msg-id-123');
+        mockPubSub = {
+            topic: jest.fn().mockReturnValue({ publishMessage: mockPublishMessage })
+        };
+
         mockCtx = {
             db: mockDb,
             logger: mockLogger,
+            pubsub: mockPubSub, // Injected PubSub Mock
             userId: 'test-user',
             authScopes: ['write:activity']
         };
 
-        (global.fetch as jest.Mock).mockResolvedValue({
-            ok: true,
-            json: async () => ({ id: 'full-workout-data' })
+        mockClientGet = jest.fn().mockResolvedValue({
+             data: mockWorkout,
+             error: null,
+             response: { status: 200 }
+        });
+
+        const { createHevyClient } = require('@fitglue/shared');
+        createHevyClient.mockReturnValue({
+            GET: mockClientGet
         });
     });
 
@@ -77,7 +89,7 @@ describe('hevyWebhookHandler', () => {
     });
 
     it('should perform Active Fetch and Publish', async () => {
-        req.body = { workout_id: 'w-123' };
+        req.body = { workout_id: mockWorkout.id };
 
         // Mock User with Hevy Key
         mockUserGet.mockResolvedValue({
@@ -87,22 +99,21 @@ describe('hevyWebhookHandler', () => {
 
         await (hevyWebhookHandler as any)(req, res, mockCtx);
 
-        // Verify Hevy Fetch
-        expect(global.fetch).toHaveBeenCalledWith(
-            'https://api.hevyapp.com/v1/workouts/w-123',
-            expect.objectContaining({ headers: { 'x-api-key': 'hevy-key' } })
-        );
+        // Verify Hevy Client was mocked and called
+        const { createHevyClient } = require('@fitglue/shared');
+        expect(createHevyClient).toHaveBeenCalledWith({ apiKey: 'hevy-key' });
+        expect(mockClientGet).toHaveBeenCalledWith("/v1/workouts/{workoutId}", {
+            params: { path: { workoutId: mockWorkout.id } }
+        });
 
-        // Verify PubSub
-        const { PubSub } = require('@google-cloud/pubsub');
-        const pubsubInstance = new PubSub();
-        const topic = pubsubInstance.topic('test-topic');
-        expect(topic.publishMessage).toHaveBeenCalledWith(
+        // Verify PubSub Injection Usage
+        expect(mockPubSub.topic).toHaveBeenCalledWith('test-topic');
+        expect(mockPublishMessage).toHaveBeenCalledWith(
             expect.objectContaining({
                 json: expect.objectContaining({
                     source: 'HEVY',
                     userId: 'test-user',
-                    originalPayloadJson: JSON.stringify({ id: 'full-workout-data' }),
+                    originalPayloadJson: JSON.stringify(mockWorkout),
                     metadata: expect.objectContaining({ fetch_method: 'active_fetch' })
                 })
             })
@@ -110,26 +121,5 @@ describe('hevyWebhookHandler', () => {
         expect(mockStatus).toHaveBeenCalledWith(200);
     });
 
-    it('should handle Mock Fetch with test scope', async () => {
-        req.body = { workout_id: 'w-mock', mock_workout_data: { id: 'mock-data' } };
-        req.headers['x-mock-fetch'] = 'true';
-        mockCtx.authScopes = ['test:mock_fetch'];
 
-        // Mock User (still needed for resolving egress key, though skipped in mock fetch logic?)
-        // Wait, current logic fetches User Config FIRST (User Resolution step 3&4), THEN decides (Step 5).
-        // If my code does step 4 before step 5, I need to mock user even for mock fetch, OR user config error throws first.
-        // Let's check code... "3. User Resolution... 4. Retrieve Hevy Key... 5. Active Fetch"
-        // Yes, the code requires Hevy API Key to be present even for Mock Fetch currently.
-        // That might be a bug or intended. Assuming intended for now (simulate full user).
-
-        mockUserGet.mockResolvedValue({
-            exists: true,
-            data: () => ({ integrations: { hevy: { apiKey: 'hevy-key' } } })
-        });
-
-        await (hevyWebhookHandler as any)(req, res, mockCtx);
-
-        expect(global.fetch).not.toHaveBeenCalled();
-        expect(mockStatus).toHaveBeenCalledWith(200);
-    });
 });

@@ -7,3 +7,4 @@ export * from './execution/logger';
 export { ApiKeyRecord } from './types/pb/auth';
 export { UserRecord, UserIntegrations, HevyIntegration } from './types/pb/user';
 export * from './services/user_service';
+export * from './hevy-api/client';

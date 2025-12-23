@@ -32,6 +32,8 @@ generate:
 	cd $(TS_SRC_DIR) && npx protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto \
 		--ts_proto_out=shared/src/types/pb --ts_proto_opt=outputEncodeMethods=false,outputJsonMethods=false,outputClientImpl=false \
 		--proto_path=../proto ../proto/*.proto
+	# Generate OpenAPI Types (Hevy)
+	cd $(TS_SRC_DIR)/shared && npx openapi-typescript openapi/hevy/swagger.json -o src/hevy-api/schema.ts
 
 # --- Go Targets ---
 build-go:

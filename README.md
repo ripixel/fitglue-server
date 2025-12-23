@@ -65,12 +65,16 @@ FitGlue uses an event-driven, microservices architecture deployed as Google Clou
 
 ## Documentation
 
-- **[Initial Research](docs/INITIAL_RESEARCH.md)** - Background and feasibility analysis
 - **[Execution Logging](docs/EXECUTION_LOGGING.md)** - Framework architecture and patterns
 - **[Local Development](docs/LOCAL_DEVELOPMENT.md)** - Running the stack locally
 - **[CI/CD Guide](docs/CICD.md)** - Deployment pipeline and infrastructure
 - **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
 - **[Integration Tests](docs/INTEGRATION_TESTS.md)** - Integration tests and verification
+
+## Research
+
+- **[Initial Research](docs/research/INITIAL_RESEARCH.md)** - Background and feasibility analysis
+- **[API Integration Research](docs/research/API_INTEGRATION_RESEARCH.md)** - Specific API integrations
 
 ## Quick Start
 

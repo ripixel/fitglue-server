@@ -1,12 +1,10 @@
-import { PubSub } from "@google-cloud/pubsub";
+import { TOPICS, createCloudFunction, ActivityPayload, FrameworkContext, ActivitySource, createHevyClient } from '@fitglue/shared';
 
-import { TOPICS, createCloudFunction, ActivityPayload, FrameworkContext, ActivitySource } from '@fitglue/shared';
-
-const pubsub = new PubSub();
+// Removed local PubSub instantiation
 const TOPIC_NAME = TOPICS.RAW_ACTIVITY;
 
 const handler = async (req: any, res: any, ctx: FrameworkContext) => {
-  const { db, logger, userId, authScopes } = ctx;
+  const { db, logger, userId } = ctx;
   const timestamp = new Date().toISOString();
 
   // 1. Verify Authentication (Already handled by Middleware, but safe guard)
@@ -44,58 +42,38 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
       return { status: 'FAILED', reason: 'Missing Hevy API Key' };
   }
 
-  // 5. Active Fetch Decision
-  let fullWorkout: any;
-  const requestMock = req.headers['x-mock-fetch'] === 'true' || payload.mock_workout_data;
+  // 5. Active Fetch
+  logger.info(`Fetching workout ${workoutId} from Hevy API`);
 
-  if (requestMock) {
-      // Secure Mock Fetch: ONLY allow if key has test scope
-      if (!authScopes || !authScopes.includes('test:mock_fetch')) {
-          logger.warn(`User ${userId} attempted mock fetch without scope`);
-          res.status(403).send('Forbidden: Missing test scope');
-          throw new Error('Missing test:mock_fetch scope');
+  const client = createHevyClient({ apiKey: hevyApiKey });
+  const { data, error, response } = await client.GET("/v1/workouts/{workoutId}", {
+      params: {
+          path: { workoutId }
       }
+  });
 
-      if (!payload.mock_workout_data) {
-          throw new Error('Mock fetch requested but missing mock_workout_data');
-      }
-      logger.info('Using mock workout data (authorized test scope)');
-      fullWorkout = payload.mock_workout_data;
-
-  } else {
-      // Real Fetch
-      logger.info(`Fetching workout ${workoutId} from Hevy API`);
-      try {
-          const response = await fetch(`https://api.hevyapp.com/v1/workouts/${workoutId}`, {
-              headers: {
-                  'x-api-key': hevyApiKey
-              }
-          });
-
-          if (!response.ok) {
-              throw new Error(`Hevy API error: ${response.status} ${response.statusText}`);
-          }
-
-          fullWorkout = await response.json();
-      } catch (err: any) {
-          logger.error('Failed to fetch workout from Hevy', { error: err.message, workoutId });
-          throw err;
-      }
+  if (error || !data) {
+       logger.error('Failed to fetch workout from Hevy', { error, status: response.status });
+       throw new Error(`Hevy API error: ${response.status} ${response.statusText}`);
   }
 
-  // 6. Publish Fetched Data
+  // 6. Runtime Validation & Publishing
+  // Relying on static types from openapi-fetch as requested
+  const fullWorkout = data;
+
   const messagePayload: ActivityPayload = {
       source: ActivitySource.SOURCE_HEVY,
       userId: userId,
       timestamp: timestamp,
       originalPayloadJson: JSON.stringify(fullWorkout),
       metadata: {
-          'fetch_method': requestMock ? 'mock_fetch' : 'active_fetch',
+          'fetch_method': 'active_fetch',
           'webhook_id': workoutId
       }
   };
 
-  const messageId = await pubsub.topic(TOPIC_NAME).publishMessage({
+  // Uses injected PubSub client
+  const messageId = await ctx.pubsub.topic(TOPIC_NAME).publishMessage({
       json: messagePayload,
   });
 
