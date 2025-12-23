@@ -20,9 +20,15 @@ export class ApiKeyStrategy implements AuthStrategy {
         let token: string | undefined;
 
         // 1. Check Authorization Header (Bearer)
+        // 1. Check Authorization Header (Bearer or Raw)
         const authHeader = req.headers['authorization'];
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            token = authHeader.split(' ')[1];
+        if (authHeader) {
+            if (authHeader.startsWith('Bearer ')) {
+                token = authHeader.split(' ')[1];
+            } else {
+                // Support raw key in Authorization header (e.g. Hevy webhook)
+                token = authHeader;
+            }
         }
 
         // 1b. Check X-Api-Key Header
