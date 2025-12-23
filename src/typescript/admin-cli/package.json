@@ -9,12 +9,13 @@
   "scripts": {
     "build": "tsc",
     "test": "echo 'No tests yet' && exit 0",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "lint": "echo 'No lint configured' && exit 0"
   },
   "dependencies": {
     "@fitglue/shared": "^1.0.0",
     "commander": "^11.1.0",
-    "firebase-admin": "^11.8.0",
+    "firebase-admin": "^13.6.0",
     "inquirer": "^8.2.6"
   },
   "devDependencies": {

@@ -12,13 +12,15 @@ We provide a wrapper script in the root directory for easy execution:
 
 ## Commands
 
-### `users:create <userId>`
+### `users:create [userId]`
 
-Creates a new user in the system. This command is interactive and will prompt you for necessary details.
+Creates a new user in the system. If `userId` is omitted, a random UUID will be generated. This command is interactive and will prompt you for necessary details.
 
 **Usage:**
 ```bash
-./fitglue-admin users:create my-test-user
+./fitglue-admin users:create
+# OR
+./fitglue-admin users:create my-specific-id
 ```
 
 **Prompts:**
@@ -27,6 +29,34 @@ Creates a new user in the system. This command is interactive and will prompt yo
     *   **Scopes**: Select `write:activity` (required for ingesting data).
 2.  **Hevy Integration**: Do you want to configure Hevy? (Default: Yes)
     *   **API Key**: The user's Hevy API Key (for fetching their data).
+
+### `users:list`
+
+Lists all users currently in the Firestore database, along with their creation date and enabled integrations. Useful for auditing and cleanup.
+
+**Usage:**
+```bash
+./fitglue-admin users:list
+```
+
+### `users:clean`
+
+**DANGER:** Permanently deletes **ALL** users from the system. Requires double confirmation.
+
+**Usage:**
+```bash
+./fitglue-admin users:clean
+```
+
+### `users:delete <userId>`
+
+Permanently deletes a user and their associated root document. Note that subcollections may need manual cleanup in a production environment.
+
+**Usage:**
+```bash
+./fitglue-admin users:delete my-user-id
+```
+
 
 ### `users:update <userId>`
 
