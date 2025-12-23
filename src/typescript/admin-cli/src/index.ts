@@ -53,8 +53,8 @@ program.command('users:create')
                     type: 'checkbox',
                     name: 'scopes',
                     message: 'Select Scopes:',
-                    choices: ['write:activity', 'read:activity', 'test:mock_fetch'],
-                    default: ['write:activity'],
+                    choices: ['read:activity'],
+                    default: ['read:activity'],
                     when: (answers) => answers.createIngressKey
                 }
             ]);

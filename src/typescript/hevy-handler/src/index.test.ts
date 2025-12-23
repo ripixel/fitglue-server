@@ -1,11 +1,11 @@
 // Mocks must be defined before imports
 // Mock the shared package
 jest.mock('@fitglue/shared', () => ({
-  createCloudFunction: (handler: any) => handler,
-  FrameworkContext: jest.fn(),
-  TOPICS: { RAW_ACTIVITY: 'test-topic' },
-  ActivitySource: { SOURCE_HEVY: 'HEVY' }, // Mock enum
-  createHevyClient: jest.fn()
+    createCloudFunction: (handler: any) => handler,
+    FrameworkContext: jest.fn(),
+    TOPICS: { RAW_ACTIVITY: 'test-topic' },
+    ActivitySource: { SOURCE_HEVY: 'HEVY' }, // Mock enum
+    createHevyClient: jest.fn()
 }));
 
 import { hevyWebhookHandler } from './index';
@@ -42,10 +42,10 @@ describe('hevyWebhookHandler', () => {
         mockUserGet = jest.fn();
         mockDb = {
             collection: jest.fn((name) => {
-               if (name === 'users') {
-                   return { doc: jest.fn(() => ({ get: mockUserGet })) };
-               }
-               return { doc: jest.fn() };
+                if (name === 'users') {
+                    return { doc: jest.fn(() => ({ get: mockUserGet })) };
+                }
+                return { doc: jest.fn() };
             })
         };
 
@@ -59,13 +59,13 @@ describe('hevyWebhookHandler', () => {
             logger: mockLogger,
             pubsub: mockPubSub, // Injected PubSub Mock
             userId: 'test-user',
-            authScopes: ['write:activity']
+            authScopes: ['read:activity']
         };
 
         mockClientGet = jest.fn().mockResolvedValue({
-             data: mockWorkout,
-             error: null,
-             response: { status: 200 }
+            data: mockWorkout,
+            error: null,
+            response: { status: 200 }
         });
 
         const { createHevyClient } = require('@fitglue/shared');
@@ -77,7 +77,7 @@ describe('hevyWebhookHandler', () => {
     it('should throw Unauthorized if userId is missing', async () => {
         mockCtx.userId = undefined;
         await expect(async () => {
-             await (hevyWebhookHandler as any)(req, res, mockCtx);
+            await (hevyWebhookHandler as any)(req, res, mockCtx);
         }).rejects.toThrow('Unauthorized');
         expect(mockStatus).toHaveBeenCalledWith(401);
     });
@@ -85,7 +85,7 @@ describe('hevyWebhookHandler', () => {
     it('should throw if workout_id is missing', async () => {
         req.body = {};
         await expect(async () => {
-             await (hevyWebhookHandler as any)(req, res, mockCtx);
+            await (hevyWebhookHandler as any)(req, res, mockCtx);
         }).rejects.toThrow('Invalid payload: Missing workout_id');
     });
 

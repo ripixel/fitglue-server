@@ -26,7 +26,7 @@ Creates a new user in the system. If `userId` is omitted, a random UUID will be 
 **Prompts:**
 1.  **Ingress API Key**: Do you want to generate an API Key for this user? (Default: Yes)
     *   **Label**: A descriptive name for the key (e.g., "Mobile App").
-    *   **Scopes**: Select `write:activity` (required for ingesting data).
+    *   **Scopes**: Select `read:activity` (required for ingesting data).
 2.  **Hevy Integration**: Do you want to configure Hevy? (Default: Yes)
     *   **API Key**: The user's Hevy API Key (for fetching their data).
 
