@@ -81,10 +81,18 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
     // Fetch all templates concurrently
     // Note: If scale increases significantly, we might need batching or caching.
     // Hevy doesn't document a batch get endpoint for templates.
+    logger.info(`Fetching ${templateIds.size} exercise templates concurrently`);
+
     const templatePromises = Array.from(templateIds).map(async (tmplId) => {
-        const { data: tmplData } = await client.GET("/v1/exercise_templates/{exerciseTemplateId}", {
+        const { data: tmplData, error: tmplError } = await client.GET("/v1/exercise_templates/{exerciseTemplateId}", {
             params: { path: { exerciseTemplateId: tmplId } }
         });
+
+        if (tmplError || !tmplData) {
+            logger.warn(`Failed to fetch template ${tmplId}`, { error: tmplError });
+            return { id: tmplId, data: undefined };
+        }
+
         return { id: tmplId, data: tmplData };
     });
 
@@ -124,7 +132,9 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
         status: 'Processed',
         pubsubMessageId: messageId,
         workoutId,
-        fullWorkout // This will be captured by logExecutionSuccess
+        fullWorkout,
+        templateMap,
+        standardizedActivity
     };
 
     res.status(200).json({ executionId: ctx.executionId, status: 'Processed' });
