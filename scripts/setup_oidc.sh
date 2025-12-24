@@ -52,6 +52,7 @@ gcloud services enable \
   firestore.googleapis.com \
   cloudscheduler.googleapis.com \
   storage.googleapis.com \
+  dns.googleapis.com \
   --project="$PROJECT_ID"
 echo "APIs enabled"
 echo ""

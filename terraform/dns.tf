@@ -14,4 +14,8 @@ resource "google_dns_managed_zone" "main" {
     managed-by  = "terraform"
     environment = var.environment
   }
+
+  depends_on = [
+    google_project_service.apis
+  ]
 }
