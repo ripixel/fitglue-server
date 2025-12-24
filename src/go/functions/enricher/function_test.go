@@ -76,7 +76,7 @@ func TestEnrichActivity(t *testing.T) {
 		Timestamp: time.Now().Format(time.RFC3339),
 		StandardizedActivity: &pb.StandardizedActivity{
 			StartTime: time.Now().Format(time.RFC3339),
-			Type: "WEIGHT_TRAINING",
+			Type:      "WEIGHT_TRAINING",
 			Sessions: []*pb.Session{
 				{TotalElapsedTime: 3600},
 			},

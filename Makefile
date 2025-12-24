@@ -65,6 +65,9 @@ test-go:
 
 lint-go:
 	@echo "Linting Go..."
+	@echo "Checking formatting..."
+	@cd $(GO_SRC_DIR) && test -z "$$(gofmt -l .)" || (echo "Go files need formatting. Run 'gofmt -w .'" && exit 1)
+	@echo "Running go vet..."
 	cd $(GO_SRC_DIR) && go vet ./...
 
 prepare-go:

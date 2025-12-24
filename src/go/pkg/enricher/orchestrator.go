@@ -74,12 +74,12 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 
 	// 4. Merge Results & Fan-In
 	finalEvent := &pb.EnrichedActivityEvent{
-		UserId:       payload.UserId,
-		Source:       payload.Source,
-		ActivityId:   uuid.NewString(), // Generate new ID for enriched activity
-		ActivityData: payload.StandardizedActivity,
-		ActivityType: "WEIGHT_TRAINING", // Default, can be enriched
-		Name:         "Workout",         // Default
+		UserId:             payload.UserId,
+		Source:             payload.Source,
+		ActivityId:         uuid.NewString(), // Generate new ID for enriched activity
+		ActivityData:       payload.StandardizedActivity,
+		ActivityType:       "WEIGHT_TRAINING", // Default, can be enriched
+		Name:               "Workout",         // Default
 		AppliedEnrichments: []string{},
 		EnrichmentMetadata: make(map[string]string),
 	}
@@ -97,7 +97,9 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 	if payload.StandardizedActivity != nil && len(payload.StandardizedActivity.Sessions) > 0 {
 		duration = int(payload.StandardizedActivity.Sessions[0].TotalElapsedTime)
 		// Ensure non-zero
-		if duration == 0 { duration = 3600 }
+		if duration == 0 {
+			duration = 3600
+		}
 	}
 
 	aggregatedHR := make([]int, duration)
@@ -230,10 +232,10 @@ func (o *Orchestrator) mapUser(data map[string]interface{}) *pb.UserRecord {
 	if integrations, ok := data["integrations"].(map[string]interface{}); ok {
 		if fitbit, ok := integrations["fitbit"].(map[string]interface{}); ok {
 			rec.Integrations.Fitbit = &pb.FitbitIntegration{
-				Enabled:        fitbit["enabled"] == true,
-				AccessToken:    fmt.Sprintf("%v", fitbit["access_token"]),
-				RefreshToken:   fmt.Sprintf("%v", fitbit["refresh_token"]),
-				FitbitUserId:   fmt.Sprintf("%v", fitbit["fitbit_user_id"]),
+				Enabled:      fitbit["enabled"] == true,
+				AccessToken:  fmt.Sprintf("%v", fitbit["access_token"]),
+				RefreshToken: fmt.Sprintf("%v", fitbit["refresh_token"]),
+				FitbitUserId: fmt.Sprintf("%v", fitbit["fitbit_user_id"]),
 			}
 		}
 		// Add Hevy mapping if needed

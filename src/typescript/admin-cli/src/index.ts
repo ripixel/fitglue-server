@@ -619,6 +619,7 @@ program
             let deletedCount = 0;
             const batchSize = 500;
 
+            // eslint-disable-next-line no-constant-condition
             while (true) {
                 const snapshot = await db.collection('executions').limit(batchSize).get();
                 if (snapshot.empty) {

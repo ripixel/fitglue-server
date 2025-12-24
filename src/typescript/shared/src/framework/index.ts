@@ -115,7 +115,7 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
     const serviceName = process.env.K_SERVICE || 'unknown-function';
 
     // Extract metadata from request (handles both HTTP and Pub/Sub)
-    let { userId, testRunId, triggerType } = extractMetadata(req);
+    const { userId, testRunId, triggerType } = extractMetadata(req);
 
     // Initial Logger (Pre-Auth)
     const preambleLogger = logger.child({});

@@ -45,34 +45,39 @@ FitGlue uses OAuth 2.0 to securely connect user accounts from Strava and Fitbit.
 
 ### 2. Store Secrets in Google Secret Manager
 
-For each environment (dev, test, prod), store the OAuth credentials:
+We provide helper scripts to simplify secret configuration:
+
+#### Configure OAuth State Secret (One-time per environment)
+
+This generates a cryptographically secure random secret for CSRF protection:
 
 ```bash
-# OAuth State Secret (generate a random 32-character string)
-echo -n "your-random-secret-here" | gcloud secrets create oauth-state-secret \
-  --data-file=- \
-  --project=fitglue-server-dev
-
-# Strava Credentials
-echo -n "YOUR_STRAVA_CLIENT_ID" | gcloud secrets create strava-client-id \
-  --data-file=- \
-  --project=fitglue-server-dev
-
-echo -n "YOUR_STRAVA_CLIENT_SECRET" | gcloud secrets create strava-client-secret \
-  --data-file=- \
-  --project=fitglue-server-dev
-
-# Fitbit Credentials
-echo -n "YOUR_FITBIT_CLIENT_ID" | gcloud secrets create fitbit-client-id \
-  --data-file=- \
-  --project=fitglue-server-dev
-
-echo -n "YOUR_FITBIT_CLIENT_SECRET" | gcloud secrets create fitbit-client-secret \
-  --data-file=- \
-  --project=fitglue-server-dev
+./scripts/configure_oauth_state_secret.sh dev
+./scripts/configure_oauth_state_secret.sh test
+./scripts/configure_oauth_state_secret.sh prod
 ```
 
-**Note**: Repeat for `fitglue-server-test` and `fitglue-server-prod` projects.
+#### Configure OAuth Credentials
+
+For each provider and environment, run:
+
+```bash
+# Development
+./scripts/configure_oauth_secrets.sh strava dev
+./scripts/configure_oauth_secrets.sh fitbit dev
+
+# Test
+./scripts/configure_oauth_secrets.sh strava test
+./scripts/configure_oauth_secrets.sh fitbit test
+
+# Production
+./scripts/configure_oauth_secrets.sh strava prod
+./scripts/configure_oauth_secrets.sh fitbit prod
+```
+
+The script will prompt you for the Client ID and Client Secret (hidden input) and automatically create or update the secrets in Google Secret Manager.
+
+**Note**: Terraform creates the secret *containers*, but the actual secret *values* are populated manually via these scripts. This keeps sensitive data out of Terraform state files.
 
 ### 3. Deploy OAuth Handlers
 
