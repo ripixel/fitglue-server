@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package fitglue;
+
+option go_package = "fitglue/pkg/shared/pb";
+
+// StandardizedActivity represents a normalized fitness activity.
+// It is designed to be the canonical input format for the Enricher,
+// decoupling it from specific ingestion sources (Hevy, Keiser, etc).
+//
+// Structure mimics the FIT SDK hierarchy:
+// Activity -> Sessions -> Laps -> Records
+message StandardizedActivity {
+  string source = 1;      // e.g. "HEVY", "KEISER"
+  string external_id = 2; // Source's ID (e.g. Hevy workout ID)
+  string user_id = 3;
+
+  // High-level summary
+  string start_time = 4;  // ISO 8601 Timestamp
+  string name = 5;        // e.g. "Morning Run"
+  string type = 6;        // e.g. "RUNNING", "CYCLING", "WEIGHT_TRAINING"
+
+  // Hierarchy
+  repeated Session sessions = 7;
+
+  // Rich metadata (preserved from source)
+  string description = 8; // User notes
+  repeated string tags = 9;
+  string notes = 10;
+}
+
+message Session {
+  string start_time = 1;
+  double total_elapsed_time = 2; // seconds
+  double total_distance = 3;     // meters
+  repeated Lap laps = 4;
+
+  // High-fidelity strength data (not just 1Hz streams)
+  repeated StrengthSet strength_sets = 5;
+}
+
+message Lap {
+  string start_time = 1;
+  double total_elapsed_time = 2; // seconds
+  double total_distance = 3;     // meters
+  repeated Record records = 4;
+}
+
+// Record represents a single data point in time (1Hz is typical)
+message Record {
+  string timestamp = 1;     // ISO 8601
+
+  // Core Telemetry
+  int32 heart_rate = 2;     // bpm
+  int32 power = 3;          // watts
+  int32 cadence = 4;        // rpm
+  double speed = 5;         // m/s
+  double altitude = 6;      // meters
+
+  // Location
+  double position_lat = 7;
+  double position_long = 8;
+}
+
+// StrengthSet represents a discrete set of an exercise (common in weightlifting)
+// This is distinct from continuous Record streams.
+message StrengthSet {
+  string exercise_name = 1; // e.g. "Bench Press"
+  int32 reps = 2;
+  double weight_kg = 3;
+  string start_time = 4;    // ISO 8601
+  int32 duration_seconds = 5;
+  string notes = 6;
+
+  // Organization
+  string superset_id = 7; // Group ID for supersets (if applicable)
+
+  // Muscle Targeting
+  string primary_muscle_group = 8;
+  repeated string secondary_muscle_groups = 9;
+}
