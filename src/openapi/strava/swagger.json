@@ -224,7 +224,7 @@
         "parameters": [
           {
             "name": "weight",
-            "in": "path",
+            "in": "query",
             "description": "The weight of the athlete in kilograms.",
             "required": true,
             "schema": {
@@ -2773,6 +2773,15 @@
         "summary": "List Athlete Routes",
         "description": "Returns a list of the routes created by the authenticated athlete. Private routes are filtered out unless requested by a token with read_all scope.",
         "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The identifier of the athlete.",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
           {
             "$ref": "#/components/parameters/page"
           },

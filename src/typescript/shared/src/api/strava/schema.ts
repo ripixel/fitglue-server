@@ -1535,12 +1535,12 @@ export interface operations {
     };
     updateLoggedInAthlete: {
         parameters: {
-            query?: never;
-            header?: never;
-            path: {
+            query: {
                 /** @description The weight of the athlete in kilograms. */
                 weight: number;
             };
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -2494,7 +2494,10 @@ export interface operations {
                 per_page?: components["parameters"]["perPage"];
             };
             header?: never;
-            path?: never;
+            path: {
+                /** @description The identifier of the athlete. */
+                id: number;
+            };
             cookie?: never;
         };
         requestBody?: never;
