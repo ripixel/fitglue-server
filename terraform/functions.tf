@@ -61,8 +61,8 @@ resource "google_cloudfunctions2_function" "hevy_handler" {
   }
 
   service_config {
-    available_memory   = "256Mi"
-    timeout_seconds    = 60
+    available_memory = "256Mi"
+    timeout_seconds  = 60
     environment_variables = {
       LOG_LEVEL = var.log_level
     }
@@ -80,8 +80,8 @@ resource "google_cloud_run_service_iam_member" "hevy_handler_invoker" {
 # ----------------- Keiser Poller -----------------
 
 resource "google_cloudfunctions2_function" "keiser_poller" {
-  name        = "keiser-poller"
-  location    = var.region
+  name     = "keiser-poller"
+  location = var.region
 
   build_config {
     runtime     = "nodejs20"
@@ -96,8 +96,8 @@ resource "google_cloudfunctions2_function" "keiser_poller" {
   }
 
   service_config {
-    available_memory   = "256Mi"
-    timeout_seconds    = 60
+    available_memory = "256Mi"
+    timeout_seconds  = 60
     environment_variables = {
       LOG_LEVEL = var.log_level
     }
@@ -115,8 +115,8 @@ resource "google_cloud_run_service_iam_member" "keiser_poller_invoker" {
 
 # ----------------- Enricher Service -----------------
 resource "google_cloudfunctions2_function" "enricher" {
-  name        = "enricher"
-  location    = var.region
+  name     = "enricher"
+  location = var.region
 
   build_config {
     runtime     = "go125"
@@ -131,8 +131,8 @@ resource "google_cloudfunctions2_function" "enricher" {
   }
 
   service_config {
-    available_memory   = "512Mi"
-    timeout_seconds    = 300
+    available_memory = "512Mi"
+    timeout_seconds  = 300
     environment_variables = {
       GOOGLE_CLOUD_PROJECT = var.project_id
       GCS_ARTIFACT_BUCKET  = "${var.project_id}-artifacts"
@@ -155,8 +155,8 @@ resource "google_cloudfunctions2_function" "enricher" {
 
 # ----------------- Router Service -----------------
 resource "google_cloudfunctions2_function" "router" {
-  name        = "router"
-  location    = var.region
+  name     = "router"
+  location = var.region
 
   build_config {
     runtime     = "go125"
@@ -171,8 +171,8 @@ resource "google_cloudfunctions2_function" "router" {
   }
 
   service_config {
-    available_memory   = "512Mi"
-    timeout_seconds    = 300
+    available_memory = "512Mi"
+    timeout_seconds  = 300
     environment_variables = {
       GOOGLE_CLOUD_PROJECT = var.project_id
       GCS_ARTIFACT_BUCKET  = "${var.project_id}-artifacts"
@@ -192,8 +192,8 @@ resource "google_cloudfunctions2_function" "router" {
 
 # ----------------- Strava Uploader -----------------
 resource "google_cloudfunctions2_function" "strava_uploader" {
-  name        = "strava-uploader"
-  location    = var.region
+  name     = "strava-uploader"
+  location = var.region
 
   build_config {
     runtime     = "go125"
@@ -208,8 +208,8 @@ resource "google_cloudfunctions2_function" "strava_uploader" {
   }
 
   service_config {
-    available_memory   = "512Mi"
-    timeout_seconds    = 300
+    available_memory = "512Mi"
+    timeout_seconds  = 300
     environment_variables = {
       GOOGLE_CLOUD_PROJECT = var.project_id
       GCS_ARTIFACT_BUCKET  = "${var.project_id}-artifacts"

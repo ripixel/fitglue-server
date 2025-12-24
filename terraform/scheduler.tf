@@ -22,10 +22,10 @@ resource "google_cloud_scheduler_job" "keiser_job" {
 
 # IAM Binding to allow Scheduler SA to invoke Function
 resource "google_cloud_run_service_iam_member" "scheduler_invoker" {
-    project = var.project_id
-    location = var.region
-    service = google_cloudfunctions2_function.keiser_poller.name
-    # Note: Gen 2 names are technically `projects/*/locations/*/functions/*` but IAM binds to the underlying Run service
-    role = "roles/run.invoker"
-    member = "serviceAccount:${google_service_account.scheduler_sa.email}"
+  project  = var.project_id
+  location = var.region
+  service  = google_cloudfunctions2_function.keiser_poller.name
+  # Note: Gen 2 names are technically `projects/*/locations/*/functions/*` but IAM binds to the underlying Run service
+  role   = "roles/run.invoker"
+  member = "serviceAccount:${google_service_account.scheduler_sa.email}"
 }

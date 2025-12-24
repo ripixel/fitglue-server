@@ -10,7 +10,8 @@ resource "google_project_service" "apis" {
     "secretmanager.googleapis.com",
     "cloudbuild.googleapis.com",
     "iam.googleapis.com",
-    "compute.googleapis.com"
+    "compute.googleapis.com",
+    "dns.googleapis.com"
   ])
 
   project = var.project_id
