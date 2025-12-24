@@ -20,6 +20,29 @@ func TestEnrichActivity(t *testing.T) {
 		SetExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
 			return nil
 		},
+		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
+			return map[string]interface{}{
+				"user_id": id,
+				"integrations": map[string]interface{}{
+					"fitbit": map[string]interface{}{
+						"enabled":      true,
+						"access_token": "mock-token",
+					},
+				},
+				"enrichments": map[string]interface{}{
+					"SOURCE_HEVY": map[string]interface{}{
+						"enrichers": []interface{}{
+							map[string]interface{}{
+								"name": "fitbit-hr",
+								"inputs": map[string]interface{}{
+									"priority": "high",
+								},
+							},
+						},
+					},
+				},
+			}, nil
+		},
 	}
 	mockPub := &mocks.MockPublisher{
 		PublishFunc: func(ctx context.Context, topic string, data []byte) (string, error) {
@@ -27,7 +50,11 @@ func TestEnrichActivity(t *testing.T) {
 			return "msg-123", nil
 		},
 	}
-	mockStore := &mocks.MockBlobStore{} // Default successful write
+	mockStore := &mocks.MockBlobStore{
+		WriteFunc: func(ctx context.Context, bucket, object string, data []byte) error {
+			return nil
+		},
+	}
 	mockSecrets := &mocks.MockSecretStore{}
 
 	// Inject Mocks into Global Service
@@ -47,6 +74,13 @@ func TestEnrichActivity(t *testing.T) {
 		Source:    pb.ActivitySource_SOURCE_HEVY,
 		UserId:    "user_123",
 		Timestamp: time.Now().Format(time.RFC3339),
+		StandardizedActivity: &pb.StandardizedActivity{
+			StartTime: time.Now().Format(time.RFC3339),
+			Type: "WEIGHT_TRAINING",
+			Sessions: []*pb.Session{
+				{TotalElapsedTime: 3600},
+			},
+		},
 	}
 	activityBytes, _ := json.Marshal(&activity)
 

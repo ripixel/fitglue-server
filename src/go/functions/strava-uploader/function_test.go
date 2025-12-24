@@ -82,8 +82,12 @@ func TestUploadToStrava(t *testing.T) {
 
 	// Prepare Input
 	eventPayload := pb.EnrichedActivityEvent{
-		UserId: "user_upload",
-		GcsUri: "gs://fitglue-artifacts/activities/user_upload/123.fit",
+		UserId:       "user_upload",
+		FitFileUri:   "gs://fitglue-artifacts/activities/user_upload/123.fit",
+		Description:  "Test Activity",
+		ActivityType: "WEIGHT_TRAINING",
+		Name:         "Test Workout",
+		Source:       pb.ActivitySource_SOURCE_HEVY,
 	}
 	payloadBytes, _ := json.Marshal(&eventPayload)
 

@@ -45,8 +45,12 @@ func TestRouteActivity(t *testing.T) {
 
 	// Prepare Input
 	eventPayload := pb.EnrichedActivityEvent{
-		UserId: "user_router",
-		GcsUri: "gs://bucket/file.fit",
+		UserId:       "user_router",
+		FitFileUri:   "gs://bucket/file.fit",
+		Description:  "Test Description",
+		ActivityType: "WEIGHT_TRAINING",
+		Name:         "Test Workout",
+		Source:       pb.ActivitySource_SOURCE_HEVY,
 	}
 	payloadBytes, _ := json.Marshal(&eventPayload)
 
