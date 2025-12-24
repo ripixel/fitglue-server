@@ -1233,7 +1233,7 @@ export interface components {
              * @description The id of the superset that the exercise belongs to. A value of null indicates the exercise is not part of a superset.
              * @example 0
              */
-            supersets_id?: number | null;
+            superset_id?: number | null;
             sets?: components["schemas"]["Set"][];
         };
         ExerciseHistoryEntry: {
@@ -1453,7 +1453,7 @@ export interface components {
                  * @description The id of the superset that the exercise belongs to. A value of null indicates the exercise is not part of a superset.
                  * @example 0
                  */
-                supersets_id?: number | null;
+                superset_id?: number | null;
                 sets?: {
                     /**
                      * @description Index indicating the order of the set in the routine.
@@ -1577,7 +1577,7 @@ export interface components {
                  * @description The id of the superset that the exercise belongs to. A value of null indicates the exercise is not part of a superset.
                  * @example 0
                  */
-                supersets_id?: number | null;
+                superset_id?: number | null;
                 sets?: {
                     /**
                      * @description Index indicating the order of the set in the workout.

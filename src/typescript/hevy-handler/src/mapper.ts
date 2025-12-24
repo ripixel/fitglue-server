@@ -22,7 +22,14 @@ export function mapHevyWorkoutToStandardized(
   const exercises = workout.exercises || [];
   const strengthSets: StrengthSet[] = exercises.flatMap((ex) => {
     const exTitle = ex.title || 'Unknown Exercise';
-    const supersetId = ex.supersets_id ? String(ex.supersets_id) : undefined;
+
+    // Handle superset_id from payload (now correctly typed in schema)
+    // Check for null/undefined specifically because 0 is a valid ID
+    const rawSupersetId = ex.superset_id;
+
+    const supersetId = (rawSupersetId !== undefined && rawSupersetId !== null)
+      ? String(rawSupersetId)
+      : undefined;
 
     // Lookup template from map if ID exists
     const templateId = ex.exercise_template_id;

@@ -13,7 +13,7 @@ describe('mapHevyWorkoutToStandardized', () => {
     exercises: [
       {
         title: 'Bench Press',
-        supersets_id: null,
+        superset_id: 0, // Test 0 ID mapping
         notes: 'Felt strong',
         exercise_template_id: 'tmpl_bench',
         sets: [
@@ -23,7 +23,7 @@ describe('mapHevyWorkoutToStandardized', () => {
       },
       {
         title: 'Push ups',
-        supersets_id: 123, // Superset
+        superset_id: 123,
         exercise_template_id: 'tmpl_pushup',
         sets: [
           { reps: 20, weight_kg: 0, index: 0 }
@@ -65,13 +65,14 @@ describe('mapHevyWorkoutToStandardized', () => {
 
     expect(sets).toHaveLength(3); // 2 Bench, 1 Push up
 
-    // Check Bench Set 1
+    // Check Bench Set 1 (Expect 0 -> "0")
     expect(sets[0]).toMatchObject({
       exerciseName: 'Bench Press',
       reps: 10,
       weightKg: 60,
       primaryMuscleGroup: 'Chest',
-      secondaryMuscleGroups: ['Triceps']
+      secondaryMuscleGroups: ['Triceps'],
+      supersetId: '0'
     });
 
     // Check Push up (Superset)
