@@ -26,9 +26,8 @@ describe('Execution Logger', () => {
     it('should create a new execution document', async () => {
       const id = await logExecutionStart(mockDb, 'test-service', { userId: 'user-1' });
 
-      expect(id).toBe('exec-123');
-      expect(mockCollection).toHaveBeenCalledWith('executions');
-      expect(mockDoc).toHaveBeenCalled();
+      expect(id).toContain('test-service-');
+      expect(mockDoc).toHaveBeenCalledWith(id);
       expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
         service: 'test-service',
         status: 'STATUS_STARTED',

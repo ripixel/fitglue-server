@@ -17,8 +17,10 @@ export async function logExecutionStart(
   service: string,
   opts: ExecutionOptions = {}
 ): Promise<string> {
-  const execRef = db.collection('executions').doc();
-  const execId = execRef.id;
+  // Generate ID to match Go implementation: {service}-{timestamp}
+  // This improves sorting and readability
+  const execId = `${service}-${Date.now()}`;
+  const execRef = db.collection('executions').doc(execId);
 
   const now = new Date();
 
