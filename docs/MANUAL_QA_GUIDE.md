@@ -92,28 +92,75 @@ We want Hevy workouts to be enriched with Fitbit heart rate data and then sent t
 ```bash
 ./fitglue-admin executions:list -s hevy-handler -u user-123
 ```
-*Status should be `STATUS_SUCCESS`. Note the message ID.*
+*   **Status**: Should be `STATUS_SUCCESS`.
+*   **Output**: Note the message ID for tracking through the pipeline.
 
 **2. Check Enricher:**
 ```bash
 ./fitglue-admin executions:list -s enricher -u user-123
 ```
-*   **Log Message**: Look for "Resolved pipelines count=1".
-*   **Log Message**: Look for "Executing pipeline id=...".
-*   **Log Message**: Look for "Enrichment complete".
+*   **Status**: Should be `STATUS_SUCCESS`.
+*   **Log Messages to verify**:
+    *   `"Starting enrichment"` - Confirms the enricher received the activity.
+    *   `"Retrieved Fitbit HR"` - Shows Fitbit heart rate data was successfully fetched (includes `points` and `duration`).
+    *   `"Published enriched event"` - Confirms the enriched activity was published (includes `activity_id`, `pipeline_id`, `destinations`, and `message_id`).
+    *   `"Enrichment complete"` - Final confirmation with `published_count`.
+*   **Output JSON fields to verify**:
+    *   `"status": "SUCCESS"`
+    *   `"published_count": 1` - Should match the number of pipelines configured.
+    *   `"published_events"` - Array containing:
+        *   `activity_id` - The activity identifier.
+        *   `pipeline_id` - The pipeline that was executed.
+        *   `destinations` - Should include `["strava"]`.
+        *   `applied_enrichments` - Should include `["fitbit-hr"]`.
+        *   `fit_file_uri` - GCS URI where the enriched FIT file is stored.
+        *   `pubsub_message_id` - Message ID for the next stage.
+    *   `"provider_executions"` - Details about each enricher that ran:
+        *   `provider_name`: `"fitbit-hr"`
+        *   `status`: `"SUCCESS"`
+        *   `metadata`: Should include `"hr_source": "fitbit"` and `"hr_points"` count.
 
 **3. Check Router:**
 ```bash
 ./fitglue-admin executions:list -s router -u user-123
 ```
-*   **Log Message**: Look for "Resolved destinations from payload" -> `['strava']`.
-*   **Log Message**: Look for "Routed activity" -> `['strava:msg-id']`.
+*   **Status**: Should be `STATUS_SUCCESS`.
+*   **Log Messages to verify**:
+    *   `"Starting routing"` - Shows the router received the enriched event (includes `source` and `pipeline`).
+    *   `"Resolved destinations from payload"` - Should show `dests=["strava"]`.
+    *   `"Routed to destination"` - Confirms routing to each destination (includes `dest`, `topic`, and `message_id`).
+    *   `"Routing complete"` - Final confirmation with `routed_count`.
+*   **Output JSON fields to verify**:
+    *   `"status": "SUCCESS"`
+    *   `"activity_id"` - The activity identifier.
+    *   `"pipeline_id"` - The pipeline being executed.
+    *   `"source"` - Should be `"SOURCE_HEVY"`.
+    *   `"applied_enrichments"` - Should include `["fitbit-hr"]`.
+    *   `"routed_destinations"` - Array containing:
+        *   `destination`: `"strava"`
+        *   `topic`: The Pub/Sub topic used.
+        *   `pubsub_message_id` - Message ID for tracking.
+        *   `status`: `"SUCCESS"`
 
 **4. Check Strava Uploader:**
 ```bash
 ./fitglue-admin executions:list -s strava-uploader-job -u user-123
 ```
-*Status should be `STATUS_SUCCESS`. The activity should surely appear in the user's Strava feed.*
+*   **Status**: Should be `STATUS_SUCCESS`.
+*   **Log Messages to verify**:
+    *   `"Starting upload"` - Shows the uploader received the event (includes `activity_id` and `pipeline_id`).
+    *   `"Upload success"` - Confirms successful upload to Strava (includes `upload_id` and `status`).
+*   **Output JSON fields to verify**:
+    *   `"status": "SUCCESS"`
+    *   `"strava_upload_id"` - The Strava upload identifier.
+    *   `"strava_activity_id"` - The Strava activity ID (may be `0` if still processing).
+    *   `"upload_status"` - Typically `"Your activity is still being processed."` or `"Your activity is ready."`.
+    *   `"activity_id"` - The original activity identifier.
+    *   `"pipeline_id"` - The pipeline that was executed.
+    *   `"fit_file_uri"` - GCS URI of the uploaded FIT file.
+    *   `"activity_name"` - Name of the activity.
+    *   `"activity_type"` - Type of activity (e.g., `"WeightTraining"`).
+*   **Final Verification**: The activity should appear in the user's Strava feed within a few minutes.
 
 ---
 
