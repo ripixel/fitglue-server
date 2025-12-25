@@ -44,6 +44,11 @@ func (a *FirestoreAdapter) GetUser(ctx context.Context, id string) (map[string]i
 	return snap.Data(), nil
 }
 
+func (a *FirestoreAdapter) UpdateUser(ctx context.Context, id string, data map[string]interface{}) error {
+	_, err := a.Client.Collection("users").Doc(id).Set(ctx, data, firestore.MergeAll)
+	return err
+}
+
 // --- PubSub Adapter ---
 type PubSubAdapter struct {
 	Client *pubsub.Client

@@ -4,7 +4,9 @@
     "hevy-handler",
     "keiser-poller",
     "shared",
-    "admin-cli"
+    "admin-cli",
+    "strava-oauth-handler",
+    "fitbit-oauth-handler"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

@@ -119,4 +119,78 @@ export class UserService {
 
         return pipelineId;
     }
+
+    /**
+     * Returns a valid access token for the given provider.
+     * Refreshes the token if expired or expiring soon.
+     * @param userId The User ID
+     * @param provider The provider name ('strava' or 'fitbit')
+     * @param forceRefresh If true, forces a refresh regardless of expiry (e.g. after a 401)
+     */
+    async getValidToken(userId: string, provider: 'strava' | 'fitbit', forceRefresh = false): Promise<string> {
+        // We import refreshOAuthToken dynamically to avoid circular dependencies if any,
+        // essentially just keeping it clean. But `oauth.ts` is in same package.
+        // Actually UserService -> oauth.ts is fine.
+        const { refreshOAuthToken } = await import('../oauth');
+
+        const userDoc = await this.db.collection('users').doc(userId).get();
+        if (!userDoc.exists) {
+            throw new Error(`User ${userId} not found`);
+        }
+
+        const userData = userDoc.data();
+        const integration = userData?.integrations?.[provider];
+
+        if (!integration || !integration.enabled) {
+            throw new Error(`Integration ${provider} not enabled for user ${userId}`);
+        }
+
+        const { access_token, refresh_token, expires_at } = integration;
+
+        // Check Expiry
+        let expiryDate: Date;
+        if (expires_at instanceof Timestamp) {
+            expiryDate = expires_at.toDate();
+        } else if (typeof expires_at === 'string') {
+            expiryDate = new Date(expires_at); // Should probably use Timestamp but being safe
+        } else {
+            // Assume it's a date or timestamp-like object or missing
+            expiryDate = new Date(expires_at.seconds * 1000); // Protobuf style?
+            // We'll trust Firestore/Timestamp mostly.
+        }
+
+        // Proactive Refresh: Refresh if expiring in next 2 minutes
+        const expiringSoon = new Date(Date.now() + 2 * 60 * 1000) > expiryDate;
+
+        if (forceRefresh || expiringSoon) {
+            console.log(`Refreshing ${provider} token for user ${userId} (Force: ${forceRefresh}, Expiring: ${expiringSoon})`);
+
+            try {
+                const newTokens = await refreshOAuthToken(provider, refresh_token);
+
+                // Update DB
+                if (provider === 'strava') {
+                    // We don't have athleteId handy here to reuse setStravaIntegration nicely without fetching validation
+                    // So we just patch fields.
+                    await this.db.collection('users').doc(userId).update({
+                        'integrations.strava.accessToken': newTokens.accessToken,
+                        'integrations.strava.refreshToken': newTokens.refreshToken,
+                        'integrations.strava.expiresAt': Timestamp.fromDate(newTokens.expiresAt)
+                    });
+                } else {
+                    await this.db.collection('users').doc(userId).update({
+                        'integrations.fitbit.accessToken': newTokens.accessToken,
+                        'integrations.fitbit.refreshToken': newTokens.refreshToken,
+                        'integrations.fitbit.expiresAt': Timestamp.fromDate(newTokens.expiresAt)
+                    });
+                }
+
+                return newTokens.accessToken;
+            } catch (err) {
+                throw new Error(`Failed to refresh token for ${provider}: ${err}`);
+            }
+        }
+
+        return access_token;
+    }
 }

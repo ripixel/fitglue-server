@@ -19,6 +19,7 @@ import (
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
+	"github.com/ripixel/fitglue-server/src/go/pkg/oauth"
 	"github.com/ripixel/fitglue-server/src/go/pkg/types"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
@@ -90,18 +91,11 @@ func uploadHandler(svc *UploaderService) framework.HandlerFunc {
 
 		fwCtx.Logger.Info("Starting upload")
 
-		// Get Tokens & Rotate if needed
-		userData, err := fwCtx.Service.DB.GetUser(ctx, eventPayload.UserId)
+		// Initialize Token Source
+		tokenSource := oauth.NewFirestoreTokenSource(fwCtx.Service, eventPayload.UserId, "strava")
+		token, err := tokenSource.Token(ctx)
 		if err != nil {
-			fwCtx.Logger.Error("User tokens not found")
-			return nil, fmt.Errorf("user tokens not found")
-		}
-
-		token, _ := userData["strava_access_token"].(string)
-		expiresAt, _ := userData["strava_expires_at"].(time.Time)
-
-		if time.Now().After(expiresAt.Add(-5 * time.Minute)) {
-			fwCtx.Logger.Info("Token expiring soon - rotation required")
+			return nil, fmt.Errorf("failed to get token: %w", err)
 		}
 
 		// Download FIT from GCS
@@ -117,22 +111,43 @@ func uploadHandler(svc *UploaderService) framework.HandlerFunc {
 			return nil, fmt.Errorf("GCS Read Error: %w", err)
 		}
 
-		// Upload to Strava
-		body := &bytes.Buffer{}
-		writer := multipart.NewWriter(body)
-		part, _ := writer.CreateFormFile("file", "activity.fit")
-		part.Write(fileData)
-		writer.WriteField("data_type", "fit")
-		writer.Close()
+		// Helper to invoke request
+		doUpload := func(accessToken string) (*http.Response, error) {
+			body := &bytes.Buffer{}
+			writer := multipart.NewWriter(body)
+			part, _ := writer.CreateFormFile("file", "activity.fit")
+			part.Write(fileData)
+			writer.WriteField("data_type", "fit")
+			writer.Close()
 
-		req, _ := http.NewRequest("POST", "https://www.strava.com/api/v3/uploads", body)
-		req.Header.Set("Authorization", "Bearer "+token)
-		req.Header.Set("Content-Type", writer.FormDataContentType())
+			req, _ := http.NewRequest("POST", "https://www.strava.com/api/v3/uploads", body)
+			req.Header.Set("Authorization", "Bearer "+accessToken)
+			req.Header.Set("Content-Type", writer.FormDataContentType())
 
-		httpResp, err := svc.HTTPClient.Do(req)
+			return svc.HTTPClient.Do(req)
+		}
+
+		// 1. Attempt Upload
+		httpResp, err := doUpload(token.AccessToken)
 		if err != nil {
 			fwCtx.Logger.Error("Strava API Error", "error", err)
 			return nil, fmt.Errorf("Strava API Error: %w", err)
+		}
+
+		// 2. Retry on 401
+		if httpResp.StatusCode == http.StatusUnauthorized {
+			httpResp.Body.Close()
+			fwCtx.Logger.Info("Got 401, refreshing token...")
+
+			token, err = tokenSource.ForceRefresh(ctx)
+			if err != nil {
+				return nil, fmt.Errorf("token refresh failed: %w", err)
+			}
+
+			httpResp, err = doUpload(token.AccessToken)
+			if err != nil {
+				return nil, fmt.Errorf("retry failed: %w", err)
+			}
 		}
 		defer httpResp.Body.Close()
 

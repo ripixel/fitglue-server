@@ -66,27 +66,25 @@ describe('stravaOAuthHandler', () => {
     expect(res.redirect).toHaveBeenCalledWith('https://dev.fitglue.tech/auth/error?reason=denied');
   });
 
-  it('should return 400 if code is missing', async () => {
+  it('should redirect to error page if code is missing', async () => {
     req.query = { state: 'valid-state' };
 
     await (stravaOAuthHandler as any)(req, res, ctx);
 
     expect(ctx.logger.error).toHaveBeenCalledWith('Missing required OAuth parameters');
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith('Missing code or state parameter');
+    expect(res.redirect).toHaveBeenCalledWith('https://dev.fitglue.tech/auth/error?reason=missing_params');
   });
 
-  it('should return 400 if state is missing', async () => {
+  it('should redirect to error page if state is missing', async () => {
     req.query = { code: 'auth-code' };
 
     await (stravaOAuthHandler as any)(req, res, ctx);
 
     expect(ctx.logger.error).toHaveBeenCalledWith('Missing required OAuth parameters');
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith('Missing code or state parameter');
+    expect(res.redirect).toHaveBeenCalledWith('https://dev.fitglue.tech/auth/error?reason=missing_params');
   });
 
-  it('should return 400 if state token is invalid', async () => {
+  it('should redirect to error page if state token is invalid', async () => {
     req.query = { code: 'auth-code', state: 'invalid-state' };
     mockValidateOAuthState.mockResolvedValue(null);
 
@@ -94,8 +92,7 @@ describe('stravaOAuthHandler', () => {
 
     expect(mockValidateOAuthState).toHaveBeenCalledWith('invalid-state');
     expect(ctx.logger.error).toHaveBeenCalledWith('Invalid or expired state token');
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith('Invalid or expired state token');
+    expect(res.redirect).toHaveBeenCalledWith('https://dev.fitglue.tech/auth/error?reason=invalid_state');
   });
 
   it('should successfully process OAuth callback and store tokens', async () => {

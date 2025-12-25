@@ -37,8 +37,13 @@ func TestUploadToStrava(t *testing.T) {
 	mockDB := &mocks.MockDatabase{
 		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
 			return map[string]interface{}{
-				"strava_access_token": "token-123",
-				"strava_expires_at":   time.Now().Add(1 * time.Hour),
+				"integrations": map[string]interface{}{
+					"strava": map[string]interface{}{
+						"access_token":  "token-123",
+						"refresh_token": "refresh-123",
+						"expires_at":    time.Now().Add(1 * time.Hour),
+					},
+				},
 			}, nil
 		},
 		SetExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {

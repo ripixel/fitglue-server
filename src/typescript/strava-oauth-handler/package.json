@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@fitglue/shared": "file:../shared",
-    "@functions-framework/functions-framework": "^3.1.0"
+    "@google-cloud/functions-framework": "^3.1.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

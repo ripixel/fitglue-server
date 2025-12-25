@@ -98,3 +98,75 @@ export async function storeOAuthTokens(
 
   await batch.commit();
 }
+
+/**
+ * Refresh tokens with the provider using the refresh token
+ */
+export async function refreshOAuthToken(
+  provider: 'strava' | 'fitbit',
+  refreshToken: string
+): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT || '';
+  // Note: getSecret falls back to env vars if project not set or local
+  const clientId = await getSecret(projectId, `${provider}-client-id`);
+  const clientSecret = await getSecret(projectId, `${provider}-client-secret`);
+
+  let url = '';
+  const body = new URLSearchParams();
+
+  if (provider === 'strava') {
+    url = 'https://www.strava.com/oauth/token';
+    body.append('client_id', clientId);
+    body.append('client_secret', clientSecret);
+    body.append('grant_type', 'refresh_token');
+    body.append('refresh_token', refreshToken);
+  } else if (provider === 'fitbit') {
+    url = 'https://api.fitbit.com/oauth2/token';
+    body.append('grant_type', 'refresh_token');
+    body.append('refresh_token', refreshToken);
+  }
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  if (provider === 'fitbit') {
+    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    headers['Authorization'] = `Basic ${credentials}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Token refresh failed for ${provider}: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json() as any;
+
+  // Normalize response
+  let accessToken = '';
+  let newRefreshToken = '';
+  let expiresAt = new Date();
+
+  if (provider === 'strava') {
+    accessToken = data.access_token;
+    newRefreshToken = data.refresh_token;
+    // Strava usually returns expires_at (seconds since epoch) and expires_in (seconds from now)
+    if (data.expires_at) {
+      expiresAt = new Date(data.expires_at * 1000);
+    } else {
+      expiresAt = new Date(Date.now() + data.expires_in * 1000);
+    }
+  } else if (provider === 'fitbit') {
+    accessToken = data.access_token;
+    newRefreshToken = data.refresh_token;
+    expiresAt = new Date(Date.now() + data.expires_in * 1000);
+  }
+
+  return { accessToken, refreshToken: newRefreshToken, expiresAt };
+}

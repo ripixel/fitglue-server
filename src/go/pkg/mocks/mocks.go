@@ -10,6 +10,7 @@ type MockDatabase struct {
 	SetExecutionFunc    func(ctx context.Context, id string, data map[string]interface{}) error
 	UpdateExecutionFunc func(ctx context.Context, id string, data map[string]interface{}) error
 	GetUserFunc         func(ctx context.Context, id string) (map[string]interface{}, error)
+	UpdateUserFunc      func(ctx context.Context, id string, data map[string]interface{}) error
 }
 
 func (m *MockDatabase) SetExecution(ctx context.Context, id string, data map[string]interface{}) error {
@@ -29,6 +30,12 @@ func (m *MockDatabase) GetUser(ctx context.Context, id string) (map[string]inter
 		return m.GetUserFunc(ctx, id)
 	}
 	return nil, fmt.Errorf("user not found")
+}
+func (m *MockDatabase) UpdateUser(ctx context.Context, id string, data map[string]interface{}) error {
+	if m.UpdateUserFunc != nil {
+		return m.UpdateUserFunc(ctx, id, data)
+	}
+	return nil
 }
 
 // --- Mock Publisher ---
