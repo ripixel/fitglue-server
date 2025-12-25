@@ -57,3 +57,35 @@ resource "google_dns_record_set" "test_delegation" {
     "ns-cloud-a4.googledomains.com.",
   ]
 }
+
+# Firebase Hosting Custom Domain
+resource "google_firebase_hosting_custom_domain" "main" {
+  provider      = google-beta
+  project       = var.project_id
+  site_id       = var.project_id
+  custom_domain = var.domain_name
+
+  wait_dns_verification = true
+
+  depends_on = [
+    google_dns_managed_zone.main
+  ]
+}
+
+# DNS TXT record for Firebase domain verification
+resource "google_dns_record_set" "firebase_verification" {
+  managed_zone = google_dns_managed_zone.main.name
+  name         = google_firebase_hosting_custom_domain.main.required_dns_updates[0].domain_name
+  type         = "TXT"
+  ttl          = 300
+  rrdatas      = [google_firebase_hosting_custom_domain.main.required_dns_updates[0].records[0]]
+}
+
+# DNS A records for Firebase Hosting
+resource "google_dns_record_set" "firebase_a" {
+  managed_zone = google_dns_managed_zone.main.name
+  name         = "${var.domain_name}."
+  type         = "A"
+  ttl          = 300
+  rrdatas      = google_firebase_hosting_custom_domain.main.required_dns_updates[1].records
+}

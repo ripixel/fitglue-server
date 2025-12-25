@@ -25,3 +25,8 @@ variable "environment" {
   description = "The deployment environment (dev, test, prod)"
   type        = string
 }
+
+variable "domain_name" {
+  description = "Custom domain for Firebase Hosting"
+  type        = string
+}
