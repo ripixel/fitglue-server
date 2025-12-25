@@ -87,38 +87,70 @@ func enrichHandler(ctx context.Context, e event.Event, fwCtx *framework.Framewor
 	orchestrator.Register(providers.NewFitBitHeartRate())
 
 	// Process
-	enrichedEvents, err := orchestrator.Process(ctx, &rawEvent)
+	processResult, err := orchestrator.Process(ctx, &rawEvent, fwCtx.ExecutionID)
 	if err != nil {
 		fwCtx.Logger.Error("Orchestrator failed", "error", err)
 		return nil, err
 	}
 
-	if len(enrichedEvents) == 0 {
+	if len(processResult.Events) == 0 {
 		fwCtx.Logger.Info("No pipelines matched, skipping enrichment")
-		return nil, nil
+		return map[string]interface{}{
+			"status":              "NO_PIPELINES",
+			"provider_executions": processResult.ProviderExecutions,
+		}, nil
 	}
 
 	// Publish Results to Router
 	var publishedCount int
 	marshalOpts := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}
 
-	for _, event := range enrichedEvents {
+	// Track published events for rich output
+	type PublishedEvent struct {
+		ActivityID         string   `json:"activity_id"`
+		PipelineID         string   `json:"pipeline_id"`
+		Destinations       []string `json:"destinations"`
+		AppliedEnrichments []string `json:"applied_enrichments"`
+		FitFileURI         string   `json:"fit_file_uri,omitempty"`
+		PubSubMessageID    string   `json:"pubsub_message_id"`
+	}
+	publishedEvents := []PublishedEvent{}
+
+	for _, event := range processResult.Events {
 		payload, err := marshalOpts.Marshal(event)
 		if err != nil {
 			fwCtx.Logger.Error("Failed to marshal enriched event", "error", err)
 			continue
 		}
 
-		if _, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
+		msgID, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload)
+		if err != nil {
 			fwCtx.Logger.Error("Failed to publish result", "error", err, "pipeline_id", event.PipelineId)
 		} else {
 			publishedCount++
+			fwCtx.Logger.Info("Published enriched event",
+				"activity_id", event.ActivityId,
+				"pipeline_id", event.PipelineId,
+				"destinations", event.Destinations,
+				"message_id", msgID)
+
+			publishedEvents = append(publishedEvents, PublishedEvent{
+				ActivityID:         event.ActivityId,
+				PipelineID:         event.PipelineId,
+				Destinations:       event.Destinations,
+				AppliedEnrichments: event.AppliedEnrichments,
+				FitFileURI:         event.FitFileUri,
+				PubSubMessageID:    msgID,
+			})
 		}
 	}
 
 	fwCtx.Logger.Info("Enrichment complete", "published_count", publishedCount)
 	return map[string]interface{}{
-		"published_count": publishedCount,
-		"events":          len(enrichedEvents),
+		"status":              "SUCCESS",
+		"published_count":     publishedCount,
+		"total_events":        len(processResult.Events),
+		"published_events":    publishedEvents,
+		"provider_executions": processResult.ProviderExecutions,
 	}, nil
 }

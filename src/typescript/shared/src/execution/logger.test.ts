@@ -59,4 +59,21 @@ describe('Execution Logger', () => {
       }));
     });
   });
+
+  describe('logChildExecutionStart', () => {
+    it('should create a child execution document with parent link', async () => {
+      const { logChildExecutionStart } = require('./logger');
+
+      const id = await logChildExecutionStart(mockDb, 'child-service', 'parent-exec-123', { userId: 'user-1' });
+
+      expect(id).toContain('child-service-');
+      expect(mockDoc).toHaveBeenCalledWith(id);
+      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
+        service: 'child-service',
+        status: 'STATUS_STARTED',
+        user_id: 'user-1',
+        parent_execution_id: 'parent-exec-123'
+      }));
+    });
+  });
 });

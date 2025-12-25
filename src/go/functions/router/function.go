@@ -71,7 +71,15 @@ func routeHandler(ctx context.Context, e event.Event, fwCtx *framework.Framework
 	destinations := eventPayload.Destinations
 
 	// Fan-out
-	routings := []string{}
+	type RoutedDestination struct {
+		Destination     string `json:"destination"`
+		Topic           string `json:"topic"`
+		PubSubMessageID string `json:"pubsub_message_id"`
+		Status          string `json:"status"`
+		Error           string `json:"error,omitempty"`
+	}
+	routedDestinations := []RoutedDestination{}
+
 	fwCtx.Logger.Info("Resolved destinations from payload", "dests", destinations)
 
 	for _, dest := range destinations {
@@ -81,19 +89,43 @@ func routeHandler(ctx context.Context, e event.Event, fwCtx *framework.Framework
 			topic = shared.TopicJobUploadStrava
 		default:
 			fwCtx.Logger.Warn("Unknown destination", "dest", dest)
+			routedDestinations = append(routedDestinations, RoutedDestination{
+				Destination: dest,
+				Status:      "SKIPPED",
+				Error:       "unknown destination",
+			})
 			continue
 		}
 
 		resID, err := fwCtx.Service.Pub.Publish(ctx, topic, msg.Message.Data)
 		if err != nil {
 			fwCtx.Logger.Error("Failed to publish to queue", "dest", dest, "topic", topic, "error", err)
+			routedDestinations = append(routedDestinations, RoutedDestination{
+				Destination: dest,
+				Topic:       topic,
+				Status:      "FAILED",
+				Error:       err.Error(),
+			})
 		} else {
-			routings = append(routings, dest+":"+resID)
+			fwCtx.Logger.Info("Routed to destination", "dest", dest, "topic", topic, "message_id", resID)
+			routedDestinations = append(routedDestinations, RoutedDestination{
+				Destination:     dest,
+				Topic:           topic,
+				PubSubMessageID: resID,
+				Status:          "SUCCESS",
+			})
 		}
 	}
 
-	fwCtx.Logger.Info("Routed activity", "routes", routings)
+	fwCtx.Logger.Info("Routing complete", "routed_count", len(routedDestinations))
 	return map[string]interface{}{
-		"routings": routings,
+		"status":              "SUCCESS",
+		"activity_id":         eventPayload.ActivityId,
+		"pipeline_id":         eventPayload.PipelineId,
+		"source":              eventPayload.Source.String(),
+		"activity_name":       eventPayload.Name,
+		"activity_type":       eventPayload.ActivityType,
+		"applied_enrichments": eventPayload.AppliedEnrichments,
+		"routed_destinations": routedDestinations,
 	}, nil
 }

@@ -41,4 +41,6 @@ export interface ExecutionRecord {
   inputsJson: string;
   /** JSON-encoded outputs */
   outputsJson: string;
+  /** Parent-child execution tracking */
+  parentExecutionId: string;
 }

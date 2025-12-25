@@ -59,6 +59,42 @@ func LogStart(ctx context.Context, db Database, service string, opts ExecutionOp
 	return execID, nil
 }
 
+// LogChildExecutionStart creates an execution record with STARTED status and links it to a parent
+func LogChildExecutionStart(ctx context.Context, db Database, service string, parentExecutionID string, opts ExecutionOptions) (string, error) {
+	execID := fmt.Sprintf("%s-%d", service, time.Now().UnixNano())
+
+	now := timestamppb.Now()
+
+	record := &pb.ExecutionRecord{
+		ExecutionId:       execID,
+		Service:           service,
+		Status:            pb.ExecutionStatus_STATUS_STARTED,
+		Timestamp:         now,
+		StartTime:         now,
+		UserId:            opts.UserID,
+		TestRunId:         opts.TestRunID,
+		TriggerType:       opts.TriggerType,
+		ParentExecutionId: parentExecutionID,
+	}
+
+	// Encode inputs as JSON if provided
+	if opts.Inputs != nil {
+		inputsJSON, err := json.Marshal(opts.Inputs)
+		if err == nil {
+			record.InputsJson = string(inputsJSON)
+		}
+	}
+
+	// Convert to map for Firestore
+	data := executionRecordToMap(record)
+
+	if err := db.SetExecution(ctx, execID, data); err != nil {
+		return execID, fmt.Errorf("failed to log child execution start: %w", err)
+	}
+
+	return execID, nil
+}
+
 // LogSuccess updates an execution record with SUCCESS status
 func LogSuccess(ctx context.Context, db Database, execID string, outputs interface{}) error {
 	now := timestamppb.Now()
@@ -124,6 +160,9 @@ func executionRecordToMap(record *pb.ExecutionRecord) map[string]interface{} {
 	}
 	if record.InputsJson != "" {
 		data["inputs"] = record.InputsJson
+	}
+	if record.ParentExecutionId != "" {
+		data["parent_execution_id"] = record.ParentExecutionId
 	}
 
 	return data

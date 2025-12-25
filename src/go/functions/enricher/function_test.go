@@ -2,6 +2,7 @@ package enricher
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -18,6 +19,28 @@ func TestEnrichActivity(t *testing.T) {
 	// Setup Mocks
 	mockDB := &mocks.MockDatabase{
 		SetExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
+			return nil
+		},
+		UpdateExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
+			// Verify rich output structure
+			if outputsJSON, ok := data["outputs"].(string); ok {
+				var outputs map[string]interface{}
+				if err := json.Unmarshal([]byte(outputsJSON), &outputs); err != nil {
+					t.Errorf("Failed to unmarshal outputs: %v", err)
+					return nil
+				}
+
+				// Verify expected fields
+				if status, ok := outputs["status"].(string); !ok || status == "" {
+					t.Error("Expected 'status' field in outputs")
+				}
+				if _, ok := outputs["published_events"]; !ok {
+					t.Error("Expected 'published_events' field in outputs")
+				}
+				if _, ok := outputs["provider_executions"]; !ok {
+					t.Error("Expected 'provider_executions' field in outputs")
+				}
+			}
 			return nil
 		},
 		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {

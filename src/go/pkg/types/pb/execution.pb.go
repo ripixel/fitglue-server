@@ -90,11 +90,13 @@ type ExecutionRecord struct {
 	StartTime *timestamp.Timestamp `protobuf:"bytes,8,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	EndTime   *timestamp.Timestamp `protobuf:"bytes,9,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`
 	// Results
-	ErrorMessage  string `protobuf:"bytes,10,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
-	InputsJson    string `protobuf:"bytes,11,opt,name=inputs_json,json=inputsJson,proto3" json:"inputs_json,omitempty"`    // JSON-encoded inputs
-	OutputsJson   string `protobuf:"bytes,12,opt,name=outputs_json,json=outputsJson,proto3" json:"outputs_json,omitempty"` // JSON-encoded outputs
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	ErrorMessage string `protobuf:"bytes,10,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	InputsJson   string `protobuf:"bytes,11,opt,name=inputs_json,json=inputsJson,proto3" json:"inputs_json,omitempty"`    // JSON-encoded inputs
+	OutputsJson  string `protobuf:"bytes,12,opt,name=outputs_json,json=outputsJson,proto3" json:"outputs_json,omitempty"` // JSON-encoded outputs
+	// Parent-child execution tracking
+	ParentExecutionId string `protobuf:"bytes,13,opt,name=parent_execution_id,json=parentExecutionId,proto3" json:"parent_execution_id,omitempty"` // Links child executions to parent
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
 }
 
 func (x *ExecutionRecord) Reset() {
@@ -211,11 +213,18 @@ func (x *ExecutionRecord) GetOutputsJson() string {
 	return ""
 }
 
+func (x *ExecutionRecord) GetParentExecutionId() string {
+	if x != nil {
+		return x.ParentExecutionId
+	}
+	return ""
+}
+
 var File_execution_proto protoreflect.FileDescriptor
 
 const file_execution_proto_rawDesc = "" +
 	"\n" +
-	"\x0fexecution.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf1\x03\n" +
+	"\x0fexecution.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa1\x04\n" +
 	"\x0fExecutionRecord\x12!\n" +
 	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\x12\x18\n" +
 	"\aservice\x18\x02 \x01(\tR\aservice\x120\n" +
@@ -231,7 +240,8 @@ const file_execution_proto_rawDesc = "" +
 	" \x01(\tR\ferrorMessage\x12\x1f\n" +
 	"\vinputs_json\x18\v \x01(\tR\n" +
 	"inputsJson\x12!\n" +
-	"\foutputs_json\x18\f \x01(\tR\voutputsJson*`\n" +
+	"\foutputs_json\x18\f \x01(\tR\voutputsJson\x12.\n" +
+	"\x13parent_execution_id\x18\r \x01(\tR\x11parentExecutionId*`\n" +
 	"\x0fExecutionStatus\x12\x12\n" +
 	"\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n" +
 	"\x0eSTATUS_STARTED\x10\x01\x12\x12\n" +

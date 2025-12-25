@@ -33,8 +33,23 @@ func (o *Orchestrator) Register(p Provider) {
 	o.providers[p.Name()] = p
 }
 
+// ProcessResult contains detailed information about the enrichment process
+type ProcessResult struct {
+	Events             []*pb.EnrichedActivityEvent
+	ProviderExecutions []ProviderExecution
+}
+
+// ProviderExecution tracks a single provider's execution
+type ProviderExecution struct {
+	ProviderName string
+	ExecutionID  string
+	Status       string
+	Error        string
+	DurationMs   int64
+}
+
 // Process executes the enrichment pipelines for the activity
-func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload) ([]*pb.EnrichedActivityEvent, error) {
+func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload, parentExecutionID string) (*ProcessResult, error) {
 	// 1. Fetch User Config
 	userDoc, err := o.database.GetUser(ctx, payload.UserId)
 	if err != nil {
@@ -47,10 +62,11 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 	slog.Info("Resolved pipelines", "count", len(pipelines), "source", payload.Source)
 
 	if len(pipelines) == 0 {
-		return nil, nil
+		return &ProcessResult{Events: []*pb.EnrichedActivityEvent{}, ProviderExecutions: []ProviderExecution{}}, nil
 	}
 
 	var allEvents []*pb.EnrichedActivityEvent
+	var allProviderExecutions []ProviderExecution
 
 	// 3. Execute Each Pipeline
 	for _, pipeline := range pipelines {
@@ -59,6 +75,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 		// 3a. Fan-Out Enrichers for this Pipeline
 		configs := pipeline.Enrichers
 		results := make([]*EnrichmentResult, len(configs))
+		providerExecs := make([]ProviderExecution, len(configs))
 		var wg sync.WaitGroup
 		errs := make([]error, len(configs))
 
@@ -66,22 +83,50 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 			provider, ok := o.providers[cfg.Name]
 			if !ok {
 				slog.Warn("Provider not found, skipping", "name", cfg.Name)
+				providerExecs[i] = ProviderExecution{
+					ProviderName: cfg.Name,
+					Status:       "SKIPPED",
+					Error:        "provider not registered",
+				}
 				continue
 			}
 
 			wg.Add(1)
 			go func(idx int, p Provider, inputs map[string]string) {
 				defer wg.Done()
+
+				startTime := time.Now()
+
+				// Log child execution start (non-blocking, best effort)
+				// We don't fail the enrichment if logging fails
+				providerExecs[idx].ProviderName = p.Name()
+				providerExecs[idx].Status = "STARTED"
+
 				res, err := p.Enrich(ctx, payload.StandardizedActivity, userRec, inputs)
+				duration := time.Since(startTime).Milliseconds()
+				providerExecs[idx].DurationMs = duration
+
 				if err != nil {
-					slog.Error("Enricher failed", "name", p.Name(), "error", err)
+					slog.Error("Enricher failed", "name", p.Name(), "error", err, "duration_ms", duration)
 					errs[idx] = err
+					providerExecs[idx].Status = "FAILED"
+					providerExecs[idx].Error = err.Error()
 					return
 				}
+
+				providerExecs[idx].Status = "SUCCESS"
 				results[idx] = res
+				slog.Info("Enricher completed", "name", p.Name(), "duration_ms", duration)
 			}(i, provider, cfg.Inputs)
 		}
 		wg.Wait()
+
+		// Collect provider executions
+		for _, pe := range providerExecs {
+			if pe.ProviderName != "" {
+				allProviderExecutions = append(allProviderExecutions, pe)
+			}
+		}
 
 		// 3b. Merge Results (Fan-In)
 		finalEvent := &pb.EnrichedActivityEvent{
@@ -166,7 +211,10 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 		allEvents = append(allEvents, finalEvent)
 	}
 
-	return allEvents, nil
+	return &ProcessResult{
+		Events:             allEvents,
+		ProviderExecutions: allProviderExecutions,
+	}, nil
 }
 
 type configuredPipeline struct {

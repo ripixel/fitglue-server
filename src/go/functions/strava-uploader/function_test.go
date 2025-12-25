@@ -3,6 +3,7 @@ package stravauploader
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"testing"
@@ -47,6 +48,31 @@ func TestUploadToStrava(t *testing.T) {
 			}, nil
 		},
 		SetExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
+			return nil
+		},
+		UpdateExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
+			// Verify rich output structure
+			if outputsJSON, ok := data["outputs"].(string); ok {
+				var outputs map[string]interface{}
+				if err := json.Unmarshal([]byte(outputsJSON), &outputs); err != nil {
+					t.Errorf("Failed to unmarshal outputs: %v", err)
+					return nil
+				}
+
+				// Verify expected fields
+				if status, ok := outputs["status"].(string); !ok || status == "" {
+					t.Error("Expected 'status' field in outputs")
+				}
+				if _, ok := outputs["strava_upload_id"]; !ok {
+					t.Error("Expected 'strava_upload_id' field in outputs")
+				}
+				if _, ok := outputs["activity_id"]; !ok {
+					t.Error("Expected 'activity_id' field in outputs")
+				}
+				if _, ok := outputs["fit_file_uri"]; !ok {
+					t.Error("Expected 'fit_file_uri' field in outputs")
+				}
+			}
 			return nil
 		},
 	}

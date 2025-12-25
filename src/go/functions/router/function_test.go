@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/cloudevents/sdk-go/v2/event"
@@ -19,8 +20,32 @@ func TestRouteActivity(t *testing.T) {
 		SetExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
 			return nil
 		},
+		UpdateExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
+			// Verify rich output structure
+			if outputsJSON, ok := data["outputs"].(string); ok {
+				var outputs map[string]interface{}
+				if err := json.Unmarshal([]byte(outputsJSON), &outputs); err != nil {
+					t.Errorf("Failed to unmarshal outputs: %v", err)
+					return nil
+				}
+
+				// Verify expected fields
+				if status, ok := outputs["status"].(string); !ok || status == "" {
+					t.Error("Expected 'status' field in outputs")
+				}
+				if _, ok := outputs["routed_destinations"]; !ok {
+					t.Error("Expected 'routed_destinations' field in outputs")
+				}
+				if _, ok := outputs["activity_id"]; !ok {
+					t.Error("Expected 'activity_id' field in outputs")
+				}
+				if _, ok := outputs["pipeline_id"]; !ok {
+					t.Error("Expected 'pipeline_id' field in outputs")
+				}
+			}
+			return nil
+		},
 		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
-			// Router shouldn't need this anymore for routing, maybe strictly for logging or legacy
 			return map[string]interface{}{}, nil
 		},
 	}
@@ -45,6 +70,7 @@ func TestRouteActivity(t *testing.T) {
 	// Prepare Input
 	eventPayload := pb.EnrichedActivityEvent{
 		UserId:       "user_router",
+		ActivityId:   "activity-123",
 		FitFileUri:   "gs://bucket/file.fit",
 		Description:  "Test Description",
 		ActivityType: "WEIGHT_TRAINING",

@@ -2,6 +2,7 @@ package execution_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/execution"
@@ -86,6 +87,41 @@ func TestLogFailure(t *testing.T) {
 	err := execution.LogFailure(context.Background(), mockDB, "exec-1", &simpleError{})
 	if err != nil {
 		t.Fatalf("LogFailure failed: %v", err)
+	}
+}
+
+func TestLogChildExecutionStart(t *testing.T) {
+	mockDB := &MockDB{
+		SetExecutionFunc: func(ctx context.Context, id string, data map[string]interface{}) error {
+			if data["status"] != "STATUS_STARTED" {
+				t.Errorf("Expected STATUS_STARTED, got %v", data["status"])
+			}
+			if data["service"] != "child-service" {
+				t.Errorf("Expected child-service, got %v", data["service"])
+			}
+			if data["parent_execution_id"] != "parent-exec-123" {
+				t.Errorf("Expected parent_execution_id parent-exec-123, got %v", data["parent_execution_id"])
+			}
+			if data["user_id"] != "user-1" {
+				t.Errorf("Expected user-1, got %v", data["user_id"])
+			}
+			return nil
+		},
+	}
+
+	opts := execution.ExecutionOptions{
+		UserID: "user-1",
+	}
+
+	id, err := execution.LogChildExecutionStart(context.Background(), mockDB, "child-service", "parent-exec-123", opts)
+	if err != nil {
+		t.Fatalf("LogChildExecutionStart failed: %v", err)
+	}
+	if id == "" {
+		t.Error("Expected execution ID")
+	}
+	if !strings.Contains(id, "child-service-") {
+		t.Errorf("Expected ID to contain 'child-service-', got %s", id)
 	}
 }
 

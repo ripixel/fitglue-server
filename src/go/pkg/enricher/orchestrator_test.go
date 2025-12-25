@@ -124,16 +124,16 @@ func TestOrchestrator_Process(t *testing.T) {
 			},
 		}
 
-		events, err := orchestrator.Process(ctx, payload)
+		result, err := orchestrator.Process(ctx, payload, "test-parent-exec-id")
 		if err != nil {
 			t.Fatalf("Process failed: %v", err)
 		}
 
-		if len(events) != 1 {
-			t.Fatalf("Expected 1 event, got %d", len(events))
+		if len(result.Events) != 1 {
+			t.Fatalf("Expected 1 event, got %d", len(result.Events))
 		}
 
-		event := events[0]
+		event := result.Events[0]
 		if event.Name != "Enriched Activity" {
 			t.Errorf("Expected name 'Enriched Activity', got '%s'", event.Name)
 		}
@@ -173,16 +173,16 @@ func TestOrchestrator_Process(t *testing.T) {
 			Timestamp: "2023-01-01T10:00:00Z",
 		}
 
-		events, err := orchestrator.Process(ctx, payload)
+		result, err := orchestrator.Process(ctx, payload, "test-parent-exec-id")
 		if err != nil {
 			t.Fatalf("Process failed: %v", err)
 		}
 
-		if len(events) != 1 {
-			t.Fatalf("Expected 1 default event, got %d", len(events))
+		if len(result.Events) != 1 {
+			t.Fatalf("Expected 1 default event, got %d", len(result.Events))
 		}
-		if events[0].PipelineId != "default-legacy" {
-			t.Errorf("Expected default-legacy pipeline, got %s", events[0].PipelineId)
+		if result.Events[0].PipelineId != "default-legacy" {
+			t.Errorf("Expected default-legacy pipeline, got %s", result.Events[0].PipelineId)
 		}
 	})
 }

@@ -89,7 +89,7 @@ func uploadHandler(svc *UploaderService) framework.HandlerFunc {
 			return nil, fmt.Errorf("protojson unmarshal: %v", err)
 		}
 
-		fwCtx.Logger.Info("Starting upload")
+		fwCtx.Logger.Info("Starting upload", "activity_id", eventPayload.ActivityId, "pipeline_id", eventPayload.PipelineId)
 
 		// Initialize Token Source
 		tokenSource := oauth.NewFirestoreTokenSource(fwCtx.Service, eventPayload.UserId, "strava")
@@ -158,13 +158,24 @@ func uploadHandler(svc *UploaderService) framework.HandlerFunc {
 		}
 
 		var uploadResp struct {
-			ID int64 `json:"id"`
+			ID         int64  `json:"id"`
+			ExternalID string `json:"external_id"`
+			ActivityID int64  `json:"activity_id"`
+			Status     string `json:"status"`
 		}
 		json.NewDecoder(httpResp.Body).Decode(&uploadResp)
 
-		fwCtx.Logger.Info("Upload success")
+		fwCtx.Logger.Info("Upload success", "upload_id", uploadResp.ID, "status", uploadResp.Status)
 		return map[string]interface{}{
-			"strava_activity_id": uploadResp.ID,
+			"status":             "SUCCESS",
+			"strava_upload_id":   uploadResp.ID,
+			"strava_activity_id": uploadResp.ActivityID,
+			"upload_status":      uploadResp.Status,
+			"activity_id":        eventPayload.ActivityId,
+			"pipeline_id":        eventPayload.PipelineId,
+			"fit_file_uri":       eventPayload.FitFileUri,
+			"activity_name":      eventPayload.Name,
+			"activity_type":      eventPayload.ActivityType,
 		}, nil
 	}
 }
