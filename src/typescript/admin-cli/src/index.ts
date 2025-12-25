@@ -260,6 +260,40 @@ program.command('users:delete')
         }
     });
 
+// Helper to format user output
+const formatUserOutput = (doc: admin.firestore.DocumentSnapshot) => {
+    const data = doc.data();
+    if (!data) return;
+
+    const integrations = [];
+    if (data.integrations?.hevy?.apiKey) integrations.push('Hevy');
+    if (data.integrations?.keiser?.enabled) integrations.push('Keiser');
+    if (data.integrations?.strava?.enabled) integrations.push('Strava');
+    if (data.integrations?.fitbit?.enabled) integrations.push('Fitbit');
+
+    console.log(`ID: ${doc.id}`);
+    console.log(`   Created: ${data.createdAt?.toDate?.()?.toISOString() || 'Unknown'}`);
+    console.log(`   Integrations: ${integrations.join(', ') || 'None'}`);
+
+    if (data.pipelines && Array.isArray(data.pipelines) && data.pipelines.length > 0) {
+        console.log(`   Pipelines:`);
+        data.pipelines.forEach((p: any, index: number) => {
+            console.log(`     #${index + 1} [${p.id}]`);
+            console.log(`       Source: ${p.source}`);
+            if (p.enrichers && p.enrichers.length > 0) {
+                const enricherDesc = p.enrichers.map((e: any) => e.name).join(' -> ');
+                console.log(`       Enrichers: ${enricherDesc}`);
+            } else {
+                console.log(`       Enrichers: (None)`);
+            }
+            console.log(`       Destinations: ${p.destinations?.join(', ') || 'None'}`);
+        });
+    } else {
+        console.log(`   Pipelines: None`);
+    }
+    console.log('--------------------------------------------------');
+};
+
 program.command('users:list')
     .description('List all users in the system')
     .action(async () => {
@@ -273,22 +307,31 @@ program.command('users:list')
 
             console.log('\nFound ' + snapshot.size + ' users:');
             console.log('--------------------------------------------------');
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const integrations = [];
-                if (data.integrations?.hevy?.apiKey) integrations.push('Hevy');
-                if (data.integrations?.keiser?.enabled) integrations.push('Keiser');
-                if (data.integrations?.strava?.enabled) integrations.push('Strava');
-                if (data.integrations?.fitbit?.enabled) integrations.push('Fitbit');
-
-                console.log(`ID: ${doc.id}`);
-                console.log(`   Created: ${data.createdAt?.toDate?.()?.toISOString() || 'Unknown'}`);
-                console.log(`   Integrations: ${integrations.join(', ') || 'None'}`);
-                console.log('--------------------------------------------------');
-            });
+            snapshot.forEach(doc => formatUserOutput(doc));
             console.log('');
         } catch (error) {
             console.error('Error listing users:', error);
+            process.exit(1);
+        }
+    });
+
+program.command('users:get')
+    .argument('<userId>', 'User ID to get')
+    .description('Get details of a specific user')
+    .action(async (userId) => {
+        try {
+            const doc = await db.collection('users').doc(userId).get();
+            if (!doc.exists) {
+                console.error(`User ${userId} not found`);
+                process.exit(1);
+            }
+
+            console.log('\nUser Details:');
+            console.log('--------------------------------------------------');
+            formatUserOutput(doc);
+            console.log('');
+        } catch (error) {
+            console.error('Error getting user:', error);
             process.exit(1);
         }
     });
@@ -348,7 +391,7 @@ program.command('users:connect')
                     `client_id=${clientId}&` +
                     `redirect_uri=${encodeURIComponent(`${baseUrl}/auth/fitbit/callback`)}&` +
                     `response_type=code&` +
-                    `scope=activity heartrate profile&` +
+                    `scope=${encodeURIComponent('activity heartrate profile')}&` +
                     `state=${state}`;
             }
 
