@@ -12,3 +12,13 @@ exports.keiserPoller = (req, res) => {
   const keiser = require('./keiser-poller/build/index');
   return keiser.keiserPoller(req, res);
 };
+
+exports.stravaOAuthHandler = (req, res) => {
+  const strava = require('./strava-oauth-handler/build/index');
+  return strava.stravaOAuthHandler(req, res);
+};
+
+exports.fitbitOAuthHandler = (req, res) => {
+  const fitbit = require('./fitbit-oauth-handler/build/index');
+  return fitbit.fitbitOAuthHandler(req, res);
+};
