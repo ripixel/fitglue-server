@@ -24,6 +24,7 @@ This document outlines the architectural patterns, coding standards, and princip
 - **Service Struct**: Use `bootstrap.Service` struct holding all dependencies (Database, PubSub, Secrets, Config).
 - **Initialization**: Initialize once in `init()` for connection pooling, pass to handlers.
 - **Interfaces**: Define interfaces in `pkg/` for external dependencies to enable mocking.
+- **Protobuf JSON**: ALWAYS use `google.golang.org/protobuf/encoding/protojson` for marshalling/unmarshalling Protobuf types to JSON. Standard `encoding/json` does not respect `camelCase`/`snake_case` mappings correctly.
 ### Error Handling & Logging
 - **Structured Logging**: Use `log/slog` with JSON output. Always include `execution_id`, `service`, and `user_id`.
 - **Fail Fast**: Return errors immediately for non-retriable failures. Log and return 200 for retriable errors (Pub/Sub will retry).

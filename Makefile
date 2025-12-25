@@ -69,6 +69,8 @@ lint-go:
 	@cd $(GO_SRC_DIR) && test -z "$$(gofmt -l .)" || (echo "Go files need formatting. Run 'gofmt -w .'" && exit 1)
 	@echo "Running go vet..."
 	cd $(GO_SRC_DIR) && go vet ./...
+	@echo "Checking for Protobuf JSON misuse..."
+	@./scripts/lint-proto-json.sh
 
 prepare-go:
 	@echo "Preparing Go services..."

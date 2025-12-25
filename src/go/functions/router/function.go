@@ -2,13 +2,13 @@ package router
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sync"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	shared "github.com/ripixel/fitglue-server/src/go/pkg"
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
@@ -58,8 +58,10 @@ func routeHandler(ctx context.Context, e event.Event, fwCtx *framework.Framework
 	}
 
 	var eventPayload pb.EnrichedActivityEvent
-	if err := json.Unmarshal(msg.Message.Data, &eventPayload); err != nil {
-		return nil, fmt.Errorf("json unmarshal: %v", err)
+	// Use protojson to unmarshal (supports standard Proto JSON format)
+	unmarshalOpts := protojson.UnmarshalOptions{DiscardUnknown: true}
+	if err := unmarshalOpts.Unmarshal(msg.Message.Data, &eventPayload); err != nil {
+		return nil, fmt.Errorf("protojson unmarshal: %v", err)
 	}
 
 	fwCtx.Logger.Info("Starting routing", "source", eventPayload.Source, "pipeline", eventPayload.PipelineId)

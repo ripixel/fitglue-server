@@ -15,6 +15,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
@@ -81,8 +82,10 @@ func uploadHandler(svc *UploaderService) framework.HandlerFunc {
 		}
 
 		var eventPayload pb.EnrichedActivityEvent
-		if err := json.Unmarshal(msg.Message.Data, &eventPayload); err != nil {
-			return nil, fmt.Errorf("json unmarshal: %v", err)
+		// Use protojson to unmarshal (supports standard Proto JSON format)
+		unmarshalOpts := protojson.UnmarshalOptions{DiscardUnknown: true}
+		if err := unmarshalOpts.Unmarshal(msg.Message.Data, &eventPayload); err != nil {
+			return nil, fmt.Errorf("protojson unmarshal: %v", err)
 		}
 
 		fwCtx.Logger.Info("Starting upload")

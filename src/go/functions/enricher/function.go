@@ -2,13 +2,13 @@ package enricher
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"sync"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	shared "github.com/ripixel/fitglue-server/src/go/pkg"
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
@@ -60,8 +60,16 @@ func enrichHandler(ctx context.Context, e event.Event, fwCtx *framework.Framewor
 	}
 
 	var rawEvent pb.ActivityPayload
-	if err := json.Unmarshal(msg.Message.Data, &rawEvent); err != nil {
-		return nil, fmt.Errorf("json unmarshal: %v", err)
+	// Use protojson to unmarshal, which supports both camelCase (canonical) and snake_case field names
+	unmarshalOpts := protojson.UnmarshalOptions{
+		DiscardUnknown: true, // Be resilient to future schema changes
+	}
+	if err := unmarshalOpts.Unmarshal(msg.Message.Data, &rawEvent); err != nil {
+		return nil, fmt.Errorf("protojson unmarshal: %v", err)
+	}
+
+	if rawEvent.UserId == "" {
+		return nil, fmt.Errorf("missing userId in payload")
 	}
 
 	fwCtx.Logger.Info("Starting enrichment", "timestamp", rawEvent.Timestamp, "source", rawEvent.Source)
@@ -92,8 +100,15 @@ func enrichHandler(ctx context.Context, e event.Event, fwCtx *framework.Framewor
 
 	// Publish Results to Router
 	var publishedCount int
+	marshalOpts := protojson.MarshalOptions{UseProtoNames: false, EmitUnpopulated: true}
+
 	for _, event := range enrichedEvents {
-		payload, _ := json.Marshal(event)
+		payload, err := marshalOpts.Marshal(event)
+		if err != nil {
+			fwCtx.Logger.Error("Failed to marshal enriched event", "error", err)
+			continue
+		}
+
 		if _, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
 			fwCtx.Logger.Error("Failed to publish result", "error", err, "pipeline_id", event.PipelineId)
 		} else {
