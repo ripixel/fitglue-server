@@ -63,6 +63,9 @@ export interface EnrichedActivityEvent {
   appliedEnrichments: string[];
   /** Extra stats */
   enrichmentMetadata: { [key: string]: string };
+  /** Routing information determined by the pipeline */
+  destinations: string[];
+  pipelineId: string;
 }
 
 export interface EnrichedActivityEvent_EnrichmentMetadataEntry {

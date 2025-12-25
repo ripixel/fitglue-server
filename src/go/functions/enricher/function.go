@@ -79,20 +79,31 @@ func enrichHandler(ctx context.Context, e event.Event, fwCtx *framework.Framewor
 	orchestrator.Register(providers.NewFitBitHeartRate())
 
 	// Process
-	enrichedEvent, err := orchestrator.Process(ctx, &rawEvent)
+	enrichedEvents, err := orchestrator.Process(ctx, &rawEvent)
 	if err != nil {
 		fwCtx.Logger.Error("Orchestrator failed", "error", err)
 		return nil, err
 	}
 
-	// Publish to Router
-	payload, _ := json.Marshal(enrichedEvent)
-
-	if _, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
-		fwCtx.Logger.Error("Failed to publish", "error", err)
-		return nil, err
+	if len(enrichedEvents) == 0 {
+		fwCtx.Logger.Info("No pipelines matched, skipping enrichment")
+		return nil, nil
 	}
 
-	fwCtx.Logger.Info("Enrichment complete", "id", enrichedEvent.ActivityId)
-	return enrichedEvent, nil
+	// Publish Results to Router
+	var publishedCount int
+	for _, event := range enrichedEvents {
+		payload, _ := json.Marshal(event)
+		if _, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicEnrichedActivity, payload); err != nil {
+			fwCtx.Logger.Error("Failed to publish result", "error", err, "pipeline_id", event.PipelineId)
+		} else {
+			publishedCount++
+		}
+	}
+
+	fwCtx.Logger.Info("Enrichment complete", "published_count", publishedCount)
+	return map[string]interface{}{
+		"published_count": publishedCount,
+		"events":          len(enrichedEvents),
+	}, nil
 }

@@ -20,9 +20,8 @@ func TestRouteActivity(t *testing.T) {
 			return nil
 		},
 		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
-			return map[string]interface{}{
-				"strava_enabled": true,
-			}, nil
+			// Router shouldn't need this anymore for routing, maybe strictly for logging or legacy
+			return map[string]interface{}{}, nil
 		},
 	}
 
@@ -51,6 +50,8 @@ func TestRouteActivity(t *testing.T) {
 		ActivityType: "WEIGHT_TRAINING",
 		Name:         "Test Workout",
 		Source:       pb.ActivitySource_SOURCE_HEVY,
+		Destinations: []string{"strava"},
+		PipelineId:   "pipe-test-1",
 	}
 	payloadBytes, _ := json.Marshal(&eventPayload)
 
@@ -78,5 +79,8 @@ func TestRouteActivity(t *testing.T) {
 	// Verify
 	if len(publishedTopics) != 1 {
 		t.Errorf("Expected 1 published topic, got %d", len(publishedTopics))
+	}
+	if publishedTopics[0] != "topic-job-upload-strava" {
+		t.Errorf("Expected topic 'topic-job-upload-strava', got '%s'", publishedTopics[0])
 	}
 }

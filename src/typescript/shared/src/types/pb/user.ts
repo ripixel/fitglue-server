@@ -14,18 +14,24 @@ export interface UserRecord {
   integrations:
     | UserIntegrations
     | undefined;
-  /** Map of ActivitySource name (e.g. "SOURCE_HEVY") to enrichment rules */
-  enrichments: { [key: string]: SourceEnrichmentConfig };
+  /** Pipelines define the data flow: Source -> Enrichers -> Routing */
+  pipelines: PipelineConfig[];
 }
 
-export interface UserRecord_EnrichmentsEntry {
-  key: string;
-  value: SourceEnrichmentConfig | undefined;
+export interface PipelineConfig {
+  /** Unique ID (uuid) for tracing */
+  id: string;
+  /** e.g. "SOURCE_HEVY" */
+  source: string;
+  enrichers: EnricherConfig[];
+  /** e.g. ["strava", "gcs"] */
+  destinations: string[];
 }
 
 export interface UserIntegrations {
   hevy: HevyIntegration | undefined;
   fitbit: FitbitIntegration | undefined;
+  strava: StravaIntegration | undefined;
 }
 
 export interface HevyIntegration {
@@ -56,4 +62,12 @@ export interface EnricherConfig {
 export interface EnricherConfig_InputsEntry {
   key: string;
   value: string;
+}
+
+export interface StravaIntegration {
+  enabled: boolean;
+  accessToken: string;
+  refreshToken: string;
+  expiresAt: Date | undefined;
+  athleteId: number;
 }

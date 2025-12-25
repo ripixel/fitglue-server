@@ -27,8 +27,8 @@ type UserRecord struct {
 	UserId       string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	CreatedAt    *timestamp.Timestamp   `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Integrations *UserIntegrations      `protobuf:"bytes,3,opt,name=integrations,proto3" json:"integrations,omitempty"`
-	// Map of ActivitySource name (e.g. "SOURCE_HEVY") to enrichment rules
-	Enrichments   map[string]*SourceEnrichmentConfig `protobuf:"bytes,4,rep,name=enrichments,proto3" json:"enrichments,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Pipelines define the data flow: Source -> Enrichers -> Routing
+	Pipelines     []*PipelineConfig `protobuf:"bytes,4,rep,name=pipelines,proto3" json:"pipelines,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -84,9 +84,77 @@ func (x *UserRecord) GetIntegrations() *UserIntegrations {
 	return nil
 }
 
-func (x *UserRecord) GetEnrichments() map[string]*SourceEnrichmentConfig {
+func (x *UserRecord) GetPipelines() []*PipelineConfig {
 	if x != nil {
-		return x.Enrichments
+		return x.Pipelines
+	}
+	return nil
+}
+
+type PipelineConfig struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`         // Unique ID (uuid) for tracing
+	Source        string                 `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"` // e.g. "SOURCE_HEVY"
+	Enrichers     []*EnricherConfig      `protobuf:"bytes,3,rep,name=enrichers,proto3" json:"enrichers,omitempty"`
+	Destinations  []string               `protobuf:"bytes,4,rep,name=destinations,proto3" json:"destinations,omitempty"` // e.g. ["strava", "gcs"]
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PipelineConfig) Reset() {
+	*x = PipelineConfig{}
+	mi := &file_user_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PipelineConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PipelineConfig) ProtoMessage() {}
+
+func (x *PipelineConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PipelineConfig.ProtoReflect.Descriptor instead.
+func (*PipelineConfig) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *PipelineConfig) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PipelineConfig) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *PipelineConfig) GetEnrichers() []*EnricherConfig {
+	if x != nil {
+		return x.Enrichers
+	}
+	return nil
+}
+
+func (x *PipelineConfig) GetDestinations() []string {
+	if x != nil {
+		return x.Destinations
 	}
 	return nil
 }
@@ -95,13 +163,14 @@ type UserIntegrations struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Hevy          *HevyIntegration       `protobuf:"bytes,1,opt,name=hevy,proto3" json:"hevy,omitempty"`
 	Fitbit        *FitbitIntegration     `protobuf:"bytes,2,opt,name=fitbit,proto3" json:"fitbit,omitempty"`
+	Strava        *StravaIntegration     `protobuf:"bytes,3,opt,name=strava,proto3" json:"strava,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UserIntegrations) Reset() {
 	*x = UserIntegrations{}
-	mi := &file_user_proto_msgTypes[1]
+	mi := &file_user_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -113,7 +182,7 @@ func (x *UserIntegrations) String() string {
 func (*UserIntegrations) ProtoMessage() {}
 
 func (x *UserIntegrations) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[1]
+	mi := &file_user_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -126,7 +195,7 @@ func (x *UserIntegrations) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UserIntegrations.ProtoReflect.Descriptor instead.
 func (*UserIntegrations) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{1}
+	return file_user_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UserIntegrations) GetHevy() *HevyIntegration {
@@ -143,6 +212,13 @@ func (x *UserIntegrations) GetFitbit() *FitbitIntegration {
 	return nil
 }
 
+func (x *UserIntegrations) GetStrava() *StravaIntegration {
+	if x != nil {
+		return x.Strava
+	}
+	return nil
+}
+
 type HevyIntegration struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
@@ -154,7 +230,7 @@ type HevyIntegration struct {
 
 func (x *HevyIntegration) Reset() {
 	*x = HevyIntegration{}
-	mi := &file_user_proto_msgTypes[2]
+	mi := &file_user_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -166,7 +242,7 @@ func (x *HevyIntegration) String() string {
 func (*HevyIntegration) ProtoMessage() {}
 
 func (x *HevyIntegration) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[2]
+	mi := &file_user_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -179,7 +255,7 @@ func (x *HevyIntegration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HevyIntegration.ProtoReflect.Descriptor instead.
 func (*HevyIntegration) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{2}
+	return file_user_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *HevyIntegration) GetEnabled() bool {
@@ -216,7 +292,7 @@ type FitbitIntegration struct {
 
 func (x *FitbitIntegration) Reset() {
 	*x = FitbitIntegration{}
-	mi := &file_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -228,7 +304,7 @@ func (x *FitbitIntegration) String() string {
 func (*FitbitIntegration) ProtoMessage() {}
 
 func (x *FitbitIntegration) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[3]
+	mi := &file_user_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -241,7 +317,7 @@ func (x *FitbitIntegration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FitbitIntegration.ProtoReflect.Descriptor instead.
 func (*FitbitIntegration) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{3}
+	return file_user_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *FitbitIntegration) GetEnabled() bool {
@@ -288,7 +364,7 @@ type SourceEnrichmentConfig struct {
 
 func (x *SourceEnrichmentConfig) Reset() {
 	*x = SourceEnrichmentConfig{}
-	mi := &file_user_proto_msgTypes[4]
+	mi := &file_user_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -300,7 +376,7 @@ func (x *SourceEnrichmentConfig) String() string {
 func (*SourceEnrichmentConfig) ProtoMessage() {}
 
 func (x *SourceEnrichmentConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[4]
+	mi := &file_user_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -313,7 +389,7 @@ func (x *SourceEnrichmentConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourceEnrichmentConfig.ProtoReflect.Descriptor instead.
 func (*SourceEnrichmentConfig) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{4}
+	return file_user_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *SourceEnrichmentConfig) GetEnrichers() []*EnricherConfig {
@@ -333,7 +409,7 @@ type EnricherConfig struct {
 
 func (x *EnricherConfig) Reset() {
 	*x = EnricherConfig{}
-	mi := &file_user_proto_msgTypes[5]
+	mi := &file_user_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -345,7 +421,7 @@ func (x *EnricherConfig) String() string {
 func (*EnricherConfig) ProtoMessage() {}
 
 func (x *EnricherConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[5]
+	mi := &file_user_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -358,7 +434,7 @@ func (x *EnricherConfig) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnricherConfig.ProtoReflect.Descriptor instead.
 func (*EnricherConfig) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{5}
+	return file_user_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EnricherConfig) GetName() string {
@@ -375,25 +451,104 @@ func (x *EnricherConfig) GetInputs() map[string]string {
 	return nil
 }
 
+type StravaIntegration struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Enabled       bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	AccessToken   string                 `protobuf:"bytes,2,opt,name=access_token,json=accessToken,proto3" json:"access_token,omitempty"`
+	RefreshToken  string                 `protobuf:"bytes,3,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
+	ExpiresAt     *timestamp.Timestamp   `protobuf:"bytes,4,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	AthleteId     int64                  `protobuf:"varint,5,opt,name=athlete_id,json=athleteId,proto3" json:"athlete_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StravaIntegration) Reset() {
+	*x = StravaIntegration{}
+	mi := &file_user_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StravaIntegration) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StravaIntegration) ProtoMessage() {}
+
+func (x *StravaIntegration) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StravaIntegration.ProtoReflect.Descriptor instead.
+func (*StravaIntegration) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *StravaIntegration) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *StravaIntegration) GetAccessToken() string {
+	if x != nil {
+		return x.AccessToken
+	}
+	return ""
+}
+
+func (x *StravaIntegration) GetRefreshToken() string {
+	if x != nil {
+		return x.RefreshToken
+	}
+	return ""
+}
+
+func (x *StravaIntegration) GetExpiresAt() *timestamp.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *StravaIntegration) GetAthleteId() int64 {
+	if x != nil {
+		return x.AthleteId
+	}
+	return 0
+}
+
 var File_user_proto protoreflect.FileDescriptor
 
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc8\x02\n" +
+	"user.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd6\x01\n" +
 	"\n" +
 	"UserRecord\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x129\n" +
 	"\n" +
 	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12=\n" +
-	"\fintegrations\x18\x03 \x01(\v2\x19.fitglue.UserIntegrationsR\fintegrations\x12F\n" +
-	"\venrichments\x18\x04 \x03(\v2$.fitglue.UserRecord.EnrichmentsEntryR\venrichments\x1a_\n" +
-	"\x10EnrichmentsEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
-	"\x05value\x18\x02 \x01(\v2\x1f.fitglue.SourceEnrichmentConfigR\x05value:\x028\x01\"t\n" +
+	"\fintegrations\x18\x03 \x01(\v2\x19.fitglue.UserIntegrationsR\fintegrations\x125\n" +
+	"\tpipelines\x18\x04 \x03(\v2\x17.fitglue.PipelineConfigR\tpipelines\"\x93\x01\n" +
+	"\x0ePipelineConfig\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
+	"\x06source\x18\x02 \x01(\tR\x06source\x125\n" +
+	"\tenrichers\x18\x03 \x03(\v2\x17.fitglue.EnricherConfigR\tenrichers\x12\"\n" +
+	"\fdestinations\x18\x04 \x03(\tR\fdestinations\"\xa8\x01\n" +
 	"\x10UserIntegrations\x12,\n" +
 	"\x04hevy\x18\x01 \x01(\v2\x18.fitglue.HevyIntegrationR\x04hevy\x122\n" +
-	"\x06fitbit\x18\x02 \x01(\v2\x1a.fitglue.FitbitIntegrationR\x06fitbit\"]\n" +
+	"\x06fitbit\x18\x02 \x01(\v2\x1a.fitglue.FitbitIntegrationR\x06fitbit\x122\n" +
+	"\x06strava\x18\x03 \x01(\v2\x1a.fitglue.StravaIntegrationR\x06strava\"]\n" +
 	"\x0fHevyIntegration\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x17\n" +
 	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\x12\x17\n" +
@@ -412,7 +567,15 @@ const file_user_proto_rawDesc = "" +
 	"\x06inputs\x18\x02 \x03(\v2#.fitglue.EnricherConfig.InputsEntryR\x06inputs\x1a9\n" +
 	"\vInputsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xcf\x01\n" +
+	"\x11StravaIntegration\x12\x18\n" +
+	"\aenabled\x18\x01 \x01(\bR\aenabled\x12!\n" +
+	"\faccess_token\x18\x02 \x01(\tR\vaccessToken\x12#\n" +
+	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x129\n" +
+	"\n" +
+	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x1d\n" +
+	"\n" +
+	"athlete_id\x18\x05 \x01(\x03R\tathleteIdB\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once
@@ -426,33 +589,36 @@ func file_user_proto_rawDescGZIP() []byte {
 	return file_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_user_proto_goTypes = []any{
 	(*UserRecord)(nil),             // 0: fitglue.UserRecord
-	(*UserIntegrations)(nil),       // 1: fitglue.UserIntegrations
-	(*HevyIntegration)(nil),        // 2: fitglue.HevyIntegration
-	(*FitbitIntegration)(nil),      // 3: fitglue.FitbitIntegration
-	(*SourceEnrichmentConfig)(nil), // 4: fitglue.SourceEnrichmentConfig
-	(*EnricherConfig)(nil),         // 5: fitglue.EnricherConfig
-	nil,                            // 6: fitglue.UserRecord.EnrichmentsEntry
-	nil,                            // 7: fitglue.EnricherConfig.InputsEntry
-	(*timestamp.Timestamp)(nil),    // 8: google.protobuf.Timestamp
+	(*PipelineConfig)(nil),         // 1: fitglue.PipelineConfig
+	(*UserIntegrations)(nil),       // 2: fitglue.UserIntegrations
+	(*HevyIntegration)(nil),        // 3: fitglue.HevyIntegration
+	(*FitbitIntegration)(nil),      // 4: fitglue.FitbitIntegration
+	(*SourceEnrichmentConfig)(nil), // 5: fitglue.SourceEnrichmentConfig
+	(*EnricherConfig)(nil),         // 6: fitglue.EnricherConfig
+	(*StravaIntegration)(nil),      // 7: fitglue.StravaIntegration
+	nil,                            // 8: fitglue.EnricherConfig.InputsEntry
+	(*timestamp.Timestamp)(nil),    // 9: google.protobuf.Timestamp
 }
 var file_user_proto_depIdxs = []int32{
-	8, // 0: fitglue.UserRecord.created_at:type_name -> google.protobuf.Timestamp
-	1, // 1: fitglue.UserRecord.integrations:type_name -> fitglue.UserIntegrations
-	6, // 2: fitglue.UserRecord.enrichments:type_name -> fitglue.UserRecord.EnrichmentsEntry
-	2, // 3: fitglue.UserIntegrations.hevy:type_name -> fitglue.HevyIntegration
-	3, // 4: fitglue.UserIntegrations.fitbit:type_name -> fitglue.FitbitIntegration
-	8, // 5: fitglue.FitbitIntegration.expires_at:type_name -> google.protobuf.Timestamp
-	5, // 6: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
-	7, // 7: fitglue.EnricherConfig.inputs:type_name -> fitglue.EnricherConfig.InputsEntry
-	4, // 8: fitglue.UserRecord.EnrichmentsEntry.value:type_name -> fitglue.SourceEnrichmentConfig
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	9,  // 0: fitglue.UserRecord.created_at:type_name -> google.protobuf.Timestamp
+	2,  // 1: fitglue.UserRecord.integrations:type_name -> fitglue.UserIntegrations
+	1,  // 2: fitglue.UserRecord.pipelines:type_name -> fitglue.PipelineConfig
+	6,  // 3: fitglue.PipelineConfig.enrichers:type_name -> fitglue.EnricherConfig
+	3,  // 4: fitglue.UserIntegrations.hevy:type_name -> fitglue.HevyIntegration
+	4,  // 5: fitglue.UserIntegrations.fitbit:type_name -> fitglue.FitbitIntegration
+	7,  // 6: fitglue.UserIntegrations.strava:type_name -> fitglue.StravaIntegration
+	9,  // 7: fitglue.FitbitIntegration.expires_at:type_name -> google.protobuf.Timestamp
+	6,  // 8: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
+	8,  // 9: fitglue.EnricherConfig.inputs:type_name -> fitglue.EnricherConfig.InputsEntry
+	9,  // 10: fitglue.StravaIntegration.expires_at:type_name -> google.protobuf.Timestamp
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }
@@ -466,7 +632,7 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

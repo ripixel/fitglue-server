@@ -62,32 +62,36 @@ func routeHandler(ctx context.Context, e event.Event, fwCtx *framework.Framework
 		return nil, fmt.Errorf("json unmarshal: %v", err)
 	}
 
-	fwCtx.Logger.Info("Starting routing")
+	fwCtx.Logger.Info("Starting routing", "source", eventPayload.Source, "pipeline", eventPayload.PipelineId)
 
-	// Fetch User Config
-	userData, err := fwCtx.Service.DB.GetUser(ctx, eventPayload.UserId)
-	if err != nil {
-		fwCtx.Logger.Error("User config not found")
-		return nil, fmt.Errorf("user config not found")
-	}
-
-	stravaEnabled, _ := userData["strava_enabled"].(bool)
+	// Since we moved routing logic to the Enricher/Pipeline configuration,
+	// the event already carries the list of intended destinations.
+	destinations := eventPayload.Destinations
 
 	// Fan-out
 	routings := []string{}
+	fwCtx.Logger.Info("Resolved destinations from payload", "dests", destinations)
 
-	if stravaEnabled {
-		resID, err := fwCtx.Service.Pub.Publish(ctx, shared.TopicJobUploadStrava, msg.Message.Data)
+	for _, dest := range destinations {
+		var topic string
+		switch dest {
+		case "strava":
+			topic = shared.TopicJobUploadStrava
+		default:
+			fwCtx.Logger.Warn("Unknown destination", "dest", dest)
+			continue
+		}
+
+		resID, err := fwCtx.Service.Pub.Publish(ctx, topic, msg.Message.Data)
 		if err != nil {
-			fwCtx.Logger.Error("Failed to publish to Strava queue", "error", err)
+			fwCtx.Logger.Error("Failed to publish to queue", "dest", dest, "topic", topic, "error", err)
 		} else {
-			routings = append(routings, "strava:"+resID)
+			routings = append(routings, dest+":"+resID)
 		}
 	}
 
 	fwCtx.Logger.Info("Routed activity", "routes", routings)
 	return map[string]interface{}{
-		"strava_enabled": stravaEnabled,
-		"routings":       routings,
+		"routings": routings,
 	}, nil
 }

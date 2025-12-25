@@ -100,4 +100,23 @@ export class UserService {
 
         await this.db.collection('users').doc(userId).update(updateStub);
     }
+
+    async addPipeline(userId: string, source: string, enrichers: { name: string, inputs?: Record<string, string> }[], destinations: string[]): Promise<string> {
+        const pipelineId = crypto.randomUUID();
+        const pipeline = {
+            id: pipelineId,
+            source: source, // e.g. "SOURCE_HEVY"
+            enrichers: enrichers.map(e => ({
+                name: e.name,
+                inputs: e.inputs || {}
+            })),
+            destinations: destinations // e.g. ["strava"]
+        };
+
+        await this.db.collection('users').doc(userId).update({
+            pipelines: admin.firestore.FieldValue.arrayUnion(pipeline)
+        });
+
+        return pipelineId;
+    }
 }

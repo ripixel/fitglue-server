@@ -29,16 +29,19 @@ func TestEnrichActivity(t *testing.T) {
 						"access_token": "mock-token",
 					},
 				},
-				"enrichments": map[string]interface{}{
-					"SOURCE_HEVY": map[string]interface{}{
+				"pipelines": []interface{}{
+					map[string]interface{}{
+						"id":     "pipeline-1",
+						"source": "SOURCE_HEVY",
 						"enrichers": []interface{}{
 							map[string]interface{}{
-								"name": "fitbit-hr",
+								"name": "fitbit-heart-rate",
 								"inputs": map[string]interface{}{
 									"priority": "high",
 								},
 							},
 						},
+						"destinations": []interface{}{"strava"},
 					},
 				},
 			}, nil

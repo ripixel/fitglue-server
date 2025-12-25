@@ -33,8 +33,8 @@ func (o *Orchestrator) Register(p Provider) {
 	o.providers[p.Name()] = p
 }
 
-// Process executes the enrichment pipeline
-func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload) (*pb.EnrichedActivityEvent, error) {
+// Process executes the enrichment pipelines for the activity
+func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload) ([]*pb.EnrichedActivityEvent, error) {
 	// 1. Fetch User Config
 	userDoc, err := o.database.GetUser(ctx, payload.UserId)
 	if err != nil {
@@ -42,134 +42,137 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload)
 	}
 	userRec := o.mapUser(userDoc)
 
-	// 2. Resolve Providers
-	configs := o.resolveEnrichers(payload.Source, userDoc)
-	slog.Info("Resolved enrichers", "count", len(configs), "source", payload.Source)
+	// 2. Resolve Pipelines
+	pipelines := o.resolvePipelines(payload.Source, userRec)
+	slog.Info("Resolved pipelines", "count", len(pipelines), "source", payload.Source)
 
-	// 3. Fan-Out Execution
-	results := make([]*EnrichmentResult, len(configs))
-	var wg sync.WaitGroup
-	errs := make([]error, len(configs))
+	if len(pipelines) == 0 {
+		return nil, nil
+	}
 
-	for i, cfg := range configs {
-		provider, ok := o.providers[cfg.Name]
-		if !ok {
-			slog.Warn("Provider not found, skipping", "name", cfg.Name)
-			continue
-		}
+	var allEvents []*pb.EnrichedActivityEvent
 
-		wg.Add(1)
-		go func(idx int, p Provider, inputs map[string]string) {
-			defer wg.Done()
-			res, err := p.Enrich(ctx, payload.StandardizedActivity, userRec, inputs)
-			if err != nil {
-				slog.Error("Enricher failed", "name", p.Name(), "error", err)
-				errs[idx] = err
-				return
+	// 3. Execute Each Pipeline
+	for _, pipeline := range pipelines {
+		slog.Info("Executing pipeline", "id", pipeline.ID)
+
+		// 3a. Fan-Out Enrichers for this Pipeline
+		configs := pipeline.Enrichers
+		results := make([]*EnrichmentResult, len(configs))
+		var wg sync.WaitGroup
+		errs := make([]error, len(configs))
+
+		for i, cfg := range configs {
+			provider, ok := o.providers[cfg.Name]
+			if !ok {
+				slog.Warn("Provider not found, skipping", "name", cfg.Name)
+				continue
 			}
-			results[idx] = res
-		}(i, provider, cfg.Inputs)
-	}
-	wg.Wait()
 
-	// 4. Merge Results & Fan-In
-	finalEvent := &pb.EnrichedActivityEvent{
-		UserId:             payload.UserId,
-		Source:             payload.Source,
-		ActivityId:         uuid.NewString(), // Generate new ID for enriched activity
-		ActivityData:       payload.StandardizedActivity,
-		ActivityType:       "WEIGHT_TRAINING", // Default, can be enriched
-		Name:               "Workout",         // Default
-		AppliedEnrichments: []string{},
-		EnrichmentMetadata: make(map[string]string),
-	}
-
-	// Apply basic defaults from original activity if available
-	if payload.StandardizedActivity != nil {
-		finalEvent.Name = payload.StandardizedActivity.Name
-		finalEvent.Description = payload.StandardizedActivity.Description
-		finalEvent.ActivityType = payload.StandardizedActivity.Type
-	}
-
-	// Prepare Streams for Merging
-	duration := 3600 // Default
-	startTime, _ := time.Parse(time.RFC3339, payload.Timestamp)
-	if payload.StandardizedActivity != nil && len(payload.StandardizedActivity.Sessions) > 0 {
-		duration = int(payload.StandardizedActivity.Sessions[0].TotalElapsedTime)
-		// Ensure non-zero
-		if duration == 0 {
-			duration = 3600
+			wg.Add(1)
+			go func(idx int, p Provider, inputs map[string]string) {
+				defer wg.Done()
+				res, err := p.Enrich(ctx, payload.StandardizedActivity, userRec, inputs)
+				if err != nil {
+					slog.Error("Enricher failed", "name", p.Name(), "error", err)
+					errs[idx] = err
+					return
+				}
+				results[idx] = res
+			}(i, provider, cfg.Inputs)
 		}
-	}
+		wg.Wait()
 
-	aggregatedHR := make([]int, duration)
-	aggregatedPower := make([]int, duration)
-
-	for i, res := range results {
-		if res == nil {
-			continue
+		// 3b. Merge Results (Fan-In)
+		finalEvent := &pb.EnrichedActivityEvent{
+			UserId:             payload.UserId,
+			Source:             payload.Source,
+			ActivityId:         uuid.NewString(),
+			ActivityData:       payload.StandardizedActivity,
+			ActivityType:       "WEIGHT_TRAINING",
+			Name:               "Workout",
+			AppliedEnrichments: []string{},
+			EnrichmentMetadata: make(map[string]string),
+			Destinations:       pipeline.Destinations,
+			PipelineId:         pipeline.ID,
 		}
 
-		cfgName := configs[i].Name
-		finalEvent.AppliedEnrichments = append(finalEvent.AppliedEnrichments, cfgName)
-
-		// 4a. Merge Metadata (Overwrite if present)
-		if res.Name != "" {
-			finalEvent.Name = res.Name
-		}
-		if res.Description != "" {
-			finalEvent.Description = res.Description
-		}
-		if res.ActivityType != "" {
-			finalEvent.ActivityType = res.ActivityType
+		if payload.StandardizedActivity != nil {
+			finalEvent.Name = payload.StandardizedActivity.Name
+			finalEvent.Description = payload.StandardizedActivity.Description
+			finalEvent.ActivityType = payload.StandardizedActivity.Type
 		}
 
-		// 4b. Merge Streams (Aggregation strategy: Non-zero values win)
-		if len(res.HeartRateStream) == duration {
-			for idx, val := range res.HeartRateStream {
-				if val > 0 {
-					aggregatedHR[idx] = val
+		// Merge Streams & Metadata
+		duration := 3600
+		startTime, _ := time.Parse(time.RFC3339, payload.Timestamp)
+		if payload.StandardizedActivity != nil && len(payload.StandardizedActivity.Sessions) > 0 {
+			duration = int(payload.StandardizedActivity.Sessions[0].TotalElapsedTime)
+			if duration == 0 {
+				duration = 3600
+			}
+		}
+
+		aggregatedHR := make([]int, duration)
+		aggregatedPower := make([]int, duration)
+
+		for i, res := range results {
+			if res == nil {
+				continue
+			}
+			cfgName := configs[i].Name
+			finalEvent.AppliedEnrichments = append(finalEvent.AppliedEnrichments, cfgName)
+
+			if res.Name != "" {
+				finalEvent.Name = res.Name
+			}
+			if res.Description != "" {
+				finalEvent.Description = res.Description
+			}
+			if res.ActivityType != "" {
+				finalEvent.ActivityType = res.ActivityType
+			}
+
+			if len(res.HeartRateStream) == duration {
+				for idx, val := range res.HeartRateStream {
+					if val > 0 {
+						aggregatedHR[idx] = val
+					}
 				}
 			}
-		} else if len(res.HeartRateStream) > 0 {
-			// Handle mismatch? Log warning? For now skip.
-			slog.Warn("HeartRateStream duration mismatch", "expected", duration, "actual", len(res.HeartRateStream))
-		}
-
-		if len(res.PowerStream) == duration {
-			for idx, val := range res.PowerStream {
-				if val > 0 {
-					aggregatedPower[idx] = val
+			if len(res.PowerStream) == duration {
+				for idx, val := range res.PowerStream {
+					if val > 0 {
+						aggregatedPower[idx] = val
+					}
 				}
+			}
+			for k, v := range res.Metadata {
+				finalEvent.EnrichmentMetadata[k] = v
 			}
 		}
 
-		// 4c. Merge Extra Metadata
-		for k, v := range res.Metadata {
-			finalEvent.EnrichmentMetadata[k] = v
+		// 3c. Generate Artifacts (FIT File)
+		fitBytes, err := fit.GenerateFitFile(startTime, duration, aggregatedPower, aggregatedHR)
+		if err == nil && len(fitBytes) > 0 {
+			objName := fmt.Sprintf("activities/%s/%s.fit", payload.UserId, finalEvent.ActivityId)
+			if err := o.storage.Write(ctx, o.bucketName, objName, fitBytes); err != nil {
+				slog.Error("Failed to write FIT file artifact", "error", err)
+			} else {
+				finalEvent.FitFileUri = fmt.Sprintf("gs://%s/%s", o.bucketName, objName)
+			}
 		}
+
+		allEvents = append(allEvents, finalEvent)
 	}
 
-	// 5. Generate Artifacts (FIT File)
-	// We generate the FIT file using the MERGED streams
+	return allEvents, nil
+}
 
-	// Default streams if they are empty is just 0s, which is fine.
-	// But if we have HR data merged, it will be in aggregatedHR.
-
-	fitBytes, err := fit.GenerateFitFile(startTime, duration, aggregatedPower, aggregatedHR)
-	if err != nil {
-		slog.Error("Failed to generate FIT file", "error", err)
-		// Non-fatal? Maybe we still proceed with enriched metadata.
-	} else if len(fitBytes) > 0 {
-		objName := fmt.Sprintf("activities/%s/%s.fit", payload.UserId, finalEvent.ActivityId)
-		if err := o.storage.Write(ctx, o.bucketName, objName, fitBytes); err != nil {
-			slog.Error("Failed to write FIT file artifact", "error", err)
-		} else {
-			finalEvent.FitFileUri = fmt.Sprintf("gs://%s/%s", o.bucketName, objName)
-		}
-	}
-
-	return finalEvent, nil
+type configuredPipeline struct {
+	ID           string
+	Enrichers    []configuredEnricher
+	Destinations []string
 }
 
 type configuredEnricher struct {
@@ -177,56 +180,68 @@ type configuredEnricher struct {
 	Inputs map[string]string
 }
 
-func (o *Orchestrator) resolveEnrichers(source pb.ActivitySource, userDoc map[string]interface{}) []configuredEnricher {
-	enrichments, ok := userDoc["enrichments"].(map[string]interface{})
-	if !ok {
-		return nil
-	}
-
-	// Try strict match "SOURCE_HEVY" then flexible "HEVY"
+func (o *Orchestrator) resolvePipelines(source pb.ActivitySource, userRec *pb.UserRecord) []configuredPipeline {
+	var pipelines []configuredPipeline
 	sourceName := source.String()
 
-	var sourceConfig map[string]interface{}
-	if val, found := enrichments[sourceName]; found {
-		sourceConfig, _ = val.(map[string]interface{})
-	} else if val, found := enrichments["HEVY"]; found && source == pb.ActivitySource_SOURCE_HEVY {
-		sourceConfig, _ = val.(map[string]interface{})
-	}
-
-	if sourceConfig == nil {
-		return nil
-	}
-
-	enrichersRaw, ok := sourceConfig["enrichers"].([]interface{})
-	if !ok {
-		return nil
-	}
-
-	var results []configuredEnricher
-	for _, item := range enrichersRaw {
-		cfgMap, ok := item.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		name, _ := cfgMap["name"].(string)
-		inputsRaw, _ := cfgMap["inputs"].(map[string]interface{})
-
-		inputs := make(map[string]string)
-		for k, v := range inputsRaw {
-			inputs[k] = fmt.Sprintf("%v", v)
-		}
-
-		if name != "" {
-			results = append(results, configuredEnricher{Name: name, Inputs: inputs})
+	for _, p := range userRec.Pipelines {
+		// Match Source
+		if p.Source == sourceName {
+			var enrichers []configuredEnricher
+			for _, e := range p.Enrichers {
+				enrichers = append(enrichers, configuredEnricher{
+					Name:   e.Name,
+					Inputs: e.Inputs,
+				})
+			}
+			pipelines = append(pipelines, configuredPipeline{
+				ID:           p.Id,
+				Enrichers:    enrichers,
+				Destinations: p.Destinations,
+			})
 		}
 	}
-	return results
+
+	// Default/Fallback logic: If no pipelines found, create a default "Pass-through" pipeline
+	// This ensures backward compatibility or "at least save it" behavior.
+	if len(pipelines) == 0 {
+		// Check legacy "Routes" or just default to Router handling it?
+		// Router now expects destinations in the event.
+		// So we MUST produce at least one event if we want anything to happen.
+		// Let's create a default pipeline that has NO enrichers, but checks legacy destinations.
+
+		// Legacy check: Strava
+		dests := []string{}
+		if userRec.Integrations != nil && userRec.Integrations.Strava != nil && userRec.Integrations.Strava.Enabled {
+			dests = append(dests, "strava")
+		}
+
+		if len(dests) > 0 {
+			pipelines = append(pipelines, configuredPipeline{
+				ID:           "default-legacy",
+				Destinations: dests,
+				Enrichers:    []configuredEnricher{}, // No enrichers
+			})
+		}
+	}
+
+	return pipelines
 }
 
 func (o *Orchestrator) mapUser(data map[string]interface{}) *pb.UserRecord {
+	// Re-using the JSON round-trip hack because manual mapping of deeply nested structures like Pipelines
+	// is error-prone and verbose in Go without a dedicated library.
+	// Since performance is not critical here (per-activity), this is acceptable.
+
+	// Create a temporary struct to handle Firestore -> JSON -> Proto
+	// Ideally we'd map manually, but "pipelines" is a list of complex objects.
+	// We'll rely on the existing manual map for Integrations to keep code stable,
+	// but add Pipelines parsing.
+
 	rec := &pb.UserRecord{
 		UserId:       fmt.Sprintf("%v", data["user_id"]),
 		Integrations: &pb.UserIntegrations{},
+		Pipelines:    []*pb.PipelineConfig{},
 	}
 
 	if integrations, ok := data["integrations"].(map[string]interface{}); ok {
@@ -238,14 +253,49 @@ func (o *Orchestrator) mapUser(data map[string]interface{}) *pb.UserRecord {
 				FitbitUserId: fmt.Sprintf("%v", fitbit["fitbit_user_id"]),
 			}
 		}
-		// Add Hevy mapping if needed
-		if hevy, ok := integrations["hevy"].(map[string]interface{}); ok {
-			rec.Integrations.Hevy = &pb.HevyIntegration{
-				Enabled: hevy["enabled"] == true,
-				ApiKey:  fmt.Sprintf("%v", hevy["api_key"]),
-				UserId:  fmt.Sprintf("%v", hevy["user_id"]),
+		if strava, ok := integrations["strava"].(map[string]interface{}); ok {
+			rec.Integrations.Strava = &pb.StravaIntegration{
+				Enabled: strava["enabled"] == true,
 			}
 		}
 	}
+
+	if pipelines, ok := data["pipelines"].([]interface{}); ok {
+		for _, p := range pipelines {
+			if pMap, ok := p.(map[string]interface{}); ok {
+				pc := &pb.PipelineConfig{
+					Id:     fmt.Sprintf("%v", pMap["id"]),
+					Source: fmt.Sprintf("%v", pMap["source"]),
+				}
+
+				// Dests
+				if dests, ok := pMap["destinations"].([]interface{}); ok {
+					for _, d := range dests {
+						pc.Destinations = append(pc.Destinations, fmt.Sprintf("%v", d))
+					}
+				}
+
+				// Enrichers
+				if enrichers, ok := pMap["enrichers"].([]interface{}); ok {
+					for _, e := range enrichers {
+						if eMap, ok := e.(map[string]interface{}); ok {
+							ec := &pb.EnricherConfig{
+								Name:   fmt.Sprintf("%v", eMap["name"]),
+								Inputs: make(map[string]string),
+							}
+							if inputs, ok := eMap["inputs"].(map[string]interface{}); ok {
+								for k, v := range inputs {
+									ec.Inputs[k] = fmt.Sprintf("%v", v)
+								}
+							}
+							pc.Enrichers = append(pc.Enrichers, ec)
+						}
+					}
+				}
+				rec.Pipelines = append(rec.Pipelines, pc)
+			}
+		}
+	}
+
 	return rec
 }

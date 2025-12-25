@@ -178,8 +178,11 @@ type EnrichedActivityEvent struct {
 	// Enrichment Metadata
 	AppliedEnrichments []string          `protobuf:"bytes,9,rep,name=applied_enrichments,json=appliedEnrichments,proto3" json:"applied_enrichments,omitempty"`                                                                            // List of enrichers that ran
 	EnrichmentMetadata map[string]string `protobuf:"bytes,10,rep,name=enrichment_metadata,json=enrichmentMetadata,proto3" json:"enrichment_metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Extra stats
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Routing information determined by the pipeline
+	Destinations  []string `protobuf:"bytes,11,rep,name=destinations,proto3" json:"destinations,omitempty"`
+	PipelineId    string   `protobuf:"bytes,12,opt,name=pipeline_id,json=pipelineId,proto3" json:"pipeline_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EnrichedActivityEvent) Reset() {
@@ -282,6 +285,20 @@ func (x *EnrichedActivityEvent) GetEnrichmentMetadata() map[string]string {
 	return nil
 }
 
+func (x *EnrichedActivityEvent) GetDestinations() []string {
+	if x != nil {
+		return x.Destinations
+	}
+	return nil
+}
+
+func (x *EnrichedActivityEvent) GetPipelineId() string {
+	if x != nil {
+		return x.PipelineId
+	}
+	return ""
+}
+
 var File_activity_proto protoreflect.FileDescriptor
 
 const file_activity_proto_rawDesc = "" +
@@ -296,7 +313,7 @@ const file_activity_proto_rawDesc = "" +
 	"\x15standardized_activity\x18\x06 \x01(\v2\x1d.fitglue.StandardizedActivityR\x14standardizedActivity\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa4\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe9\x04\n" +
 	"\x15EnrichedActivityEvent\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1f\n" +
 	"\vactivity_id\x18\x02 \x01(\tR\n" +
@@ -310,7 +327,10 @@ const file_activity_proto_rawDesc = "" +
 	"fitFileUri\x12/\n" +
 	"\x13applied_enrichments\x18\t \x03(\tR\x12appliedEnrichments\x12g\n" +
 	"\x13enrichment_metadata\x18\n" +
-	" \x03(\v26.fitglue.EnrichedActivityEvent.EnrichmentMetadataEntryR\x12enrichmentMetadata\x1aE\n" +
+	" \x03(\v26.fitglue.EnrichedActivityEvent.EnrichmentMetadataEntryR\x12enrichmentMetadata\x12\"\n" +
+	"\fdestinations\x18\v \x03(\tR\fdestinations\x12\x1f\n" +
+	"\vpipeline_id\x18\f \x01(\tR\n" +
+	"pipelineId\x1aE\n" +
 	"\x17EnrichmentMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*Y\n" +

@@ -108,6 +108,21 @@ Deletes **ALL** execution logs from the Firestore database.
 ./fitglue-admin executions:clean
 ```
 
+### `users:connect <userId> <provider>`
+
+Generates an OAuth authorization URL for a specific provider (Strava or Fitbit). It now prompts for the **Client ID**, which you can find in your provider developer portal or Google Secret Manager.
+
+**Usage:**
+```bash
+./fitglue-admin users:connect my-user-id strava
+```
+
+**Prompts:**
+1.  **Client ID**: Enter the Client ID for the chosen provider.
+
+**Output:**
+Prints a URL that you can send to the user (or click yourself) to authorize the application. Upon success, the callback handler will save the tokens to the user's Firestore record.
+
 ### `users:delete <userId>`
 
 Permanently deletes a user and their associated root document. Note that subcollections may need manual cleanup in a production environment.
@@ -131,6 +146,22 @@ Updates the configuration for an existing user. Currently supports updating inte
 1.  **Hevy Integration**: Update Hevy API Key?
 2.  **Strava Integration**: Update Strava credentials? (Access Token, Refresh Token, Expires At, Athlete ID)
 3.  **Fitbit Integration**: Update Fitbit credentials? (Access Token, Refresh Token, Expires At, User ID)
+
+### `users:add-pipeline <userId>`
+
+Adds a data processing pipeline to a user. This command allows you to define complex routing and enrichment flows, such as "Hevy -> Fitbit HR Enrichment -> Strava".
+
+**Usage:**
+```bash
+./fitglue-admin users:add-pipeline my-user-id
+```
+
+**Prompts:**
+1.  **Source**: Select the data source triggering this pipeline (e.g., `SOURCE_HEVY`, `SOURCE_KEISER`).
+2.  **Enrichers**:
+    *   Add enrichers in sequence (e.g., first `fitbit-heart-rate`, then `ai-description`).
+    *   You can optionally provide a JSON string for specific enricher inputs.
+3.  **Destinations**: Select where the final data should be sent (e.g., `strava`).
 
 ## Development
 

@@ -382,6 +382,16 @@ program.command('users:connect')
                 process.exit(1);
             }
 
+            // Prompt for Client ID
+            const { clientId } = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'clientId',
+                    message: `Enter ${provider === 'strava' ? 'Strava' : 'Fitbit'} Client ID:`,
+                    validate: (input) => input.length > 0 || 'Client ID is required'
+                }
+            ]);
+
             // Generate state token
             const state = await generateOAuthState(userId);
 
@@ -392,17 +402,15 @@ program.command('users:connect')
 
             let authUrl: string;
             if (provider === 'strava') {
-                // Note: Client ID should be fetched from Secret Manager in production
-                // For now, we'll show a placeholder
                 authUrl = `https://www.strava.com/oauth/authorize?` +
-                    `client_id=YOUR_STRAVA_CLIENT_ID&` +
+                    `client_id=${clientId}&` +
                     `redirect_uri=${encodeURIComponent(`${baseUrl}/auth/strava/callback`)}&` +
                     `response_type=code&` +
                     `scope=read,activity:read_all&` +
                     `state=${state}`;
             } else {
                 authUrl = `https://www.fitbit.com/oauth2/authorize?` +
-                    `client_id=YOUR_FITBIT_CLIENT_ID&` +
+                    `client_id=${clientId}&` +
                     `redirect_uri=${encodeURIComponent(`${baseUrl}/auth/fitbit/callback`)}&` +
                     `response_type=code&` +
                     `scope=activity heartrate profile&` +
@@ -414,7 +422,6 @@ program.command('users:connect')
             console.log('==========================================');
             console.log(authUrl);
             console.log('==========================================\n');
-            console.log('NOTE: Replace YOUR_*_CLIENT_ID with actual client ID from Secret Manager');
             console.log(`User should visit this URL to authorize ${provider} access.`);
             console.log('After authorization, tokens will be automatically stored in Firestore.\n');
 
@@ -471,6 +478,90 @@ program.command('users:clean')
 
         } catch (error) {
             console.error('Error cleaning users:', error);
+            process.exit(1);
+        }
+    });
+
+program.command('users:add-pipeline')
+    .argument('<userId>', 'User ID to add pipeline to')
+    .description('Add a processing pipeline to a user')
+    .action(async (userId) => {
+        try {
+            // Check user exists
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (!userDoc.exists) {
+                console.error(`User ${userId} not found`);
+                process.exit(1);
+            }
+
+            const sourceAnswers = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'source',
+                    message: 'Select Source:',
+                    choices: ['SOURCE_HEVY', 'SOURCE_KEISER', 'SOURCE_TEST']
+                }
+            ]);
+
+            const enrichers = [];
+            const addMore = true;
+
+            console.log('\n--- Configure Enrichers (Order Matters) ---');
+            while (addMore) {
+                const enricherAnswer = await inquirer.prompt([
+                    {
+                        type: 'confirm',
+                        name: 'add',
+                        message: 'Add an enricher?',
+                        default: false
+                    }
+                ]);
+
+                if (!enricherAnswer.add) {
+                    break;
+                }
+
+                const config = await inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'name',
+                        message: 'Enricher Name:',
+                        choices: ['fitbit-heart-rate', 'mock-enricher'] // Add more as we build them
+                    },
+                    // We could ask for inputs here dynamically, but for now simple inputs
+                    {
+                        type: 'input',
+                        name: 'inputsJson',
+                        message: 'Inputs (JSON string, optional):',
+                        validate: (input) => {
+                            if (!input) return true;
+                            try { JSON.parse(input); return true; } catch (e) { return 'Invalid JSON'; }
+                        }
+                    }
+                ]);
+
+                enrichers.push({
+                    name: config.name,
+                    inputs: config.inputsJson ? JSON.parse(config.inputsJson) : {}
+                });
+            }
+
+            const destAnswers = await inquirer.prompt([
+                {
+                    type: 'checkbox',
+                    name: 'destinations',
+                    message: 'Select Destinations:',
+                    choices: ['strava'],
+                    validate: (input) => input.length > 0 || 'Must select at least one destination'
+                }
+            ]);
+
+            console.log('\nAdding pipeline...');
+            const id = await userService.addPipeline(userId, sourceAnswers.source, enrichers, destAnswers.destinations);
+            console.log(`Pipeline added successfully! ID: ${id}`);
+
+        } catch (error) {
+            console.error('Error adding pipeline:', error);
             process.exit(1);
         }
     });

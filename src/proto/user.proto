@@ -9,8 +9,15 @@ message UserRecord {
   string user_id = 1;
   google.protobuf.Timestamp created_at = 2;
   UserIntegrations integrations = 3;
-  // Map of ActivitySource name (e.g. "SOURCE_HEVY") to enrichment rules
-  map<string, SourceEnrichmentConfig> enrichments = 4;
+  // Pipelines define the data flow: Source -> Enrichers -> Routing
+  repeated PipelineConfig pipelines = 4;
+}
+
+message PipelineConfig {
+  string id = 1; // Unique ID (uuid) for tracing
+  string source = 2; // e.g. "SOURCE_HEVY"
+  repeated EnricherConfig enrichers = 3;
+  repeated string destinations = 4; // e.g. ["strava", "gcs"]
 }
 
 message UserIntegrations {

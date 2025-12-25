@@ -46,4 +46,7 @@ message EnrichedActivityEvent {
   // Enrichment Metadata
   repeated string applied_enrichments = 9; // List of enrichers that ran
   map<string, string> enrichment_metadata = 10; // Extra stats
+  // Routing information determined by the pipeline
+  repeated string destinations = 11;
+  string pipeline_id = 12;
 }
