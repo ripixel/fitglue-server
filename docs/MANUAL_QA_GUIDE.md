@@ -22,15 +22,22 @@ Create a new user. This establishes their identity and secure ingress.
 2.  **Generate Ingress Key**: Select "Yes".
 3.  **Label**: e.g., "Manual Test".
 4.  **Copy the Ingress Key** (`fg_sk_...`).
-5.  **Configure Hevy**: Select "Yes". Enter the user's personal Hevy API Key.
 
-### Step 2: Configure Hevy Webhook
+### Step 2: Configure Hevy Integration
+Set the user's Hevy API Key to enable data fetching.
+
+```bash
+./fitglue-admin users:configure-hevy user-123
+```
+*Enter the user's personal Hevy API Key.*
+
+### Step 3: Configure Hevy Webhook
 Add the webhook in the Hevy App or Dashboard.
 
 -   **URL**: `https://[env].fitglue.tech/hooks/hevy` (e.g., `https://dev.fitglue.tech/hooks/hevy`)
 -   **Secret**: Paste the **Ingress Key** from Step 1.
 
-### Step 3: Connect OAuth Services
+### Step 4: Connect OAuth Services
 Generate auth links for the user to authorize Strava and Fitbit.
 
 **Connect Strava:**

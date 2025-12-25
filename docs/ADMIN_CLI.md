@@ -27,17 +27,22 @@ Creates a new user in the system. If `userId` is omitted, a random UUID will be 
 1.  **Ingress API Key**: Do you want to generate an API Key for this user? (Default: Yes)
     *   **Label**: A descriptive name for the key (e.g., "Mobile App").
     *   **Scopes**: Select `read:activity` (required for ingesting data).
-2.  **Hevy Integration**: Do you want to configure Hevy? (Default: Yes)
-3.  **Strava Integration**: Do you want to configure Strava? (Default: No)
-    *   **Access Token**: The user's OAuth Access Token.
-    *   **Refresh Token**: The user's OAuth Refresh Token.
-    *   **Expires At**: Token expiration (Unix timestamp in seconds).
-    *   **Athlete ID**: The Strava Athlete ID.
-4.  **Fitbit Integration**: Do you want to configure Fitbit? (Default: No)
-    *   **Access Token**: The user's OAuth Access Token.
-    *   **Refresh Token**: The user's OAuth Refresh Token.
-    *   **Expires At**: Token expiration (Unix timestamp in seconds).
-    *   **User ID**: The Fitbit User ID.
+**Prompts:**
+1.  **Ingress API Key**: Do you want to generate an API Key for this user? (Default: Yes)
+    *   **Label**: A descriptive name for the key (e.g., "Mobile App").
+    *   **Scopes**: Select `read:activity` (required for ingesting data).
+
+### `users:configure-hevy <userId>`
+
+Configures the Hevy integration for a specific user by setting their Hevy API Key.
+
+**Usage:**
+```bash
+./fitglue-admin users:configure-hevy my-user-id
+```
+
+**Prompts:**
+1.  **Hevy API Key**: Enter the user's Hevy API Key.
 
 ### `users:list`
 

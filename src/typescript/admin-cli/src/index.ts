@@ -67,119 +67,48 @@ program.command('users:create')
                 console.log('==========================================\n');
             }
 
-            const hevyAnswers = await inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'configureHevy',
-                    message: 'Configure Hevy Integration?',
-                    default: false
-                },
+            if (answers.createIngressKey) {
+                const key = await userService.createIngressApiKey(userId, answers.label, answers.scopes);
+                console.log('\n==========================================');
+                console.log(`INGRESS API KEY (${answers.label}):`);
+                console.log(key);
+                console.log('==========================================\n');
+            }
+
+            console.log('User creation complete. Use "users:configure-hevy" or "users:connect" to set up integrations.');
+
+        } catch (error) {
+            console.error('Error creating user:', error);
+            process.exit(1);
+        }
+    });
+
+program.command('users:configure-hevy')
+    .argument('<userId>', 'User ID to configure')
+    .description('Configure Hevy integration for a user')
+    .action(async (userId) => {
+        try {
+            // Verify user exists
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (!userDoc.exists) {
+                console.error(`User ${userId} not found`);
+                process.exit(1);
+            }
+
+            const answers = await inquirer.prompt([
                 {
                     type: 'password',
                     name: 'apiKey',
                     message: 'Hevy API Key:',
-                    when: (answers) => answers.configureHevy
+                    validate: (input) => input.length > 0 || 'API Key is required'
                 }
             ]);
 
-            if (hevyAnswers.configureHevy) {
-                await userService.setHevyIntegration(userId, hevyAnswers.apiKey);
-                console.log('Hevy integration configured.');
-            }
-
-            const stravaAnswers = await inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'configureStrava',
-                    message: 'Configure Strava Integration?',
-                    default: false
-                },
-                {
-                    type: 'input',
-                    name: 'accessToken',
-                    message: 'Access Token:',
-                    when: (answers) => answers.configureStrava
-                },
-                {
-                    type: 'input',
-                    name: 'refreshToken',
-                    message: 'Refresh Token:',
-                    when: (answers) => answers.configureStrava
-                },
-                {
-                    type: 'input',
-                    name: 'expiresAt',
-                    message: 'Expires At (Unix Timestamp Seconds):',
-                    when: (answers) => answers.configureStrava,
-                    validate: (input) => !isNaN(parseInt(input)) || 'Must be a number'
-                },
-                {
-                    type: 'input',
-                    name: 'athleteId',
-                    message: 'Athlete ID:',
-                    when: (answers) => answers.configureStrava,
-                    validate: (input) => !isNaN(parseInt(input)) || 'Must be a number'
-                }
-            ]);
-
-            if (stravaAnswers.configureStrava) {
-                await userService.setStravaIntegration(
-                    userId,
-                    stravaAnswers.accessToken,
-                    stravaAnswers.refreshToken,
-                    parseInt(stravaAnswers.expiresAt, 10),
-                    parseInt(stravaAnswers.athleteId, 10)
-                );
-                console.log('Strava integration configured.');
-            }
-
-            const fitbitAnswers = await inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'configureFitbit',
-                    message: 'Configure Fitbit Integration?',
-                    default: false
-                },
-                {
-                    type: 'input',
-                    name: 'accessToken',
-                    message: 'Access Token:',
-                    when: (answers) => answers.configureFitbit
-                },
-                {
-                    type: 'input',
-                    name: 'refreshToken',
-                    message: 'Refresh Token:',
-                    when: (answers) => answers.configureFitbit
-                },
-                {
-                    type: 'input',
-                    name: 'expiresAt',
-                    message: 'Expires At (Unix Timestamp Seconds):',
-                    when: (answers) => answers.configureFitbit,
-                    validate: (input) => !isNaN(parseInt(input)) || 'Must be a number'
-                },
-                {
-                    type: 'input',
-                    name: 'fitbitUserId',
-                    message: 'Fitbit User ID:',
-                    when: (answers) => answers.configureFitbit
-                }
-            ]);
-
-            if (fitbitAnswers.configureFitbit) {
-                await userService.setFitbitIntegration(
-                    userId,
-                    fitbitAnswers.accessToken,
-                    fitbitAnswers.refreshToken,
-                    parseInt(fitbitAnswers.expiresAt, 10),
-                    fitbitAnswers.fitbitUserId
-                );
-                console.log('Fitbit integration configured.');
-            }
+            await userService.setHevyIntegration(userId, answers.apiKey);
+            console.log('Hevy integration configured.');
 
         } catch (error) {
-            console.error('Error creating user:', error);
+            console.error('Error configuring Hevy:', error);
             process.exit(1);
         }
     });
