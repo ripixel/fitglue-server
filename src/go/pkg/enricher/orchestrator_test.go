@@ -1,107 +1,188 @@
-package enricher
+package enricher_test
 
 import (
 	"context"
 	"testing"
-	"time"
 
-	"github.com/ripixel/fitglue-server/src/go/pkg/mocks"
+	"github.com/ripixel/fitglue-server/src/go/pkg/enricher"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
-type mockProvider struct {
-	name   string
-	result *EnrichmentResult
+// MockDatabase implements shared.Database
+type MockDatabase struct {
+	GetUserFunc func(ctx context.Context, id string) (map[string]interface{}, error)
 }
 
-func (m *mockProvider) Name() string { return m.name }
-func (m *mockProvider) Enrich(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputConfig map[string]string) (*EnrichmentResult, error) {
-	return m.result, nil
+func (m *MockDatabase) GetUser(ctx context.Context, id string) (map[string]interface{}, error) {
+	if m.GetUserFunc != nil {
+		return m.GetUserFunc(ctx, id)
+	}
+	return nil, nil
+}
+func (m *MockDatabase) SetExecution(ctx context.Context, id string, data map[string]interface{}) error {
+	return nil
+}
+func (m *MockDatabase) UpdateExecution(ctx context.Context, id string, data map[string]interface{}) error {
+	return nil
+}
+func (m *MockDatabase) UpdateUser(ctx context.Context, id string, data map[string]interface{}) error {
+	return nil
 }
 
-func TestProcess_Pipelines(t *testing.T) {
-	// Setup Matches
-	mockDB := &mocks.MockDatabase{
-		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
-			return map[string]interface{}{
-				"user_id": id,
-				"pipelines": []interface{}{
-					map[string]interface{}{
-						"id":     "pipeline-1",
-						"source": "SOURCE_HEVY",
-						"enrichers": []interface{}{
-							map[string]interface{}{
-								"name": "mock-a",
+// MockBlobStore implements shared.BlobStore
+type MockBlobStore struct {
+	WriteFunc func(ctx context.Context, bucket, object string, data []byte) error
+}
+
+func (m *MockBlobStore) Write(ctx context.Context, bucket, object string, data []byte) error {
+	if m.WriteFunc != nil {
+		return m.WriteFunc(ctx, bucket, object, data)
+	}
+	return nil
+}
+func (m *MockBlobStore) Read(ctx context.Context, bucket, object string) ([]byte, error) {
+	return nil, nil
+}
+
+// MockProvider implements enricher.Provider
+type MockProvider struct {
+	NameFunc   func() string
+	EnrichFunc func(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputConfig map[string]string) (*enricher.EnrichmentResult, error)
+}
+
+func (m *MockProvider) Name() string {
+	if m.NameFunc != nil {
+		return m.NameFunc()
+	}
+	return "mock-provider"
+}
+
+func (m *MockProvider) Enrich(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputConfig map[string]string) (*enricher.EnrichmentResult, error) {
+	if m.EnrichFunc != nil {
+		return m.EnrichFunc(ctx, activity, user, inputConfig)
+	}
+	return &enricher.EnrichmentResult{}, nil
+}
+
+func TestOrchestrator_Process(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("Executes configured pipeline", func(t *testing.T) {
+		mockDB := &MockDatabase{
+			GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
+				return map[string]interface{}{
+					"user_id": id,
+					"pipelines": []interface{}{
+						map[string]interface{}{
+							"id":     "pipeline-1",
+							"source": "SOURCE_HEVY",
+							"destinations": []interface{}{
+								"strava",
+							},
+							"enrichers": []interface{}{
+								map[string]interface{}{
+									"name": "mock-enricher",
+									"inputs": map[string]interface{}{
+										"key": "val",
+									},
+								},
 							},
 						},
-						"destinations": []interface{}{"strava"},
 					},
-					map[string]interface{}{
-						"id":     "pipeline-2",
-						"source": "SOURCE_HEVY",
-						"enrichers": []interface{}{
-							map[string]interface{}{
-								"name": "mock-b",
-							},
+				}, nil
+			},
+		}
+
+		mockStorage := &MockBlobStore{
+			WriteFunc: func(ctx context.Context, bucket, object string, data []byte) error {
+				return nil
+			},
+		}
+
+		orchestrator := enricher.NewOrchestrator(mockDB, mockStorage, "test-bucket")
+
+		mockProvider := &MockProvider{
+			NameFunc: func() string { return "mock-enricher" },
+			EnrichFunc: func(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputConfig map[string]string) (*enricher.EnrichmentResult, error) {
+				return &enricher.EnrichmentResult{
+					Name:        "Enriched Activity",
+					Description: "Added by mock",
+					Metadata: map[string]string{
+						"processed_by": "mock",
+					},
+				}, nil
+			},
+		}
+		orchestrator.Register(mockProvider)
+
+		payload := &pb.ActivityPayload{
+			UserId:    "user-123",
+			Source:    pb.ActivitySource_SOURCE_HEVY,
+			Timestamp: "2023-01-01T10:00:00Z",
+			StandardizedActivity: &pb.StandardizedActivity{
+				Name: "Original Run",
+			},
+		}
+
+		events, err := orchestrator.Process(ctx, payload)
+		if err != nil {
+			t.Fatalf("Process failed: %v", err)
+		}
+
+		if len(events) != 1 {
+			t.Fatalf("Expected 1 event, got %d", len(events))
+		}
+
+		event := events[0]
+		if event.Name != "Enriched Activity" {
+			t.Errorf("Expected name 'Enriched Activity', got '%s'", event.Name)
+		}
+		if event.Description != "Added by mock" {
+			t.Errorf("Expected description 'Added by mock', got '%s'", event.Description)
+		}
+		if event.EnrichmentMetadata["processed_by"] != "mock" {
+			t.Errorf("Expected metadata 'processed_by'='mock'")
+		}
+		if len(event.Destinations) != 1 || event.Destinations[0] != "strava" {
+			t.Errorf("Expected destination 'strava'")
+		}
+	})
+
+	t.Run("Falls back to default if no pipelines match", func(t *testing.T) {
+		mockDB := &MockDatabase{
+			GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
+				return map[string]interface{}{
+					"user_id": id,
+					"integrations": map[string]interface{}{
+						"strava": map[string]interface{}{
+							"enabled": true,
 						},
-						"destinations": []interface{}{"gcs"},
 					},
-				},
-			}, nil
-		},
-	}
-	mockStore := &mocks.MockBlobStore{
-		WriteFunc: func(ctx context.Context, bucket, object string, data []byte) error { return nil },
-	}
+				}, nil
+			},
+		}
 
-	orc := NewOrchestrator(mockDB, mockStore, "test-bucket")
+		orchestrator := enricher.NewOrchestrator(mockDB, &MockBlobStore{}, "test-bucket")
 
-	// Register Mock Providers
-	orc.Register(&mockProvider{name: "mock-a", result: &EnrichmentResult{Name: "Enriched A"}})
-	orc.Register(&mockProvider{name: "mock-b", result: &EnrichmentResult{Name: "Enriched B"}})
+		payload := &pb.ActivityPayload{
+			UserId: "user-123",
+			Source: pb.ActivitySource_SOURCE_HEVY,
+			StandardizedActivity: &pb.StandardizedActivity{
+				Name: "Run",
+			},
+			Timestamp: "2023-01-01T10:00:00Z",
+		}
 
-	// Input
-	payload := &pb.ActivityPayload{
-		UserId:    "u1",
-		Source:    pb.ActivitySource_SOURCE_HEVY,
-		Timestamp: time.Now().Format(time.RFC3339),
-		StandardizedActivity: &pb.StandardizedActivity{
-			Name: "Original",
-		},
-	}
+		events, err := orchestrator.Process(ctx, payload)
+		if err != nil {
+			t.Fatalf("Process failed: %v", err)
+		}
 
-	// Execute
-	events, err := orc.Process(context.Background(), payload)
-	if err != nil {
-		t.Fatalf("Process failed: %v", err)
-	}
-
-	// Assert
-	if len(events) != 2 {
-		t.Fatalf("Expected 2 events, got %d", len(events))
-	}
-
-	// Verify Event 1
-	e1 := events[0]
-	if e1.PipelineId != "pipeline-1" {
-		t.Errorf("Event 0 expected pipeline-1, got %s", e1.PipelineId)
-	}
-	if e1.Name != "Enriched A" {
-		t.Errorf("Event 0 expected Enriched A, got %s", e1.Name)
-	}
-	if len(e1.Destinations) != 1 || e1.Destinations[0] != "strava" {
-		t.Errorf("Event 0 destinations mismatch")
-	}
-
-	// Verify Event 2
-	e2 := events[1]
-	if e2.PipelineId != "pipeline-2" {
-		t.Errorf("Event 1 expected pipeline-2, got %s", e2.PipelineId)
-	}
-	if e2.Name != "Enriched B" {
-		t.Errorf("Event 1 expected Enriched B, got %s", e2.Name)
-	}
-	if len(e2.Destinations) != 1 || e2.Destinations[0] != "gcs" {
-		t.Errorf("Event 1 destinations mismatch")
-	}
+		if len(events) != 1 {
+			t.Fatalf("Expected 1 default event, got %d", len(events))
+		}
+		if events[0].PipelineId != "default-legacy" {
+			t.Errorf("Expected default-legacy pipeline, got %s", events[0].PipelineId)
+		}
+	})
 }

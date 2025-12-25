@@ -1,15 +1,15 @@
 import * as crypto from 'crypto';
-import { ApiKeyStrategy } from '../src/framework/auth';
-import { FrameworkContext } from '../src/framework/index';
+import { ApiKeyStrategy } from './auth';
+import { FrameworkContext } from './index';
 
 // Mock dependencies
 const mockGet = jest.fn();
 const mockSet = jest.fn().mockResolvedValue({});
-const mockDoc = jest.fn((id) => ({
+const mockDoc = jest.fn((_) => ({
   get: mockGet,
   set: mockSet
 }));
-const mockCollection = jest.fn((name) => ({
+const mockCollection = jest.fn((_) => ({
   doc: mockDoc
 }));
 

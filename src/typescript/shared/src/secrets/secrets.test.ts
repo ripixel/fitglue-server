@@ -1,4 +1,4 @@
-import { getSecret } from '../src/secrets/secrets';
+import { getSecret } from './secrets';
 
 // Mock dependencies if needed, but getSecret logic is simple fallback
 // We want to test env var fallback and mocked GSM call
