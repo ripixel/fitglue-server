@@ -75,60 +75,23 @@ resource "google_firebase_hosting_custom_domain" "main" {
     google_dns_managed_zone.main
   ]
 }
+# DNS Records for Firebase Hosting
+# All environments are zone apexes, so they must use A records (not CNAME)
 
-# Automatically add DNS records required by Firebase Hosting
-# This runs after the custom domain is created and parses the required_dns_updates output
-resource "null_resource" "firebase_dns_records" {
-  # Re-run if the custom domain changes
-  triggers = {
-    custom_domain_id = google_firebase_hosting_custom_domain.main.id
-  }
+# A record for Firebase Hosting (all environments)
+resource "google_dns_record_set" "firebase_a" {
+  managed_zone = google_dns_managed_zone.main.name
+  name         = "${var.domain_name}."
+  type         = "A"
+  ttl          = 300
+  rrdatas      = ["199.36.158.100"]
+}
 
-  provisioner "local-exec" {
-    command = <<-EOT
-      # Wait a moment for Firebase to populate required_dns_updates
-      sleep 5
-
-      # Get the required DNS updates from Terraform state
-      DESIRED_RECORDS=$(terraform output -json firebase_custom_domain_dns | jq -r '.desired[]? // empty')
-
-      if [ -n "$DESIRED_RECORDS" ]; then
-        echo "$DESIRED_RECORDS" | jq -c '.' | while read -r record_set; do
-          DOMAIN=$(echo "$record_set" | jq -r '.domain_name')
-
-          echo "$record_set" | jq -c '.records[]' | while read -r record; do
-            TYPE=$(echo "$record" | jq -r '.type')
-            RDATA=$(echo "$record" | jq -r '.rdata')
-            ACTION=$(echo "$record" | jq -r '.required_action')
-
-            if [ "$ACTION" = "ADD" ]; then
-              # Check if record already exists
-              EXISTING=$(gcloud dns record-sets list \
-                --zone=${google_dns_managed_zone.main.name} \
-                --name="$DOMAIN" \
-                --type="$TYPE" \
-                --format=json 2>/dev/null || echo "[]")
-
-              if [ "$EXISTING" = "[]" ]; then
-                echo "Adding $TYPE record for $DOMAIN: $RDATA"
-                gcloud dns record-sets create "$DOMAIN" \
-                  --zone=${google_dns_managed_zone.main.name} \
-                  --type="$TYPE" \
-                  --ttl=300 \
-                  --rrdatas="$RDATA" || echo "Record may already exist, continuing..."
-              else
-                echo "Record already exists for $DOMAIN ($TYPE), skipping..."
-              fi
-            fi
-          done
-        done
-      else
-        echo "No DNS records required yet. Firebase may still be processing the custom domain."
-      fi
-    EOT
-  }
-
-  depends_on = [
-    google_firebase_hosting_custom_domain.main
-  ]
+# TXT record for domain verification (all environments)
+resource "google_dns_record_set" "firebase_txt" {
+  managed_zone = google_dns_managed_zone.main.name
+  name         = "${var.domain_name}."
+  type         = "TXT"
+  ttl          = 300
+  rrdatas      = ["hosting-site=${var.project_id}"]
 }
