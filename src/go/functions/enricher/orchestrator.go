@@ -129,6 +129,16 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 			}
 		}
 
+		// Check if any configured enrichers failed
+		for i, cfg := range configs {
+			if errs[i] != nil {
+				return &ProcessResult{
+					Events:             []*pb.EnrichedActivityEvent{},
+					ProviderExecutions: allProviderExecutions,
+				}, fmt.Errorf("enricher '%s' failed: %w", cfg.Name, errs[i])
+			}
+		}
+
 		// 3b. Merge Results (Fan-In)
 		finalEvent := &pb.EnrichedActivityEvent{
 			UserId:             payload.UserId,

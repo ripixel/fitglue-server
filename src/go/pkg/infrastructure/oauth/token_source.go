@@ -123,11 +123,11 @@ func (s *FirestoreTokenSource) Token(ctx context.Context) (*Token, error) {
 
 // refreshToken performs the HTTP exchange to get a new token & updates Firestore
 func (s *FirestoreTokenSource) refreshToken(ctx context.Context, refreshToken string) (*Token, error) {
-	clientID, err := s.getSecret("client_id")
+	clientID, err := s.getSecret("client-id")
 	if err != nil {
 		return nil, err
 	}
-	clientSecret, err := s.getSecret("client_secret")
+	clientSecret, err := s.getSecret("client-secret")
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +203,6 @@ func (s *FirestoreTokenSource) refreshToken(ctx context.Context, refreshToken st
 }
 
 func (s *FirestoreTokenSource) getSecret(keyType string) (string, error) {
-	name := fmt.Sprintf("%s_%s", s.provider, keyType)
+	name := fmt.Sprintf("%s-%s", s.provider, keyType)
 	return s.db.Secrets.GetSecret(context.Background(), s.db.Config.ProjectID, name)
 }

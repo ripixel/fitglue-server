@@ -10,6 +10,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
+	providers "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
 	"github.com/ripixel/fitglue-server/src/go/pkg/testing/mocks"
 	"github.com/ripixel/fitglue-server/src/go/pkg/types"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
@@ -46,21 +47,15 @@ func TestEnrichActivity(t *testing.T) {
 		GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
 			return map[string]interface{}{
 				"user_id": id,
-				"integrations": map[string]interface{}{
-					"fitbit": map[string]interface{}{
-						"enabled":      true,
-						"access_token": "mock-token",
-					},
-				},
 				"pipelines": []interface{}{
 					map[string]interface{}{
 						"id":     "pipeline-1",
 						"source": "SOURCE_HEVY",
 						"enrichers": []interface{}{
 							map[string]interface{}{
-								"name": "fitbit-heart-rate",
+								"name": "mock-enricher",
 								"inputs": map[string]interface{}{
-									"priority": "high",
+									"test_key": "test_value",
 								},
 							},
 						},
@@ -82,6 +77,22 @@ func TestEnrichActivity(t *testing.T) {
 		},
 	}
 	mockSecrets := &mocks.MockSecretStore{}
+
+	// Override provider registry with mock provider for testing
+	providerRegistry = []providers.Provider{
+		&MockProvider{
+			NameFunc: func() string { return "mock-enricher" },
+			EnrichFunc: func(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputConfig map[string]string) (*providers.EnrichmentResult, error) {
+				return &providers.EnrichmentResult{
+					Name:        "Mock Enriched Activity",
+					Description: "Enriched by mock provider",
+					Metadata: map[string]string{
+						"mock_key": "mock_value",
+					},
+				}, nil
+			},
+		},
+	}
 
 	// Inject Mocks into Global Service
 	svc = &bootstrap.Service{

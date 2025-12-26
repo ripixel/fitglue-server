@@ -22,10 +22,18 @@ var (
 	svc     *bootstrap.Service
 	svcOnce sync.Once
 	svcErr  error
+
+	// providerRegistry holds the list of providers to register
+	// Can be overridden in tests
+	providerRegistry []providers.Provider
 )
 
 func init() {
 	functions.CloudEvent("EnrichActivity", EnrichActivity)
+	// Register default providers
+	providerRegistry = []providers.Provider{
+		providers.NewFitBitHeartRate(),
+	}
 }
 
 func initService(ctx context.Context) (*bootstrap.Service, error) {
@@ -81,11 +89,14 @@ func enrichHandler(ctx context.Context, e event.Event, fwCtx *framework.Framewor
 
 	orchestrator := NewOrchestrator(fwCtx.Service.DB, fwCtx.Service.Store, bucketName)
 
-	// Register Providers
-	// Use FitBit HR Provider
-	fitbitProvider := providers.NewFitBitHeartRate()
-	fitbitProvider.SetService(fwCtx.Service)
-	orchestrator.Register(fitbitProvider)
+	// Register Providers from registry
+	for _, provider := range providerRegistry {
+		// Set service if the provider supports it
+		if sp, ok := provider.(interface{ SetService(*bootstrap.Service) }); ok {
+			sp.SetService(fwCtx.Service)
+		}
+		orchestrator.Register(provider)
+	}
 
 	// Process
 	processResult, err := orchestrator.Process(ctx, &rawEvent, fwCtx.ExecutionID)
