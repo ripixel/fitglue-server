@@ -26,9 +26,7 @@ echo "Starting generic services..."
 echo "[Hevy Handler] Starting on :8080..."
 (cd src/typescript/hevy-handler && npm run dev > ../../../hevy.log 2>&1) &
 
-# Keiser Poller (TS) - Port 8084
-echo "[Keiser Poller] Starting on :8084..."
-(cd src/typescript/keiser-poller && PORT=8084 npm run dev > ../../../keiser.log 2>&1) &
+
 
 # Enricher (Go) - Port 8081
 echo "[Enricher] Starting on :8081..."
@@ -46,7 +44,6 @@ echo "All services started. Logs are being written to *.log files in root."
 echo "Press Ctrl+C to stop."
 echo "---------------------------------------------------"
 echo "Hevy Handler:   http://localhost:8080"
-echo "Keiser Poller:  http://localhost:8084"
 echo "Enricher:       http://localhost:8081"
 echo "Router:         http://localhost:8082"
 echo "Uploader:       http://localhost:8083"

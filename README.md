@@ -1,6 +1,6 @@
 # FitGlue
 
-**FitGlue** is a serverless fitness data aggregation and routing platform built on Google Cloud Platform. It ingests workout data from multiple sources (Hevy, Keiser, Fitbit), enriches it with standardized formats (FIT files), and routes it to connected services like Strava.
+**FitGlue** is a serverless fitness data aggregation and routing platform built on Google Cloud Platform. It ingests workout data from multiple sources (Hevy, Fitbit), enriches it with standardized formats (FIT files), and routes it to connected services like Strava.
 
 ## Architecture
 
@@ -9,7 +9,7 @@ FitGlue uses an event-driven, microservices architecture deployed as Google Clou
 ```
 ┌─────────────────┐
 │  Data Sources   │
-│  (Hevy, Keiser) │
+│     (Hevy)      │
 └────────┬────────┘
          │
          ▼
@@ -40,14 +40,13 @@ FitGlue uses an event-driven, microservices architecture deployed as Google Clou
 ### Components
 
 - **Hevy Handler** (TypeScript): Webhook receiver for Hevy workout data
-- **Keiser Poller** (TypeScript): Scheduled poller for Keiser M3i bike sessions
 - **Enricher** (Go): Converts raw activity data to FIT files and stores in GCS
 - **Router** (Go): Routes enriched activities to configured destinations
 - **Strava Uploader** (Go): Uploads FIT files to Strava via OAuth
 
 ## Features
 
-- 🔄 **Multi-source ingestion**: Hevy webhooks, Keiser polling, extensible for Fitbit/Garmin
+- 🔄 **Multi-source ingestion**: Hevy webhooks, extensible for Fitbit/Garmin/other sources
 - 📦 **Standardized output**: Generates industry-standard FIT files
 - 🚀 **Serverless**: Auto-scaling Cloud Functions with Pub/Sub event routing
 - 🔐 **Secure**: Secret Manager integration, HMAC signature verification
@@ -114,7 +113,6 @@ fitglue-server/
 │   │   └── pkg/            # Shared libraries
 │   ├── typescript/         # TypeScript workspace
 │   │   ├── hevy-handler/
-│   │   ├── keiser-poller/
 │   │   └── shared/         # @fitglue/shared
 │   └── proto/              # Protocol Buffer definitions
 ├── terraform/              # Infrastructure as Code

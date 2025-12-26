@@ -24,7 +24,6 @@ message UserIntegrations {
   HevyIntegration hevy = 1;
   FitbitIntegration fitbit = 2;
   StravaIntegration strava = 3;
-  KeiserIntegration keiser = 4;
 }
 
 
@@ -59,11 +58,3 @@ message StravaIntegration {
     int64 athlete_id = 5;
 }
 
-message KeiserIntegration {
-  bool enabled = 1;
-  string auth_provider = 2;  // 'email', 'facebook', 'google', 'apple'
-  string refresh_token = 3;
-  google.protobuf.Timestamp refresh_token_expires_at = 4;
-  string encrypted_credentials = 5;  // Only for 'email' provider (AES-256-GCM encrypted JSON)
-  bool requires_reauth = 6;  // Set to true when OAuth token expires and cannot auto-refresh
-}

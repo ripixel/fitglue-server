@@ -50,7 +50,6 @@ Start all 5 services simultaneously using the orchestration script:
 
 This will spin up:
 - **Hevy Handler** (`:8080`) - Webhook receiver
-- **Keiser Poller** (`:8084`) - Scheduled poller
 - **Enricher** (`:8081`) - FIT file generator
 - **Router** (`:8082`) - Activity router
 - **Strava Uploader** (`:8083`) - Strava integration
@@ -66,7 +65,6 @@ If you need to debug a single service, run it in isolation:
 | Service | Port | Command |
 |---------|------|---------|
 | Hevy Handler | 8080 | `cd src/typescript/hevy-handler && npm run dev` |
-| Keiser Poller | 8084 | `cd src/typescript/keiser-poller && PORT=8084 npm run dev` |
 | Enricher | 8081 | `cd src/go/functions/enricher && FUNCTION_TARGET=EnrichActivity go run cmd/main.go` |
 | Router | 8082 | `cd src/go/functions/router && FUNCTION_TARGET=RouteActivity go run cmd/main.go` |
 | Strava Uploader | 8083 | `cd src/go/functions/strava-uploader && FUNCTION_TARGET=UploadToStrava go run cmd/main.go` |
@@ -85,13 +83,7 @@ Sends a signed JSON payload to the Hevy Handler.
 node scripts/trigger_hevy.js
 ```
 
-**Simulate Keiser Poll**
 
-Trigger the Keiser Poller schedule.
-
-```bash
-node scripts/trigger_keiser.js
-```
 
 ### B. Transformation Layer
 

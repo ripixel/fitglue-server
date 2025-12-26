@@ -27,7 +27,6 @@ type ActivitySource int32
 const (
 	ActivitySource_SOURCE_UNKNOWN ActivitySource = 0
 	ActivitySource_SOURCE_HEVY    ActivitySource = 1
-	ActivitySource_SOURCE_KEISER  ActivitySource = 2
 	ActivitySource_SOURCE_TEST    ActivitySource = 3
 )
 
@@ -36,13 +35,11 @@ var (
 	ActivitySource_name = map[int32]string{
 		0: "SOURCE_UNKNOWN",
 		1: "SOURCE_HEVY",
-		2: "SOURCE_KEISER",
 		3: "SOURCE_TEST",
 	}
 	ActivitySource_value = map[string]int32{
 		"SOURCE_UNKNOWN": 0,
 		"SOURCE_HEVY":    1,
-		"SOURCE_KEISER":  2,
 		"SOURCE_TEST":    3,
 	}
 )
@@ -333,11 +330,10 @@ const file_activity_proto_rawDesc = "" +
 	"pipelineId\x1aE\n" +
 	"\x17EnrichmentMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*Y\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*F\n" +
 	"\x0eActivitySource\x12\x12\n" +
 	"\x0eSOURCE_UNKNOWN\x10\x00\x12\x0f\n" +
-	"\vSOURCE_HEVY\x10\x01\x12\x11\n" +
-	"\rSOURCE_KEISER\x10\x02\x12\x0f\n" +
+	"\vSOURCE_HEVY\x10\x01\x12\x0f\n" +
 	"\vSOURCE_TEST\x10\x03B\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
 
 var (

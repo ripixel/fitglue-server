@@ -164,7 +164,6 @@ type UserIntegrations struct {
 	Hevy          *HevyIntegration       `protobuf:"bytes,1,opt,name=hevy,proto3" json:"hevy,omitempty"`
 	Fitbit        *FitbitIntegration     `protobuf:"bytes,2,opt,name=fitbit,proto3" json:"fitbit,omitempty"`
 	Strava        *StravaIntegration     `protobuf:"bytes,3,opt,name=strava,proto3" json:"strava,omitempty"`
-	Keiser        *KeiserIntegration     `protobuf:"bytes,4,opt,name=keiser,proto3" json:"keiser,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -216,13 +215,6 @@ func (x *UserIntegrations) GetFitbit() *FitbitIntegration {
 func (x *UserIntegrations) GetStrava() *StravaIntegration {
 	if x != nil {
 		return x.Strava
-	}
-	return nil
-}
-
-func (x *UserIntegrations) GetKeiser() *KeiserIntegration {
-	if x != nil {
-		return x.Keiser
 	}
 	return nil
 }
@@ -535,90 +527,6 @@ func (x *StravaIntegration) GetAthleteId() int64 {
 	return 0
 }
 
-type KeiserIntegration struct {
-	state                 protoimpl.MessageState `protogen:"open.v1"`
-	Enabled               bool                   `protobuf:"varint,1,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	AuthProvider          string                 `protobuf:"bytes,2,opt,name=auth_provider,json=authProvider,proto3" json:"auth_provider,omitempty"` // 'email', 'facebook', 'google', 'apple'
-	RefreshToken          string                 `protobuf:"bytes,3,opt,name=refresh_token,json=refreshToken,proto3" json:"refresh_token,omitempty"`
-	RefreshTokenExpiresAt *timestamp.Timestamp   `protobuf:"bytes,4,opt,name=refresh_token_expires_at,json=refreshTokenExpiresAt,proto3" json:"refresh_token_expires_at,omitempty"`
-	EncryptedCredentials  string                 `protobuf:"bytes,5,opt,name=encrypted_credentials,json=encryptedCredentials,proto3" json:"encrypted_credentials,omitempty"` // Only for 'email' provider (AES-256-GCM encrypted JSON)
-	RequiresReauth        bool                   `protobuf:"varint,6,opt,name=requires_reauth,json=requiresReauth,proto3" json:"requires_reauth,omitempty"`                  // Set to true when OAuth token expires and cannot auto-refresh
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
-}
-
-func (x *KeiserIntegration) Reset() {
-	*x = KeiserIntegration{}
-	mi := &file_user_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *KeiserIntegration) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*KeiserIntegration) ProtoMessage() {}
-
-func (x *KeiserIntegration) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use KeiserIntegration.ProtoReflect.Descriptor instead.
-func (*KeiserIntegration) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *KeiserIntegration) GetEnabled() bool {
-	if x != nil {
-		return x.Enabled
-	}
-	return false
-}
-
-func (x *KeiserIntegration) GetAuthProvider() string {
-	if x != nil {
-		return x.AuthProvider
-	}
-	return ""
-}
-
-func (x *KeiserIntegration) GetRefreshToken() string {
-	if x != nil {
-		return x.RefreshToken
-	}
-	return ""
-}
-
-func (x *KeiserIntegration) GetRefreshTokenExpiresAt() *timestamp.Timestamp {
-	if x != nil {
-		return x.RefreshTokenExpiresAt
-	}
-	return nil
-}
-
-func (x *KeiserIntegration) GetEncryptedCredentials() string {
-	if x != nil {
-		return x.EncryptedCredentials
-	}
-	return ""
-}
-
-func (x *KeiserIntegration) GetRequiresReauth() bool {
-	if x != nil {
-		return x.RequiresReauth
-	}
-	return false
-}
-
 var File_user_proto protoreflect.FileDescriptor
 
 const file_user_proto_rawDesc = "" +
@@ -636,12 +544,11 @@ const file_user_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x125\n" +
 	"\tenrichers\x18\x03 \x03(\v2\x17.fitglue.EnricherConfigR\tenrichers\x12\"\n" +
-	"\fdestinations\x18\x04 \x03(\tR\fdestinations\"\xdc\x01\n" +
+	"\fdestinations\x18\x04 \x03(\tR\fdestinations\"\xa8\x01\n" +
 	"\x10UserIntegrations\x12,\n" +
 	"\x04hevy\x18\x01 \x01(\v2\x18.fitglue.HevyIntegrationR\x04hevy\x122\n" +
 	"\x06fitbit\x18\x02 \x01(\v2\x1a.fitglue.FitbitIntegrationR\x06fitbit\x122\n" +
-	"\x06strava\x18\x03 \x01(\v2\x1a.fitglue.StravaIntegrationR\x06strava\x122\n" +
-	"\x06keiser\x18\x04 \x01(\v2\x1a.fitglue.KeiserIntegrationR\x06keiser\"]\n" +
+	"\x06strava\x18\x03 \x01(\v2\x1a.fitglue.StravaIntegrationR\x06strava\"]\n" +
 	"\x0fHevyIntegration\x12\x18\n" +
 	"\aenabled\x18\x01 \x01(\bR\aenabled\x12\x17\n" +
 	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\x12\x17\n" +
@@ -668,14 +575,7 @@ const file_user_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x1d\n" +
 	"\n" +
-	"athlete_id\x18\x05 \x01(\x03R\tathleteId\"\xaa\x02\n" +
-	"\x11KeiserIntegration\x12\x18\n" +
-	"\aenabled\x18\x01 \x01(\bR\aenabled\x12#\n" +
-	"\rauth_provider\x18\x02 \x01(\tR\fauthProvider\x12#\n" +
-	"\rrefresh_token\x18\x03 \x01(\tR\frefreshToken\x12S\n" +
-	"\x18refresh_token_expires_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x15refreshTokenExpiresAt\x123\n" +
-	"\x15encrypted_credentials\x18\x05 \x01(\tR\x14encryptedCredentials\x12'\n" +
-	"\x0frequires_reauth\x18\x06 \x01(\bR\x0erequiresReauthB\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
+	"athlete_id\x18\x05 \x01(\x03R\tathleteIdB\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once
@@ -689,7 +589,7 @@ func file_user_proto_rawDescGZIP() []byte {
 	return file_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_user_proto_goTypes = []any{
 	(*UserRecord)(nil),             // 0: fitglue.UserRecord
 	(*PipelineConfig)(nil),         // 1: fitglue.PipelineConfig
@@ -699,29 +599,26 @@ var file_user_proto_goTypes = []any{
 	(*SourceEnrichmentConfig)(nil), // 5: fitglue.SourceEnrichmentConfig
 	(*EnricherConfig)(nil),         // 6: fitglue.EnricherConfig
 	(*StravaIntegration)(nil),      // 7: fitglue.StravaIntegration
-	(*KeiserIntegration)(nil),      // 8: fitglue.KeiserIntegration
-	nil,                            // 9: fitglue.EnricherConfig.InputsEntry
-	(*timestamp.Timestamp)(nil),    // 10: google.protobuf.Timestamp
+	nil,                            // 8: fitglue.EnricherConfig.InputsEntry
+	(*timestamp.Timestamp)(nil),    // 9: google.protobuf.Timestamp
 }
 var file_user_proto_depIdxs = []int32{
-	10, // 0: fitglue.UserRecord.created_at:type_name -> google.protobuf.Timestamp
+	9,  // 0: fitglue.UserRecord.created_at:type_name -> google.protobuf.Timestamp
 	2,  // 1: fitglue.UserRecord.integrations:type_name -> fitglue.UserIntegrations
 	1,  // 2: fitglue.UserRecord.pipelines:type_name -> fitglue.PipelineConfig
 	6,  // 3: fitglue.PipelineConfig.enrichers:type_name -> fitglue.EnricherConfig
 	3,  // 4: fitglue.UserIntegrations.hevy:type_name -> fitglue.HevyIntegration
 	4,  // 5: fitglue.UserIntegrations.fitbit:type_name -> fitglue.FitbitIntegration
 	7,  // 6: fitglue.UserIntegrations.strava:type_name -> fitglue.StravaIntegration
-	8,  // 7: fitglue.UserIntegrations.keiser:type_name -> fitglue.KeiserIntegration
-	10, // 8: fitglue.FitbitIntegration.expires_at:type_name -> google.protobuf.Timestamp
-	6,  // 9: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
-	9,  // 10: fitglue.EnricherConfig.inputs:type_name -> fitglue.EnricherConfig.InputsEntry
-	10, // 11: fitglue.StravaIntegration.expires_at:type_name -> google.protobuf.Timestamp
-	10, // 12: fitglue.KeiserIntegration.refresh_token_expires_at:type_name -> google.protobuf.Timestamp
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	9,  // 7: fitglue.FitbitIntegration.expires_at:type_name -> google.protobuf.Timestamp
+	6,  // 8: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
+	8,  // 9: fitglue.EnricherConfig.inputs:type_name -> fitglue.EnricherConfig.InputsEntry
+	9,  // 10: fitglue.StravaIntegration.expires_at:type_name -> google.protobuf.Timestamp
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }
@@ -735,7 +632,7 @@ func file_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

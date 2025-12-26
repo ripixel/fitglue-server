@@ -77,41 +77,6 @@ resource "google_cloud_run_service_iam_member" "hevy_handler_invoker" {
   member   = "allUsers"
 }
 
-# ----------------- Keiser Poller -----------------
-
-resource "google_cloudfunctions2_function" "keiser_poller" {
-  name     = "keiser-poller"
-  location = var.region
-
-  build_config {
-    runtime     = "nodejs20"
-    entry_point = "keiserPoller"
-    source {
-      storage_source {
-        bucket = google_storage_bucket.source_bucket.name
-        object = google_storage_bucket_object.typescript_source_zip.name
-      }
-    }
-    environment_variables = {}
-  }
-
-  service_config {
-    available_memory = "256Mi"
-    timeout_seconds  = 60
-    environment_variables = {
-      LOG_LEVEL = var.log_level
-    }
-  }
-}
-
-# Allow public access for integration testing
-resource "google_cloud_run_service_iam_member" "keiser_poller_invoker" {
-  project  = google_cloudfunctions2_function.keiser_poller.project
-  location = google_cloudfunctions2_function.keiser_poller.location
-  service  = google_cloudfunctions2_function.keiser_poller.name
-  role     = "roles/run.invoker"
-  member   = "allUsers"
-}
 
 # ----------------- Enricher Service -----------------
 resource "google_cloudfunctions2_function" "enricher" {
