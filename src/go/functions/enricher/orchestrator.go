@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ripixel/fitglue-server/src/go/functions/enricher/providers"
 	shared "github.com/ripixel/fitglue-server/src/go/pkg"
 	fit "github.com/ripixel/fitglue-server/src/go/pkg/domain/file_generators"
+	providers "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 

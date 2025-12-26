@@ -1,4 +1,4 @@
-package providers
+package enricher_providers
 
 import (
 	"bytes"

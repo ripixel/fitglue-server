@@ -10,9 +10,9 @@ import (
 	"github.com/cloudevents/sdk-go/v2/event"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/ripixel/fitglue-server/src/go/functions/enricher/providers"
 	shared "github.com/ripixel/fitglue-server/src/go/pkg"
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
+	providers "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
 	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
 	"github.com/ripixel/fitglue-server/src/go/pkg/types"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"

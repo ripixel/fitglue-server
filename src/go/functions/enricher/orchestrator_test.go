@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/ripixel/fitglue-server/src/go/functions/enricher/providers"
+	providers "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
