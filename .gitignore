@@ -35,3 +35,7 @@ src/go/vendor
 
 # Logs
 *.log
+
+# Downloads
+downloads/
+*.fit

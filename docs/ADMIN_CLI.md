@@ -168,6 +168,59 @@ Adds a data processing pipeline to a user. This command allows you to define com
     *   You can optionally provide a JSON string for specific enricher inputs.
 3.  **Destinations**: Select where the final data should be sent (e.g., `strava`).
 
+## GCS Bucket Commands
+
+### `buckets:list`
+List all GCS buckets in the project.
+
+```bash
+./fitglue-admin buckets:list
+```
+
+### `buckets:get <bucketId>`
+Get details about a specific GCS bucket.
+
+```bash
+./fitglue-admin buckets:get my-bucket-id
+```
+
+### `buckets:from-execution <executionId>`
+Get details of the bucket associated with a specific execution. This command will look for a `fit_file_uri` in the execution record (or its inputs/outputs) and then inspect the corresponding bucket.
+
+```bash
+./fitglue-admin buckets:from-execution my-execution-id
+```
+
+## File Commands
+
+### `files:download <bucketOrUri> [remotePath] [localPath]`
+Download a file from GCS. You can usually `gs://` URI or specify bucket and path separately.
+
+**Defaults:**
+If `localPath` is not provided, the file is saved to `server/downloads/<filename>`.
+
+**Usage:**
+```bash
+# Using URI (easies) -> downloads to server/downloads/file.fit
+./fitglue-admin files:download gs://my-bucket/path/to/file.fit
+
+# Specifying destination
+./fitglue-admin files:download gs://my-bucket/file.fit ./my-custom-path/file.fit
+
+# Using separate arguments
+./fitglue-admin files:download my-bucket path/to/file.fit
+```
+
+### `files:download-execution <executionId> [localPath]`
+Automatic download helper. Scans a specific execution for ANY `gs://` URIs (in inputs, outputs, etc.). If multiple are found, it prompts you to choose which one to download.
+
+**Defaults:**
+If `localPath` is not provided, the file is saved to `server/downloads/<filename>`.
+
+```bash
+./fitglue-admin files:download-execution my-execution-id
+```
+
 ## Development
 
 The CLI source code is located in `src/typescript/admin-cli`.

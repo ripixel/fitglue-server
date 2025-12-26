@@ -9,4 +9,6 @@ if [ ! -f "src/typescript/admin-cli/dist/index.js" ]; then
 fi
 
 # Run the CLI, passing all arguments
-npm start --silent --prefix src/typescript/admin-cli -- "$@"
+# Run the CLI, passing all arguments
+# We run node directly so that CWD remains the project root
+node src/typescript/admin-cli/dist/index.js "$@"

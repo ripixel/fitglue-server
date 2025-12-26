@@ -713,4 +713,332 @@ program
         }
     });
 
+// --- Bucket Commands ---
+
+const formatBucket = (bucket: any) => {
+    console.log(`Name: ${bucket.name}`);
+    console.log(`Location: ${bucket.metadata.location}`);
+    console.log(`Storage Class: ${bucket.metadata.storageClass}`);
+    console.log(`Created: ${bucket.metadata.timeCreated}`);
+    console.log(`Updated: ${bucket.metadata.updated}`);
+    console.log(`Link: ${bucket.metadata.selfLink}`);
+    console.log('--------------------------------------------------');
+};
+
+program
+    .command('buckets:list')
+    .description('List GCS buckets')
+    .action(async () => {
+        try {
+            console.log('Fetching buckets...');
+            // We need to provide a bucket name to get the storage client if no default bucket is set in options
+            // The name doesn't matter for accessing the .storage property
+            const [buckets] = await admin.storage().bucket('fitglue-placeholder').storage.getBuckets();
+
+            if (buckets.length === 0) {
+                console.log('No buckets found.');
+                return;
+            }
+
+            console.log(`\nFound ${buckets.length} buckets:`);
+            console.log('--------------------------------------------------');
+            buckets.forEach(bucket => {
+                console.log(`- ${bucket.name} (${bucket.metadata.location})`);
+            });
+            console.log('');
+
+        } catch (error: any) {
+            console.error('Error listing buckets:', error.message);
+            process.exit(1);
+        }
+    });
+
+program
+    .command('buckets:get <bucketName>')
+    .description('Get details of a specific GCS bucket')
+    .action(async (bucketName) => {
+        try {
+            console.log(`Fetching bucket ${bucketName}...`);
+            const bucket = admin.storage().bucket(bucketName);
+            const [exists] = await bucket.exists();
+
+            if (!exists) {
+                console.error(`Bucket ${bucketName} not found.`);
+                process.exit(1);
+            }
+
+            const [metadata] = await bucket.getMetadata();
+            // Create a pseudo-bucket object with the metadata structure expected by formatBucket
+            // or just adapt formatBucket to work with what we have.
+            // The bucket object from getBuckets() already has metadata populated.
+            // When getting a single bucket, we get the metadata separately.
+
+            console.log('\nBucket Details:');
+            console.log('--------------------------------------------------');
+            formatBucket({ name: bucketName, metadata });
+            console.log('');
+
+        } catch (error: any) {
+            console.error('Error getting bucket:', error.message);
+            process.exit(1);
+        }
+    });
+
+program
+    .command('buckets:from-execution <executionId>')
+    .description('Get details of the bucket used in a specific execution')
+    .action(async (executionId) => {
+        try {
+            console.log(`Fetching execution ${executionId}...`);
+            const doc = await db.collection('executions').doc(executionId).get();
+            if (!doc.exists) {
+                console.error(`Execution ${executionId} not found.`);
+                process.exit(1);
+            }
+
+            const data = doc.data()!;
+            let fitFileUri = data.fit_file_uri;
+
+            // If not found at top level, check within inputs or outputs
+            if (!fitFileUri) {
+                // Check outputs first
+                if (data.outputsJson) {
+                    try {
+                        const outputs = JSON.parse(data.outputsJson);
+                        fitFileUri = outputs.fit_file_uri || outputs.uri;
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+
+                // Check inputs if still not found
+                if (!fitFileUri && data.inputs) {
+                    try {
+                        const inputs = JSON.parse(data.inputs);
+                        fitFileUri = inputs.fit_file_uri || inputs.uri || inputs.fileUri;
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+            }
+
+            if (!fitFileUri) {
+                console.error('Could not find a fit_file_uri (or similar) in the execution data.');
+                process.exit(1);
+            }
+
+            console.log(`Found URI: ${fitFileUri}`);
+
+            // Parse bucket name from gs://<bucket>/...
+            if (!fitFileUri.startsWith('gs://')) {
+                console.error('URI does not start with gs://');
+                process.exit(1);
+            }
+
+            const parts = fitFileUri.split('/');
+            // ["gs:", "", "bucket-name", "path", "to", "file"]
+            if (parts.length < 3) {
+                console.error('Invalid GCS URI format.');
+                process.exit(1);
+            }
+
+            const bucketName = parts[2];
+            console.log(`Identified Bucket: ${bucketName}`);
+
+            // Reuse the get bucket logic
+            const bucket = admin.storage().bucket(bucketName);
+            const [exists] = await bucket.exists();
+
+            if (!exists) {
+                console.error(`Bucket ${bucketName} not found.`);
+                process.exit(1);
+            }
+
+            const [metadata] = await bucket.getMetadata();
+
+            console.log('\nBucket Details:');
+            console.log('--------------------------------------------------');
+            formatBucket({ name: bucketName, metadata });
+            console.log('');
+
+        } catch (error: any) {
+            console.error('Error getting bucket from execution:', error.message);
+            process.exit(1);
+        }
+    });
+
+
+
+// --- File Commands ---
+
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Define default download directory relative to the project root (assuming we run from server/)
+const DEFAULT_DOWNLOAD_DIR = 'downloads';
+
+const getDestPath = (localPath: string | undefined, filePath: string): string => {
+    if (localPath) {
+        return localPath;
+    }
+    const basename = path.basename(filePath);
+    return path.join(DEFAULT_DOWNLOAD_DIR, basename);
+};
+program
+    .command('files:download <bucketOrUri> [remotePath] [localPath]')
+    .description('Download a file from GCS')
+    .action(async (bucketOrUri, remotePath, localPath) => {
+        try {
+            let bucketName: string;
+            let filePath: string;
+            let destPath: string;
+
+            if (bucketOrUri.startsWith('gs://')) {
+                // Parse gs:// URI
+                const parts = bucketOrUri.split('/');
+                if (parts.length < 4) {
+                    console.error('Invalid GCS URI. Must be gs://<bucket>/<path/to/file>');
+                    process.exit(1);
+                }
+                bucketName = parts[2];
+                filePath = parts.slice(3).join('/');
+
+                // If remotePath argument is provided, treat it as localPath
+                destPath = getDestPath(remotePath || localPath, filePath);
+            } else {
+                // Classic arguments
+                if (!remotePath) {
+                    console.error('Remote path is required when not using a gs:// URI.');
+                    process.exit(1);
+                }
+                bucketName = bucketOrUri;
+                filePath = remotePath;
+                destPath = getDestPath(localPath, filePath);
+            }
+
+            console.log(`Downloading gs://${bucketName}/${filePath} to ${destPath}...`);
+
+            const bucket = admin.storage().bucket(bucketName);
+            const file = bucket.file(filePath);
+
+            const [exists] = await file.exists();
+            if (!exists) {
+                console.error(`File gs://${bucketName}/${filePath} does not exist.`);
+                process.exit(1);
+            }
+
+            // Create directory if it doesn't exist
+            const dir = path.dirname(destPath);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+
+            await file.download({ destination: destPath });
+            console.log('Download complete.');
+
+        } catch (error: any) {
+            console.error('Error downloading file:', error.message);
+            process.exit(1);
+        }
+    });
+
+program
+    .command('files:download-execution <executionId> [localPath]')
+    .description('Download a file used in a specific execution')
+    .action(async (executionId, localPath) => {
+        try {
+            console.log(`Fetching execution ${executionId}...`);
+            const doc = await db.collection('executions').doc(executionId).get();
+            if (!doc.exists) {
+                console.error(`Execution ${executionId} not found.`);
+                process.exit(1);
+            }
+
+            const data = doc.data()!;
+            const uris = new Set<string>();
+
+            // Recursive function to find gs:// URIs in objects/strings
+            const findUris = (obj: any) => {
+                if (typeof obj === 'string') {
+                    if (obj.startsWith('gs://')) {
+                        uris.add(obj);
+                    }
+                } else if (typeof obj === 'object' && obj !== null) {
+                    Object.values(obj).forEach(findUris);
+                }
+            };
+
+            // Scan top level
+            findUris(data);
+
+            // Scan inputs/outputs specifically if they are JSON strings
+            if (data.inputs) {
+                try {
+                    findUris(JSON.parse(data.inputs));
+                } catch { /* ignore */ }
+            }
+            if (data.outputsJson) { // consistent with previous code usage
+                try {
+                    findUris(JSON.parse(data.outputsJson));
+                } catch { /* ignore */ }
+            }
+
+            if (uris.size === 0) {
+                console.error('No gs:// URIs found in this execution.');
+                process.exit(1);
+            }
+
+            let selectedUri: string;
+            if (uris.size === 1) {
+                selectedUri = uris.values().next().value!;
+                console.log(`Found only one URI: ${selectedUri}`);
+            } else {
+                const answers = await inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'uri',
+                        message: 'Found multiple URIs. Which one do you want to download?',
+                        choices: Array.from(uris)
+                    }
+                ]);
+                selectedUri = answers.uri;
+            }
+
+            // Reuse download logic
+            const parts = selectedUri.split('/');
+            if (parts.length < 4) {
+                console.error('Invalid GCS URI format found.');
+                process.exit(1);
+            }
+
+            const bucketName = parts[2];
+            const filePath = parts.slice(3).join('/');
+            const destPath = getDestPath(localPath, filePath);
+
+            console.log(`Downloading ${selectedUri} to ${destPath}...`);
+
+            const bucket = admin.storage().bucket(bucketName);
+            const file = bucket.file(filePath);
+
+            const [exists] = await file.exists();
+            if (!exists) {
+                console.error(`File ${selectedUri} does not exist.`);
+                process.exit(1);
+            }
+
+            // Create directory if it doesn't exist
+            const dir = path.dirname(destPath);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir, { recursive: true });
+            }
+
+            await file.download({ destination: destPath });
+            console.log('Download complete.');
+
+        } catch (error: any) {
+            console.error('Error downloading from execution:', error.message);
+            process.exit(1);
+        }
+    });
+
 program.parse();
