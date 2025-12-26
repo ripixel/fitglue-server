@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"sync"
 	"time"
 
@@ -130,13 +131,17 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 		}
 
 		// Check if any configured enrichers failed
+		var failedEnrichers []string
 		for i, cfg := range configs {
 			if errs[i] != nil {
-				return &ProcessResult{
-					Events:             []*pb.EnrichedActivityEvent{},
-					ProviderExecutions: allProviderExecutions,
-				}, fmt.Errorf("enricher '%s' failed: %w", cfg.Name, errs[i])
+				failedEnrichers = append(failedEnrichers, fmt.Sprintf("%s: %v", cfg.Name, errs[i]))
 			}
+		}
+		if len(failedEnrichers) > 0 {
+			return &ProcessResult{
+				Events:             []*pb.EnrichedActivityEvent{},
+				ProviderExecutions: allProviderExecutions,
+			}, fmt.Errorf("enricher(s) failed: %s", strings.Join(failedEnrichers, "; "))
 		}
 
 		// 3b. Merge Results (Fan-In)
