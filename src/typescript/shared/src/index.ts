@@ -1,5 +1,6 @@
 export * from './config';
 export * from './infrastructure/secrets';
+export * from './infrastructure/crypto';
 export * from './framework';
 export { ActivityPayload, ActivitySource } from './types/pb/activity';
 export { ExecutionRecord, ExecutionStatus } from './types/pb/execution';

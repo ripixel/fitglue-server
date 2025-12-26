@@ -32,6 +32,7 @@ export interface UserIntegrations {
   hevy: HevyIntegration | undefined;
   fitbit: FitbitIntegration | undefined;
   strava: StravaIntegration | undefined;
+  keiser: KeiserIntegration | undefined;
 }
 
 export interface HevyIntegration {
@@ -70,4 +71,18 @@ export interface StravaIntegration {
   refreshToken: string;
   expiresAt: Date | undefined;
   athleteId: number;
+}
+
+export interface KeiserIntegration {
+  enabled: boolean;
+  /** 'email', 'facebook', 'google', 'apple' */
+  authProvider: string;
+  refreshToken: string;
+  refreshTokenExpiresAt:
+    | Date
+    | undefined;
+  /** Only for 'email' provider (AES-256-GCM encrypted JSON) */
+  encryptedCredentials: string;
+  /** Set to true when OAuth token expires and cannot auto-refresh */
+  requiresReauth: boolean;
 }
