@@ -17,12 +17,17 @@ def create_function_zip(function_name, src_dir, output_dir):
         shutil.rmtree(temp_dir)
     temp_dir.mkdir(parents=True)
 
-    # Copy function .go files to ROOT (excluding test files and cmd)
-    for go_file in function_dir.glob("*.go"):
-        # Skip test files, main.go, and anything in cmd
-        if go_file.name.endswith("_test.go") or go_file.name == "main.go" or "cmd" in str(go_file):
-            continue
-        shutil.copy2(go_file, temp_dir / go_file.name)
+    # Copy function directory (excluding test files and cmd)
+    # This includes subdirectories like providers/
+    def ignore_patterns(dir, files):
+        ignored = []
+        for f in files:
+            # Skip test files, cmd directory, and main.go
+            if f.endswith('_test.go') or f == 'main.go' or f == 'cmd':
+                ignored.append(f)
+        return ignored
+
+    shutil.copytree(function_dir, temp_dir / function_name, ignore=ignore_patterns)
 
     # Copy shared pkg directory (excluding test files)
     shared_pkg = src_dir / "pkg"
