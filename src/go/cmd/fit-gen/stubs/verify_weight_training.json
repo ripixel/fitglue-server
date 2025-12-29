@@ -1,6 +1,9 @@
 {
   "start_time": "2024-01-01T10:00:00Z",
   "name": "Weight Training",
+  "source": "HEVY",
+  "external_id": "test-hevy-workout-id-123",
+  "description": "Original Hevy Notes",
   "type": "WEIGHT_TRAINING",
   "sessions": [
     {

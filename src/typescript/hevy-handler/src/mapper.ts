@@ -1,5 +1,5 @@
 import { components } from '@fitglue/shared/dist/integrations/hevy/schema'; // Import from dist to access generated types
-import { StandardizedActivity, Session, StrengthSet } from '@fitglue/shared/dist/types/pb/standardized_activity';
+import { StandardizedActivity, Session, StrengthSet, MuscleGroup } from '@fitglue/shared/dist/types/pb/standardized_activity';
 
 type HevyWorkout = components["schemas"]["Workout"];
 type HevyExerciseTemplate = components["schemas"]["ExerciseTemplate"];
@@ -35,8 +35,8 @@ export function mapHevyWorkoutToStandardized(
     const templateId = ex.exercise_template_id;
     const template = templateId ? templateMap[templateId] : undefined;
 
-    const primaryMuscle = template?.primary_muscle_group;
-    const secondaryMuscles = template?.secondary_muscle_groups || [];
+    const primaryMuscle = mapToMuscleGroupEnum(template?.primary_muscle_group);
+    const secondaryMuscles = (template?.secondary_muscle_groups || []).map(mapToMuscleGroupEnum);
 
     return (ex.sets || []).map((s) => {
       return {
@@ -73,4 +73,32 @@ export function mapHevyWorkoutToStandardized(
     tags: [],
     notes: ''
   };
+}
+
+function mapToMuscleGroupEnum(muscle: string | undefined): MuscleGroup {
+  if (!muscle) return MuscleGroup.MUSCLE_GROUP_UNSPECIFIED;
+  const normalized = muscle.toLowerCase().trim();
+  switch (normalized) {
+    case 'abdominals': return MuscleGroup.MUSCLE_GROUP_ABDOMINALS;
+    case 'shoulders': return MuscleGroup.MUSCLE_GROUP_SHOULDERS;
+    case 'biceps': return MuscleGroup.MUSCLE_GROUP_BICEPS;
+    case 'triceps': return MuscleGroup.MUSCLE_GROUP_TRICEPS;
+    case 'forearms': return MuscleGroup.MUSCLE_GROUP_FOREARMS;
+    case 'quadriceps': return MuscleGroup.MUSCLE_GROUP_QUADRICEPS;
+    case 'hamstrings': return MuscleGroup.MUSCLE_GROUP_HAMSTRINGS;
+    case 'calves': return MuscleGroup.MUSCLE_GROUP_CALVES;
+    case 'glutes': return MuscleGroup.MUSCLE_GROUP_GLUTES;
+    case 'abductors': return MuscleGroup.MUSCLE_GROUP_ABDUCTORS;
+    case 'adductors': return MuscleGroup.MUSCLE_GROUP_ADDUCTORS;
+    case 'lats': return MuscleGroup.MUSCLE_GROUP_LATS;
+    case 'upper_back': return MuscleGroup.MUSCLE_GROUP_UPPER_BACK;
+    case 'traps': return MuscleGroup.MUSCLE_GROUP_TRAPS;
+    case 'lower_back': return MuscleGroup.MUSCLE_GROUP_LOWER_BACK;
+    case 'chest': return MuscleGroup.MUSCLE_GROUP_CHEST;
+    case 'cardio': return MuscleGroup.MUSCLE_GROUP_CARDIO;
+    case 'neck': return MuscleGroup.MUSCLE_GROUP_NECK;
+    case 'full_body': return MuscleGroup.MUSCLE_GROUP_FULL_BODY;
+    case 'other': return MuscleGroup.MUSCLE_GROUP_OTHER;
+    default: return MuscleGroup.MUSCLE_GROUP_OTHER;
+  }
 }

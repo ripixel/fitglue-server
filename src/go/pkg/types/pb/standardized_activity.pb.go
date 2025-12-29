@@ -21,6 +21,109 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type MuscleGroup int32
+
+const (
+	MuscleGroup_MUSCLE_GROUP_UNSPECIFIED MuscleGroup = 0
+	MuscleGroup_MUSCLE_GROUP_ABDOMINALS  MuscleGroup = 1
+	MuscleGroup_MUSCLE_GROUP_SHOULDERS   MuscleGroup = 2
+	MuscleGroup_MUSCLE_GROUP_BICEPS      MuscleGroup = 3
+	MuscleGroup_MUSCLE_GROUP_TRICEPS     MuscleGroup = 4
+	MuscleGroup_MUSCLE_GROUP_FOREARMS    MuscleGroup = 5
+	MuscleGroup_MUSCLE_GROUP_QUADRICEPS  MuscleGroup = 6
+	MuscleGroup_MUSCLE_GROUP_HAMSTRINGS  MuscleGroup = 7
+	MuscleGroup_MUSCLE_GROUP_CALVES      MuscleGroup = 8
+	MuscleGroup_MUSCLE_GROUP_GLUTES      MuscleGroup = 9
+	MuscleGroup_MUSCLE_GROUP_ABDUCTORS   MuscleGroup = 10
+	MuscleGroup_MUSCLE_GROUP_ADDUCTORS   MuscleGroup = 11
+	MuscleGroup_MUSCLE_GROUP_LATS        MuscleGroup = 12
+	MuscleGroup_MUSCLE_GROUP_UPPER_BACK  MuscleGroup = 13
+	MuscleGroup_MUSCLE_GROUP_TRAPS       MuscleGroup = 14
+	MuscleGroup_MUSCLE_GROUP_LOWER_BACK  MuscleGroup = 15
+	MuscleGroup_MUSCLE_GROUP_CHEST       MuscleGroup = 16
+	MuscleGroup_MUSCLE_GROUP_CARDIO      MuscleGroup = 17
+	MuscleGroup_MUSCLE_GROUP_NECK        MuscleGroup = 18
+	MuscleGroup_MUSCLE_GROUP_FULL_BODY   MuscleGroup = 19
+	MuscleGroup_MUSCLE_GROUP_OTHER       MuscleGroup = 20
+)
+
+// Enum value maps for MuscleGroup.
+var (
+	MuscleGroup_name = map[int32]string{
+		0:  "MUSCLE_GROUP_UNSPECIFIED",
+		1:  "MUSCLE_GROUP_ABDOMINALS",
+		2:  "MUSCLE_GROUP_SHOULDERS",
+		3:  "MUSCLE_GROUP_BICEPS",
+		4:  "MUSCLE_GROUP_TRICEPS",
+		5:  "MUSCLE_GROUP_FOREARMS",
+		6:  "MUSCLE_GROUP_QUADRICEPS",
+		7:  "MUSCLE_GROUP_HAMSTRINGS",
+		8:  "MUSCLE_GROUP_CALVES",
+		9:  "MUSCLE_GROUP_GLUTES",
+		10: "MUSCLE_GROUP_ABDUCTORS",
+		11: "MUSCLE_GROUP_ADDUCTORS",
+		12: "MUSCLE_GROUP_LATS",
+		13: "MUSCLE_GROUP_UPPER_BACK",
+		14: "MUSCLE_GROUP_TRAPS",
+		15: "MUSCLE_GROUP_LOWER_BACK",
+		16: "MUSCLE_GROUP_CHEST",
+		17: "MUSCLE_GROUP_CARDIO",
+		18: "MUSCLE_GROUP_NECK",
+		19: "MUSCLE_GROUP_FULL_BODY",
+		20: "MUSCLE_GROUP_OTHER",
+	}
+	MuscleGroup_value = map[string]int32{
+		"MUSCLE_GROUP_UNSPECIFIED": 0,
+		"MUSCLE_GROUP_ABDOMINALS":  1,
+		"MUSCLE_GROUP_SHOULDERS":   2,
+		"MUSCLE_GROUP_BICEPS":      3,
+		"MUSCLE_GROUP_TRICEPS":     4,
+		"MUSCLE_GROUP_FOREARMS":    5,
+		"MUSCLE_GROUP_QUADRICEPS":  6,
+		"MUSCLE_GROUP_HAMSTRINGS":  7,
+		"MUSCLE_GROUP_CALVES":      8,
+		"MUSCLE_GROUP_GLUTES":      9,
+		"MUSCLE_GROUP_ABDUCTORS":   10,
+		"MUSCLE_GROUP_ADDUCTORS":   11,
+		"MUSCLE_GROUP_LATS":        12,
+		"MUSCLE_GROUP_UPPER_BACK":  13,
+		"MUSCLE_GROUP_TRAPS":       14,
+		"MUSCLE_GROUP_LOWER_BACK":  15,
+		"MUSCLE_GROUP_CHEST":       16,
+		"MUSCLE_GROUP_CARDIO":      17,
+		"MUSCLE_GROUP_NECK":        18,
+		"MUSCLE_GROUP_FULL_BODY":   19,
+		"MUSCLE_GROUP_OTHER":       20,
+	}
+)
+
+func (x MuscleGroup) Enum() *MuscleGroup {
+	p := new(MuscleGroup)
+	*p = x
+	return p
+}
+
+func (x MuscleGroup) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MuscleGroup) Descriptor() protoreflect.EnumDescriptor {
+	return file_standardized_activity_proto_enumTypes[0].Descriptor()
+}
+
+func (MuscleGroup) Type() protoreflect.EnumType {
+	return &file_standardized_activity_proto_enumTypes[0]
+}
+
+func (x MuscleGroup) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MuscleGroup.Descriptor instead.
+func (MuscleGroup) EnumDescriptor() ([]byte, []int) {
+	return file_standardized_activity_proto_rawDescGZIP(), []int{0}
+}
+
 // StandardizedActivity represents a normalized fitness activity.
 // It is designed to be the canonical input format for the Enricher,
 // decoupling it from specific ingestion sources (Hevy, Keiser, etc).
@@ -407,8 +510,8 @@ type StrengthSet struct {
 	// Organization
 	SupersetId string `protobuf:"bytes,7,opt,name=superset_id,json=supersetId,proto3" json:"superset_id,omitempty"` // Group ID for supersets (if applicable)
 	// Muscle Targeting
-	PrimaryMuscleGroup    string   `protobuf:"bytes,8,opt,name=primary_muscle_group,json=primaryMuscleGroup,proto3" json:"primary_muscle_group,omitempty"`
-	SecondaryMuscleGroups []string `protobuf:"bytes,9,rep,name=secondary_muscle_groups,json=secondaryMuscleGroups,proto3" json:"secondary_muscle_groups,omitempty"`
+	PrimaryMuscleGroup    MuscleGroup   `protobuf:"varint,8,opt,name=primary_muscle_group,json=primaryMuscleGroup,proto3,enum=fitglue.MuscleGroup" json:"primary_muscle_group,omitempty"`
+	SecondaryMuscleGroups []MuscleGroup `protobuf:"varint,9,rep,packed,name=secondary_muscle_groups,json=secondaryMuscleGroups,proto3,enum=fitglue.MuscleGroup" json:"secondary_muscle_groups,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -492,14 +595,14 @@ func (x *StrengthSet) GetSupersetId() string {
 	return ""
 }
 
-func (x *StrengthSet) GetPrimaryMuscleGroup() string {
+func (x *StrengthSet) GetPrimaryMuscleGroup() MuscleGroup {
 	if x != nil {
 		return x.PrimaryMuscleGroup
 	}
-	return ""
+	return MuscleGroup_MUSCLE_GROUP_UNSPECIFIED
 }
 
-func (x *StrengthSet) GetSecondaryMuscleGroups() []string {
+func (x *StrengthSet) GetSecondaryMuscleGroups() []MuscleGroup {
 	if x != nil {
 		return x.SecondaryMuscleGroups
 	}
@@ -547,7 +650,7 @@ const file_standardized_activity_proto_rawDesc = "" +
 	"\x05speed\x18\x05 \x01(\x01R\x05speed\x12\x1a\n" +
 	"\baltitude\x18\x06 \x01(\x01R\baltitude\x12!\n" +
 	"\fposition_lat\x18\a \x01(\x01R\vpositionLat\x12#\n" +
-	"\rposition_long\x18\b \x01(\x01R\fpositionLong\"\xce\x02\n" +
+	"\rposition_long\x18\b \x01(\x01R\fpositionLong\"\xfa\x02\n" +
 	"\vStrengthSet\x12#\n" +
 	"\rexercise_name\x18\x01 \x01(\tR\fexerciseName\x12\x12\n" +
 	"\x04reps\x18\x02 \x01(\x05R\x04reps\x12\x1b\n" +
@@ -557,9 +660,32 @@ const file_standardized_activity_proto_rawDesc = "" +
 	"\x10duration_seconds\x18\x05 \x01(\x05R\x0fdurationSeconds\x12\x14\n" +
 	"\x05notes\x18\x06 \x01(\tR\x05notes\x12\x1f\n" +
 	"\vsuperset_id\x18\a \x01(\tR\n" +
-	"supersetId\x120\n" +
-	"\x14primary_muscle_group\x18\b \x01(\tR\x12primaryMuscleGroup\x126\n" +
-	"\x17secondary_muscle_groups\x18\t \x03(\tR\x15secondaryMuscleGroupsB\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
+	"supersetId\x12F\n" +
+	"\x14primary_muscle_group\x18\b \x01(\x0e2\x14.fitglue.MuscleGroupR\x12primaryMuscleGroup\x12L\n" +
+	"\x17secondary_muscle_groups\x18\t \x03(\x0e2\x14.fitglue.MuscleGroupR\x15secondaryMuscleGroups*\xbb\x04\n" +
+	"\vMuscleGroup\x12\x1c\n" +
+	"\x18MUSCLE_GROUP_UNSPECIFIED\x10\x00\x12\x1b\n" +
+	"\x17MUSCLE_GROUP_ABDOMINALS\x10\x01\x12\x1a\n" +
+	"\x16MUSCLE_GROUP_SHOULDERS\x10\x02\x12\x17\n" +
+	"\x13MUSCLE_GROUP_BICEPS\x10\x03\x12\x18\n" +
+	"\x14MUSCLE_GROUP_TRICEPS\x10\x04\x12\x19\n" +
+	"\x15MUSCLE_GROUP_FOREARMS\x10\x05\x12\x1b\n" +
+	"\x17MUSCLE_GROUP_QUADRICEPS\x10\x06\x12\x1b\n" +
+	"\x17MUSCLE_GROUP_HAMSTRINGS\x10\a\x12\x17\n" +
+	"\x13MUSCLE_GROUP_CALVES\x10\b\x12\x17\n" +
+	"\x13MUSCLE_GROUP_GLUTES\x10\t\x12\x1a\n" +
+	"\x16MUSCLE_GROUP_ABDUCTORS\x10\n" +
+	"\x12\x1a\n" +
+	"\x16MUSCLE_GROUP_ADDUCTORS\x10\v\x12\x15\n" +
+	"\x11MUSCLE_GROUP_LATS\x10\f\x12\x1b\n" +
+	"\x17MUSCLE_GROUP_UPPER_BACK\x10\r\x12\x16\n" +
+	"\x12MUSCLE_GROUP_TRAPS\x10\x0e\x12\x1b\n" +
+	"\x17MUSCLE_GROUP_LOWER_BACK\x10\x0f\x12\x16\n" +
+	"\x12MUSCLE_GROUP_CHEST\x10\x10\x12\x17\n" +
+	"\x13MUSCLE_GROUP_CARDIO\x10\x11\x12\x15\n" +
+	"\x11MUSCLE_GROUP_NECK\x10\x12\x12\x1a\n" +
+	"\x16MUSCLE_GROUP_FULL_BODY\x10\x13\x12\x16\n" +
+	"\x12MUSCLE_GROUP_OTHER\x10\x14B\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
 
 var (
 	file_standardized_activity_proto_rawDescOnce sync.Once
@@ -573,24 +699,28 @@ func file_standardized_activity_proto_rawDescGZIP() []byte {
 	return file_standardized_activity_proto_rawDescData
 }
 
+var file_standardized_activity_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_standardized_activity_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_standardized_activity_proto_goTypes = []any{
-	(*StandardizedActivity)(nil), // 0: fitglue.StandardizedActivity
-	(*Session)(nil),              // 1: fitglue.Session
-	(*Lap)(nil),                  // 2: fitglue.Lap
-	(*Record)(nil),               // 3: fitglue.Record
-	(*StrengthSet)(nil),          // 4: fitglue.StrengthSet
+	(MuscleGroup)(0),             // 0: fitglue.MuscleGroup
+	(*StandardizedActivity)(nil), // 1: fitglue.StandardizedActivity
+	(*Session)(nil),              // 2: fitglue.Session
+	(*Lap)(nil),                  // 3: fitglue.Lap
+	(*Record)(nil),               // 4: fitglue.Record
+	(*StrengthSet)(nil),          // 5: fitglue.StrengthSet
 }
 var file_standardized_activity_proto_depIdxs = []int32{
-	1, // 0: fitglue.StandardizedActivity.sessions:type_name -> fitglue.Session
-	2, // 1: fitglue.Session.laps:type_name -> fitglue.Lap
-	4, // 2: fitglue.Session.strength_sets:type_name -> fitglue.StrengthSet
-	3, // 3: fitglue.Lap.records:type_name -> fitglue.Record
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 0: fitglue.StandardizedActivity.sessions:type_name -> fitglue.Session
+	3, // 1: fitglue.Session.laps:type_name -> fitglue.Lap
+	5, // 2: fitglue.Session.strength_sets:type_name -> fitglue.StrengthSet
+	4, // 3: fitglue.Lap.records:type_name -> fitglue.Record
+	0, // 4: fitglue.StrengthSet.primary_muscle_group:type_name -> fitglue.MuscleGroup
+	0, // 5: fitglue.StrengthSet.secondary_muscle_groups:type_name -> fitglue.MuscleGroup
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_standardized_activity_proto_init() }
@@ -603,13 +733,14 @@ func file_standardized_activity_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_standardized_activity_proto_rawDesc), len(file_standardized_activity_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_standardized_activity_proto_goTypes,
 		DependencyIndexes: file_standardized_activity_proto_depIdxs,
+		EnumInfos:         file_standardized_activity_proto_enumTypes,
 		MessageInfos:      file_standardized_activity_proto_msgTypes,
 	}.Build()
 	File_standardized_activity_proto = out.File

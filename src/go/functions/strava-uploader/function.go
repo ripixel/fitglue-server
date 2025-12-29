@@ -102,6 +102,12 @@ func uploadHandler(httpClient *http.Client) framework.HandlerFunc {
 		part, _ := writer.CreateFormFile("file", "activity.fit")
 		part.Write(fileData)
 		writer.WriteField("data_type", "fit")
+		if eventPayload.Name != "" {
+			writer.WriteField("name", eventPayload.Name)
+		}
+		if eventPayload.Description != "" {
+			writer.WriteField("description", eventPayload.Description)
+		}
 		writer.Close()
 
 		// Create request

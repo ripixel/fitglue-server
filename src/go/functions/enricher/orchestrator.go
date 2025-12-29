@@ -224,7 +224,13 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				finalEvent.Name = res.Name
 			}
 			if res.Description != "" {
-				finalEvent.Description = res.Description
+				trimmed := strings.TrimSpace(res.Description)
+				if trimmed != "" {
+					if finalEvent.Description != "" {
+						finalEvent.Description += "\n\n"
+					}
+					finalEvent.Description += trimmed
+				}
 			}
 			if res.ActivityType != "" {
 				finalEvent.ActivityType = res.ActivityType

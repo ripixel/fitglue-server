@@ -8,6 +8,31 @@
 
 export const protobufPackage = "fitglue";
 
+export enum MuscleGroup {
+  MUSCLE_GROUP_UNSPECIFIED = 0,
+  MUSCLE_GROUP_ABDOMINALS = 1,
+  MUSCLE_GROUP_SHOULDERS = 2,
+  MUSCLE_GROUP_BICEPS = 3,
+  MUSCLE_GROUP_TRICEPS = 4,
+  MUSCLE_GROUP_FOREARMS = 5,
+  MUSCLE_GROUP_QUADRICEPS = 6,
+  MUSCLE_GROUP_HAMSTRINGS = 7,
+  MUSCLE_GROUP_CALVES = 8,
+  MUSCLE_GROUP_GLUTES = 9,
+  MUSCLE_GROUP_ABDUCTORS = 10,
+  MUSCLE_GROUP_ADDUCTORS = 11,
+  MUSCLE_GROUP_LATS = 12,
+  MUSCLE_GROUP_UPPER_BACK = 13,
+  MUSCLE_GROUP_TRAPS = 14,
+  MUSCLE_GROUP_LOWER_BACK = 15,
+  MUSCLE_GROUP_CHEST = 16,
+  MUSCLE_GROUP_CARDIO = 17,
+  MUSCLE_GROUP_NECK = 18,
+  MUSCLE_GROUP_FULL_BODY = 19,
+  MUSCLE_GROUP_OTHER = 20,
+  UNRECOGNIZED = -1,
+}
+
 /**
  * StandardizedActivity represents a normalized fitness activity.
  * It is designed to be the canonical input format for the Enricher,
@@ -91,6 +116,6 @@ export interface StrengthSet {
   /** Organization */
   supersetId: string;
   /** Muscle Targeting */
-  primaryMuscleGroup: string;
-  secondaryMuscleGroups: string[];
+  primaryMuscleGroup: MuscleGroup;
+  secondaryMuscleGroups: MuscleGroup[];
 }

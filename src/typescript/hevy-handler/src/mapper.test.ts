@@ -1,5 +1,6 @@
 import { mapHevyWorkoutToStandardized } from './mapper';
 import { components } from '@fitglue/shared/dist/integrations/hevy/schema';
+import { MuscleGroup } from '@fitglue/shared/dist/types/pb/standardized_activity';
 
 type HevyWorkout = components["schemas"]["Workout"];
 
@@ -70,8 +71,8 @@ describe('mapHevyWorkoutToStandardized', () => {
       exerciseName: 'Bench Press',
       reps: 10,
       weightKg: 60,
-      primaryMuscleGroup: 'Chest',
-      secondaryMuscleGroups: ['Triceps'],
+      primaryMuscleGroup: MuscleGroup.MUSCLE_GROUP_CHEST,
+      secondaryMuscleGroups: [MuscleGroup.MUSCLE_GROUP_TRICEPS],
       supersetId: '0'
     });
 

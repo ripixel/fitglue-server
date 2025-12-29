@@ -43,6 +43,25 @@ func TestUploadToStrava(t *testing.T) {
 				if req.Header.Get("Content-Type") == "" {
 					t.Error("Expected Content-Type header")
 				}
+
+				// Read body to verify metadata
+				bodyBytes, _ := io.ReadAll(req.Body)
+
+				if !bytes.Contains(bodyBytes, []byte(`name="name"`)) {
+					t.Error("Expected part 'name'")
+				}
+				if !bytes.Contains(bodyBytes, []byte("Test Workout")) {
+					t.Error("Expected value 'Test Workout'")
+				}
+				if !bytes.Contains(bodyBytes, []byte(`name="description"`)) {
+					t.Error("Expected part 'description'")
+				}
+				if !bytes.Contains(bodyBytes, []byte("Test Activity")) {
+					t.Error("Expected value 'Test Activity'")
+				}
+				// Restore body for any downstream reads (unlikely needed here)
+				req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 				// Return response indicating processing (no activity_id)
 				return &http.Response{
 					StatusCode: 201,
