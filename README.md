@@ -70,6 +70,7 @@ FitGlue uses an event-driven, microservices architecture deployed as Google Clou
 - **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
 - **[Integration Tests](docs/INTEGRATION_TESTS.md)** - Integration tests and verification
 - **[Admin CLI](docs/ADMIN_CLI.md)** - Usage guide for user management and keys
+- **[FIT Generation](docs/FIT_GENERATION.md)** - Guide to generating FIT files and test data
 
 ## Research
 

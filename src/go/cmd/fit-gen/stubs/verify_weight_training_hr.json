@@ -1,0 +1,1221 @@
+{
+  "start_time": "2024-01-02T10:00:00Z",
+  "name": "Weight Training + HR",
+  "type": "WEIGHT_TRAINING",
+  "sessions": [
+    {
+      "start_time": "2024-01-02T10:00:00Z",
+      "total_elapsed_time": 300,
+      "total_distance": 0,
+      "laps": [
+        {
+          "start_time": "2024-01-02T10:00:00Z",
+          "total_elapsed_time": 300,
+          "total_distance": 0,
+          "records": [
+            {
+              "timestamp": "2024-01-02T10:00:00Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:00:01Z",
+              "heart_rate": 141
+            },
+            {
+              "timestamp": "2024-01-02T10:00:02Z",
+              "heart_rate": 143
+            },
+            {
+              "timestamp": "2024-01-02T10:00:03Z",
+              "heart_rate": 145
+            },
+            {
+              "timestamp": "2024-01-02T10:00:04Z",
+              "heart_rate": 147
+            },
+            {
+              "timestamp": "2024-01-02T10:00:05Z",
+              "heart_rate": 149
+            },
+            {
+              "timestamp": "2024-01-02T10:00:06Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:00:07Z",
+              "heart_rate": 152
+            },
+            {
+              "timestamp": "2024-01-02T10:00:08Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:00:09Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:00:10Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:00:11Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:00:12Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:00:13Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:00:14Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:00:15Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:00:16Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:00:17Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:00:18Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:00:19Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:00:20Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:00:21Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:00:22Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:00:23Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:00:24Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:00:25Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:00:26Z",
+              "heart_rate": 150
+            },
+            {
+              "timestamp": "2024-01-02T10:00:27Z",
+              "heart_rate": 148
+            },
+            {
+              "timestamp": "2024-01-02T10:00:28Z",
+              "heart_rate": 146
+            },
+            {
+              "timestamp": "2024-01-02T10:00:29Z",
+              "heart_rate": 144
+            },
+            {
+              "timestamp": "2024-01-02T10:00:30Z",
+              "heart_rate": 142
+            },
+            {
+              "timestamp": "2024-01-02T10:00:31Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:00:32Z",
+              "heart_rate": 139
+            },
+            {
+              "timestamp": "2024-01-02T10:00:33Z",
+              "heart_rate": 137
+            },
+            {
+              "timestamp": "2024-01-02T10:00:34Z",
+              "heart_rate": 135
+            },
+            {
+              "timestamp": "2024-01-02T10:00:35Z",
+              "heart_rate": 133
+            },
+            {
+              "timestamp": "2024-01-02T10:00:36Z",
+              "heart_rate": 132
+            },
+            {
+              "timestamp": "2024-01-02T10:00:37Z",
+              "heart_rate": 130
+            },
+            {
+              "timestamp": "2024-01-02T10:00:38Z",
+              "heart_rate": 128
+            },
+            {
+              "timestamp": "2024-01-02T10:00:39Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:00:40Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:00:41Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:00:42Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:00:43Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:00:44Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:45Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:46Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:47Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:48Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:49Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:50Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:00:51Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:00:52Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:00:53Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:00:54Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:00:55Z",
+              "heart_rate": 126
+            },
+            {
+              "timestamp": "2024-01-02T10:00:56Z",
+              "heart_rate": 128
+            },
+            {
+              "timestamp": "2024-01-02T10:00:57Z",
+              "heart_rate": 129
+            },
+            {
+              "timestamp": "2024-01-02T10:00:58Z",
+              "heart_rate": 131
+            },
+            {
+              "timestamp": "2024-01-02T10:00:59Z",
+              "heart_rate": 133
+            },
+            {
+              "timestamp": "2024-01-02T10:01:00Z",
+              "heart_rate": 135
+            },
+            {
+              "timestamp": "2024-01-02T10:01:01Z",
+              "heart_rate": 137
+            },
+            {
+              "timestamp": "2024-01-02T10:01:02Z",
+              "heart_rate": 139
+            },
+            {
+              "timestamp": "2024-01-02T10:01:03Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:01:04Z",
+              "heart_rate": 142
+            },
+            {
+              "timestamp": "2024-01-02T10:01:05Z",
+              "heart_rate": 144
+            },
+            {
+              "timestamp": "2024-01-02T10:01:06Z",
+              "heart_rate": 146
+            },
+            {
+              "timestamp": "2024-01-02T10:01:07Z",
+              "heart_rate": 148
+            },
+            {
+              "timestamp": "2024-01-02T10:01:08Z",
+              "heart_rate": 149
+            },
+            {
+              "timestamp": "2024-01-02T10:01:09Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:01:10Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:01:11Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:01:12Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:01:13Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:01:14Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:01:15Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:01:16Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:01:17Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:01:18Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:01:19Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:01:20Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:01:21Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:01:22Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:01:23Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:01:24Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:01:25Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:01:26Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:01:27Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:01:28Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:01:29Z",
+              "heart_rate": 150
+            },
+            {
+              "timestamp": "2024-01-02T10:01:30Z",
+              "heart_rate": 148
+            },
+            {
+              "timestamp": "2024-01-02T10:01:31Z",
+              "heart_rate": 146
+            },
+            {
+              "timestamp": "2024-01-02T10:01:32Z",
+              "heart_rate": 144
+            },
+            {
+              "timestamp": "2024-01-02T10:01:33Z",
+              "heart_rate": 142
+            },
+            {
+              "timestamp": "2024-01-02T10:01:34Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:01:35Z",
+              "heart_rate": 139
+            },
+            {
+              "timestamp": "2024-01-02T10:01:36Z",
+              "heart_rate": 137
+            },
+            {
+              "timestamp": "2024-01-02T10:01:37Z",
+              "heart_rate": 135
+            },
+            {
+              "timestamp": "2024-01-02T10:01:38Z",
+              "heart_rate": 133
+            },
+            {
+              "timestamp": "2024-01-02T10:01:39Z",
+              "heart_rate": 131
+            },
+            {
+              "timestamp": "2024-01-02T10:01:40Z",
+              "heart_rate": 130
+            },
+            {
+              "timestamp": "2024-01-02T10:01:41Z",
+              "heart_rate": 128
+            },
+            {
+              "timestamp": "2024-01-02T10:01:42Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:01:43Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:01:44Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:01:45Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:01:46Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:01:47Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:48Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:49Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:50Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:51Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:52Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:53Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:01:54Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:01:55Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:01:56Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:01:57Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:01:58Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:01:59Z",
+              "heart_rate": 128
+            },
+            {
+              "timestamp": "2024-01-02T10:02:00Z",
+              "heart_rate": 130
+            },
+            {
+              "timestamp": "2024-01-02T10:02:01Z",
+              "heart_rate": 132
+            },
+            {
+              "timestamp": "2024-01-02T10:02:02Z",
+              "heart_rate": 133
+            },
+            {
+              "timestamp": "2024-01-02T10:02:03Z",
+              "heart_rate": 135
+            },
+            {
+              "timestamp": "2024-01-02T10:02:04Z",
+              "heart_rate": 137
+            },
+            {
+              "timestamp": "2024-01-02T10:02:05Z",
+              "heart_rate": 139
+            },
+            {
+              "timestamp": "2024-01-02T10:02:06Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:02:07Z",
+              "heart_rate": 142
+            },
+            {
+              "timestamp": "2024-01-02T10:02:08Z",
+              "heart_rate": 144
+            },
+            {
+              "timestamp": "2024-01-02T10:02:09Z",
+              "heart_rate": 146
+            },
+            {
+              "timestamp": "2024-01-02T10:02:10Z",
+              "heart_rate": 148
+            },
+            {
+              "timestamp": "2024-01-02T10:02:11Z",
+              "heart_rate": 150
+            },
+            {
+              "timestamp": "2024-01-02T10:02:12Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:02:13Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:02:14Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:02:15Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:02:16Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:02:17Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:02:18Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:02:19Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:02:20Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:02:21Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:02:22Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:02:23Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:02:24Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:02:25Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:02:26Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:02:27Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:02:28Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:02:29Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:02:30Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:02:31Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:02:32Z",
+              "heart_rate": 149
+            },
+            {
+              "timestamp": "2024-01-02T10:02:33Z",
+              "heart_rate": 147
+            },
+            {
+              "timestamp": "2024-01-02T10:02:34Z",
+              "heart_rate": 146
+            },
+            {
+              "timestamp": "2024-01-02T10:02:35Z",
+              "heart_rate": 144
+            },
+            {
+              "timestamp": "2024-01-02T10:02:36Z",
+              "heart_rate": 142
+            },
+            {
+              "timestamp": "2024-01-02T10:02:37Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:02:38Z",
+              "heart_rate": 139
+            },
+            {
+              "timestamp": "2024-01-02T10:02:39Z",
+              "heart_rate": 137
+            },
+            {
+              "timestamp": "2024-01-02T10:02:40Z",
+              "heart_rate": 135
+            },
+            {
+              "timestamp": "2024-01-02T10:02:41Z",
+              "heart_rate": 133
+            },
+            {
+              "timestamp": "2024-01-02T10:02:42Z",
+              "heart_rate": 131
+            },
+            {
+              "timestamp": "2024-01-02T10:02:43Z",
+              "heart_rate": 129
+            },
+            {
+              "timestamp": "2024-01-02T10:02:44Z",
+              "heart_rate": 128
+            },
+            {
+              "timestamp": "2024-01-02T10:02:45Z",
+              "heart_rate": 126
+            },
+            {
+              "timestamp": "2024-01-02T10:02:46Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:02:47Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:02:48Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:02:49Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:02:50Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:02:51Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:02:52Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:02:53Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:02:54Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:02:55Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:02:56Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:02:57Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:02:58Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:02:59Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:03:00Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:03:01Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:03:02Z",
+              "heart_rate": 128
+            },
+            {
+              "timestamp": "2024-01-02T10:03:03Z",
+              "heart_rate": 130
+            },
+            {
+              "timestamp": "2024-01-02T10:03:04Z",
+              "heart_rate": 132
+            },
+            {
+              "timestamp": "2024-01-02T10:03:05Z",
+              "heart_rate": 134
+            },
+            {
+              "timestamp": "2024-01-02T10:03:06Z",
+              "heart_rate": 136
+            },
+            {
+              "timestamp": "2024-01-02T10:03:07Z",
+              "heart_rate": 138
+            },
+            {
+              "timestamp": "2024-01-02T10:03:08Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:03:09Z",
+              "heart_rate": 141
+            },
+            {
+              "timestamp": "2024-01-02T10:03:10Z",
+              "heart_rate": 142
+            },
+            {
+              "timestamp": "2024-01-02T10:03:11Z",
+              "heart_rate": 144
+            },
+            {
+              "timestamp": "2024-01-02T10:03:12Z",
+              "heart_rate": 146
+            },
+            {
+              "timestamp": "2024-01-02T10:03:13Z",
+              "heart_rate": 148
+            },
+            {
+              "timestamp": "2024-01-02T10:03:14Z",
+              "heart_rate": 150
+            },
+            {
+              "timestamp": "2024-01-02T10:03:15Z",
+              "heart_rate": 152
+            },
+            {
+              "timestamp": "2024-01-02T10:03:16Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:03:17Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:03:18Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:03:19Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:03:20Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:03:21Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:03:22Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:03:23Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:03:24Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:03:25Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:03:26Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:03:27Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:03:28Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:03:29Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:03:30Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:03:31Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:03:32Z",
+              "heart_rate": 154
+            },
+            {
+              "timestamp": "2024-01-02T10:03:33Z",
+              "heart_rate": 152
+            },
+            {
+              "timestamp": "2024-01-02T10:03:34Z",
+              "heart_rate": 151
+            },
+            {
+              "timestamp": "2024-01-02T10:03:35Z",
+              "heart_rate": 149
+            },
+            {
+              "timestamp": "2024-01-02T10:03:36Z",
+              "heart_rate": 147
+            },
+            {
+              "timestamp": "2024-01-02T10:03:37Z",
+              "heart_rate": 145
+            },
+            {
+              "timestamp": "2024-01-02T10:03:38Z",
+              "heart_rate": 143
+            },
+            {
+              "timestamp": "2024-01-02T10:03:39Z",
+              "heart_rate": 141
+            },
+            {
+              "timestamp": "2024-01-02T10:03:40Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:03:41Z",
+              "heart_rate": 138
+            },
+            {
+              "timestamp": "2024-01-02T10:03:42Z",
+              "heart_rate": 136
+            },
+            {
+              "timestamp": "2024-01-02T10:03:43Z",
+              "heart_rate": 134
+            },
+            {
+              "timestamp": "2024-01-02T10:03:44Z",
+              "heart_rate": 133
+            },
+            {
+              "timestamp": "2024-01-02T10:03:45Z",
+              "heart_rate": 131
+            },
+            {
+              "timestamp": "2024-01-02T10:03:46Z",
+              "heart_rate": 129
+            },
+            {
+              "timestamp": "2024-01-02T10:03:47Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:03:48Z",
+              "heart_rate": 126
+            },
+            {
+              "timestamp": "2024-01-02T10:03:49Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:03:50Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:03:51Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:03:52Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:03:53Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:03:54Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:03:55Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:03:56Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:03:57Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:03:58Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:03:59Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:04:00Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:04:01Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:04:02Z",
+              "heart_rate": 124
+            },
+            {
+              "timestamp": "2024-01-02T10:04:03Z",
+              "heart_rate": 126
+            },
+            {
+              "timestamp": "2024-01-02T10:04:04Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:04:05Z",
+              "heart_rate": 129
+            },
+            {
+              "timestamp": "2024-01-02T10:04:06Z",
+              "heart_rate": 130
+            },
+            {
+              "timestamp": "2024-01-02T10:04:07Z",
+              "heart_rate": 132
+            },
+            {
+              "timestamp": "2024-01-02T10:04:08Z",
+              "heart_rate": 134
+            },
+            {
+              "timestamp": "2024-01-02T10:04:09Z",
+              "heart_rate": 136
+            },
+            {
+              "timestamp": "2024-01-02T10:04:10Z",
+              "heart_rate": 138
+            },
+            {
+              "timestamp": "2024-01-02T10:04:11Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:04:12Z",
+              "heart_rate": 141
+            },
+            {
+              "timestamp": "2024-01-02T10:04:13Z",
+              "heart_rate": 143
+            },
+            {
+              "timestamp": "2024-01-02T10:04:14Z",
+              "heart_rate": 145
+            },
+            {
+              "timestamp": "2024-01-02T10:04:15Z",
+              "heart_rate": 147
+            },
+            {
+              "timestamp": "2024-01-02T10:04:16Z",
+              "heart_rate": 149
+            },
+            {
+              "timestamp": "2024-01-02T10:04:17Z",
+              "heart_rate": 150
+            },
+            {
+              "timestamp": "2024-01-02T10:04:18Z",
+              "heart_rate": 152
+            },
+            {
+              "timestamp": "2024-01-02T10:04:19Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:04:20Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:04:21Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:04:22Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:04:23Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:04:24Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:25Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:26Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:27Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:28Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:29Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:30Z",
+              "heart_rate": 159
+            },
+            {
+              "timestamp": "2024-01-02T10:04:31Z",
+              "heart_rate": 158
+            },
+            {
+              "timestamp": "2024-01-02T10:04:32Z",
+              "heart_rate": 157
+            },
+            {
+              "timestamp": "2024-01-02T10:04:33Z",
+              "heart_rate": 156
+            },
+            {
+              "timestamp": "2024-01-02T10:04:34Z",
+              "heart_rate": 155
+            },
+            {
+              "timestamp": "2024-01-02T10:04:35Z",
+              "heart_rate": 153
+            },
+            {
+              "timestamp": "2024-01-02T10:04:36Z",
+              "heart_rate": 152
+            },
+            {
+              "timestamp": "2024-01-02T10:04:37Z",
+              "heart_rate": 150
+            },
+            {
+              "timestamp": "2024-01-02T10:04:38Z",
+              "heart_rate": 149
+            },
+            {
+              "timestamp": "2024-01-02T10:04:39Z",
+              "heart_rate": 147
+            },
+            {
+              "timestamp": "2024-01-02T10:04:40Z",
+              "heart_rate": 145
+            },
+            {
+              "timestamp": "2024-01-02T10:04:41Z",
+              "heart_rate": 143
+            },
+            {
+              "timestamp": "2024-01-02T10:04:42Z",
+              "heart_rate": 141
+            },
+            {
+              "timestamp": "2024-01-02T10:04:43Z",
+              "heart_rate": 140
+            },
+            {
+              "timestamp": "2024-01-02T10:04:44Z",
+              "heart_rate": 138
+            },
+            {
+              "timestamp": "2024-01-02T10:04:45Z",
+              "heart_rate": 136
+            },
+            {
+              "timestamp": "2024-01-02T10:04:46Z",
+              "heart_rate": 134
+            },
+            {
+              "timestamp": "2024-01-02T10:04:47Z",
+              "heart_rate": 132
+            },
+            {
+              "timestamp": "2024-01-02T10:04:48Z",
+              "heart_rate": 130
+            },
+            {
+              "timestamp": "2024-01-02T10:04:49Z",
+              "heart_rate": 129
+            },
+            {
+              "timestamp": "2024-01-02T10:04:50Z",
+              "heart_rate": 127
+            },
+            {
+              "timestamp": "2024-01-02T10:04:51Z",
+              "heart_rate": 126
+            },
+            {
+              "timestamp": "2024-01-02T10:04:52Z",
+              "heart_rate": 125
+            },
+            {
+              "timestamp": "2024-01-02T10:04:53Z",
+              "heart_rate": 123
+            },
+            {
+              "timestamp": "2024-01-02T10:04:54Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:04:55Z",
+              "heart_rate": 122
+            },
+            {
+              "timestamp": "2024-01-02T10:04:56Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:04:57Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:04:58Z",
+              "heart_rate": 121
+            },
+            {
+              "timestamp": "2024-01-02T10:04:59Z",
+              "heart_rate": 121
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

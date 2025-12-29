@@ -63,6 +63,18 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 	if err != nil {
 		return nil, fmt.Errorf("failed to map user record: %w", err)
 	}
+	// 1.5. Validate Payload
+	if payload.StandardizedActivity == nil {
+		return nil, fmt.Errorf("standardized activity is nil")
+	}
+	if len(payload.StandardizedActivity.Sessions) != 1 {
+		slog.Error("Activity does not have exactly one session", "count", len(payload.StandardizedActivity.Sessions))
+		return nil, fmt.Errorf("multiple sessions not supported")
+	}
+	if payload.StandardizedActivity.Sessions[0].TotalElapsedTime == 0 {
+		slog.Error("Activity session has 0 elapsed time")
+		return nil, fmt.Errorf("session total elapsed time is 0")
+	}
 
 	// 2. Resolve Pipelines
 	pipelines := o.resolvePipelines(payload.Source, userRec)
@@ -170,17 +182,30 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 		}
 
 		// Merge Streams & Metadata
-		duration := 3600
+		session := payload.StandardizedActivity.Sessions[0]
+		duration := int(session.TotalElapsedTime)
 
-		if payload.StandardizedActivity != nil && len(payload.StandardizedActivity.Sessions) > 0 {
-			duration = int(payload.StandardizedActivity.Sessions[0].TotalElapsedTime)
-			if duration == 0 {
-				duration = 3600
+		// Ensure Laps/Records exist
+		if len(session.Laps) == 0 {
+			// Create a default lap if missing
+			session.Laps = append(session.Laps, &pb.Lap{
+				StartTime:        session.StartTime,
+				TotalElapsedTime: session.TotalElapsedTime,
+				Records:          []*pb.Record{},
+			})
+		}
+		lap := session.Laps[0]
+
+		// Ensure records are large enough
+		currentLen := len(lap.Records)
+		if currentLen < duration {
+			startTime, _ := time.Parse(time.RFC3339, session.StartTime)
+			// Pad with timestamp-only records
+			for k := currentLen; k < duration; k++ {
+				ts := startTime.Add(time.Duration(k) * time.Second).Format(time.RFC3339)
+				lap.Records = append(lap.Records, &pb.Record{Timestamp: ts})
 			}
 		}
-
-		aggregatedHR := make([]int, duration)
-		aggregatedPower := make([]int, duration)
 
 		for i, res := range results {
 			if res == nil {
@@ -199,29 +224,32 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				finalEvent.ActivityType = res.ActivityType
 			}
 
-			if len(res.HeartRateStream) == duration {
+			// Merge Data Streams into Records
+			if len(res.HeartRateStream) > 0 {
 				for idx, val := range res.HeartRateStream {
-					if val > 0 {
-						aggregatedHR[idx] = val
+					if idx < len(lap.Records) && val > 0 {
+						lap.Records[idx].HeartRate = int32(val)
 					}
 				}
 			}
-			if len(res.PowerStream) == duration {
+			if len(res.PowerStream) > 0 {
 				for idx, val := range res.PowerStream {
-					if val > 0 {
-						aggregatedPower[idx] = val
+					if idx < len(lap.Records) && val > 0 {
+						lap.Records[idx].Power = int32(val)
 					}
 				}
 			}
+
 			for k, v := range res.Metadata {
 				finalEvent.EnrichmentMetadata[k] = v
 			}
 		}
 
 		// 3c. Generate Artifacts (FIT File)
-		// 3c. Generate Artifacts (FIT File)
-		fitBytes, err := fit.GenerateFitFile(payload.StandardizedActivity, aggregatedHR)
-		if err == nil && len(fitBytes) > 0 {
+		fitBytes, err := fit.GenerateFitFile(payload.StandardizedActivity)
+		if err != nil {
+			slog.Error("Failed to generate FIT file", "error", err) // Don't fail the whole event, just log
+		} else if len(fitBytes) > 0 {
 			objName := fmt.Sprintf("activities/%s/%s.fit", payload.UserId, finalEvent.ActivityId)
 			if err := o.storage.Write(ctx, o.bucketName, objName, fitBytes); err != nil {
 				slog.Error("Failed to write FIT file artifact", "error", err)

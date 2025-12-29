@@ -1,0 +1,1821 @@
+{
+  "start_time": "2024-01-05T10:00:00Z",
+  "name": "Ride HR+Power",
+  "type": "CYCLING",
+  "sessions": [
+    {
+      "start_time": "2024-01-05T10:00:00Z",
+      "total_elapsed_time": 300,
+      "total_distance": 0,
+      "laps": [
+        {
+          "start_time": "2024-01-05T10:00:00Z",
+          "total_elapsed_time": 300,
+          "total_distance": 0,
+          "records": [
+            {
+              "timestamp": "2024-01-05T10:00:00Z",
+              "heart_rate": 140,
+              "power": 150,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:00:01Z",
+              "heart_rate": 141,
+              "power": 159,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:00:02Z",
+              "heart_rate": 143,
+              "power": 169,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:00:03Z",
+              "heart_rate": 145,
+              "power": 178,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:00:04Z",
+              "heart_rate": 147,
+              "power": 185,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:00:05Z",
+              "heart_rate": 149,
+              "power": 192,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:06Z",
+              "heart_rate": 151,
+              "power": 196,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:07Z",
+              "heart_rate": 152,
+              "power": 199,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:08Z",
+              "heart_rate": 154,
+              "power": 199,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:09Z",
+              "heart_rate": 155,
+              "power": 198,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:10Z",
+              "heart_rate": 156,
+              "power": 195,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:11Z",
+              "heart_rate": 157,
+              "power": 190,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:12Z",
+              "heart_rate": 158,
+              "power": 183,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:13Z",
+              "heart_rate": 159,
+              "power": 175,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:14Z",
+              "heart_rate": 159,
+              "power": 166,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:15Z",
+              "heart_rate": 159,
+              "power": 157,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:16Z",
+              "heart_rate": 159,
+              "power": 148,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:17Z",
+              "heart_rate": 159,
+              "power": 138,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:18Z",
+              "heart_rate": 159,
+              "power": 128,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:19Z",
+              "heart_rate": 158,
+              "power": 120,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:20Z",
+              "heart_rate": 158,
+              "power": 113,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:21Z",
+              "heart_rate": 157,
+              "power": 107,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:22Z",
+              "heart_rate": 156,
+              "power": 103,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:23Z",
+              "heart_rate": 154,
+              "power": 101,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:24Z",
+              "heart_rate": 153,
+              "power": 101,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:25Z",
+              "heart_rate": 151,
+              "power": 103,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:26Z",
+              "heart_rate": 150,
+              "power": 106,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:27Z",
+              "heart_rate": 148,
+              "power": 112,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:28Z",
+              "heart_rate": 146,
+              "power": 119,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:29Z",
+              "heart_rate": 144,
+              "power": 127,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:30Z",
+              "heart_rate": 142,
+              "power": 137,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:31Z",
+              "heart_rate": 140,
+              "power": 146,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:32Z",
+              "heart_rate": 139,
+              "power": 155,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:33Z",
+              "heart_rate": 137,
+              "power": 165,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:34Z",
+              "heart_rate": 135,
+              "power": 174,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:35Z",
+              "heart_rate": 133,
+              "power": 182,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:36Z",
+              "heart_rate": 132,
+              "power": 189,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:37Z",
+              "heart_rate": 130,
+              "power": 194,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:38Z",
+              "heart_rate": 128,
+              "power": 198,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:39Z",
+              "heart_rate": 127,
+              "power": 199,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:40Z",
+              "heart_rate": 125,
+              "power": 199,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:41Z",
+              "heart_rate": 124,
+              "power": 197,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:42Z",
+              "heart_rate": 123,
+              "power": 192,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:43Z",
+              "heart_rate": 122,
+              "power": 186,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:44Z",
+              "heart_rate": 121,
+              "power": 179,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:00:45Z",
+              "heart_rate": 121,
+              "power": 170,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:46Z",
+              "heart_rate": 121,
+              "power": 161,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:47Z",
+              "heart_rate": 121,
+              "power": 151,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:48Z",
+              "heart_rate": 121,
+              "power": 142,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:49Z",
+              "heart_rate": 121,
+              "power": 132,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:00:50Z",
+              "heart_rate": 121,
+              "power": 123,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:51Z",
+              "heart_rate": 122,
+              "power": 116,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:52Z",
+              "heart_rate": 123,
+              "power": 109,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:53Z",
+              "heart_rate": 124,
+              "power": 104,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:54Z",
+              "heart_rate": 125,
+              "power": 101,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:00:55Z",
+              "heart_rate": 126,
+              "power": 101,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:56Z",
+              "heart_rate": 128,
+              "power": 102,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:57Z",
+              "heart_rate": 129,
+              "power": 105,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:58Z",
+              "heart_rate": 131,
+              "power": 109,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:00:59Z",
+              "heart_rate": 133,
+              "power": 116,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:00Z",
+              "heart_rate": 135,
+              "power": 124,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:01Z",
+              "heart_rate": 137,
+              "power": 133,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:02Z",
+              "heart_rate": 139,
+              "power": 142,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:03Z",
+              "heart_rate": 140,
+              "power": 151,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:04Z",
+              "heart_rate": 142,
+              "power": 161,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:05Z",
+              "heart_rate": 144,
+              "power": 171,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:06Z",
+              "heart_rate": 146,
+              "power": 179,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:01:07Z",
+              "heart_rate": 148,
+              "power": 187,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:01:08Z",
+              "heart_rate": 149,
+              "power": 192,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:01:09Z",
+              "heart_rate": 151,
+              "power": 197,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:01:10Z",
+              "heart_rate": 153,
+              "power": 199,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:01:11Z",
+              "heart_rate": 154,
+              "power": 199,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:01:12Z",
+              "heart_rate": 155,
+              "power": 198,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:13Z",
+              "heart_rate": 157,
+              "power": 194,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:14Z",
+              "heart_rate": 157,
+              "power": 189,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:15Z",
+              "heart_rate": 158,
+              "power": 182,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:16Z",
+              "heart_rate": 159,
+              "power": 174,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:17Z",
+              "heart_rate": 159,
+              "power": 165,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:18Z",
+              "heart_rate": 159,
+              "power": 155,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:19Z",
+              "heart_rate": 159,
+              "power": 146,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:20Z",
+              "heart_rate": 159,
+              "power": 136,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:21Z",
+              "heart_rate": 159,
+              "power": 127,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:22Z",
+              "heart_rate": 158,
+              "power": 119,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:23Z",
+              "heart_rate": 158,
+              "power": 112,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:24Z",
+              "heart_rate": 157,
+              "power": 106,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:25Z",
+              "heart_rate": 155,
+              "power": 102,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:26Z",
+              "heart_rate": 154,
+              "power": 101,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:27Z",
+              "heart_rate": 153,
+              "power": 101,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:28Z",
+              "heart_rate": 151,
+              "power": 103,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:29Z",
+              "heart_rate": 150,
+              "power": 107,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:30Z",
+              "heart_rate": 148,
+              "power": 113,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:31Z",
+              "heart_rate": 146,
+              "power": 120,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:32Z",
+              "heart_rate": 144,
+              "power": 129,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:33Z",
+              "heart_rate": 142,
+              "power": 138,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:34Z",
+              "heart_rate": 140,
+              "power": 148,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:35Z",
+              "heart_rate": 139,
+              "power": 157,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:36Z",
+              "heart_rate": 137,
+              "power": 167,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:37Z",
+              "heart_rate": 135,
+              "power": 176,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:38Z",
+              "heart_rate": 133,
+              "power": 184,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:39Z",
+              "heart_rate": 131,
+              "power": 190,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:40Z",
+              "heart_rate": 130,
+              "power": 195,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:41Z",
+              "heart_rate": 128,
+              "power": 198,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:42Z",
+              "heart_rate": 127,
+              "power": 199,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:43Z",
+              "heart_rate": 125,
+              "power": 199,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:44Z",
+              "heart_rate": 124,
+              "power": 196,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:45Z",
+              "heart_rate": 123,
+              "power": 191,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:46Z",
+              "heart_rate": 122,
+              "power": 185,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:47Z",
+              "heart_rate": 121,
+              "power": 177,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:01:48Z",
+              "heart_rate": 121,
+              "power": 169,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:49Z",
+              "heart_rate": 121,
+              "power": 159,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:50Z",
+              "heart_rate": 121,
+              "power": 150,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:51Z",
+              "heart_rate": 121,
+              "power": 140,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:52Z",
+              "heart_rate": 121,
+              "power": 131,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:01:53Z",
+              "heart_rate": 121,
+              "power": 122,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:54Z",
+              "heart_rate": 122,
+              "power": 114,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:55Z",
+              "heart_rate": 123,
+              "power": 108,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:56Z",
+              "heart_rate": 124,
+              "power": 104,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:57Z",
+              "heart_rate": 125,
+              "power": 101,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:01:58Z",
+              "heart_rate": 127,
+              "power": 101,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:01:59Z",
+              "heart_rate": 128,
+              "power": 102,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:02:00Z",
+              "heart_rate": 130,
+              "power": 105,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:02:01Z",
+              "heart_rate": 132,
+              "power": 110,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:02:02Z",
+              "heart_rate": 133,
+              "power": 117,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:03Z",
+              "heart_rate": 135,
+              "power": 125,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:04Z",
+              "heart_rate": 137,
+              "power": 134,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:05Z",
+              "heart_rate": 139,
+              "power": 144,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:06Z",
+              "heart_rate": 140,
+              "power": 153,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:07Z",
+              "heart_rate": 142,
+              "power": 163,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:08Z",
+              "heart_rate": 144,
+              "power": 172,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:09Z",
+              "heart_rate": 146,
+              "power": 180,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:02:10Z",
+              "heart_rate": 148,
+              "power": 188,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:02:11Z",
+              "heart_rate": 150,
+              "power": 193,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:02:12Z",
+              "heart_rate": 151,
+              "power": 197,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:02:13Z",
+              "heart_rate": 153,
+              "power": 199,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:02:14Z",
+              "heart_rate": 154,
+              "power": 199,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:15Z",
+              "heart_rate": 156,
+              "power": 197,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:16Z",
+              "heart_rate": 157,
+              "power": 193,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:17Z",
+              "heart_rate": 158,
+              "power": 188,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:18Z",
+              "heart_rate": 158,
+              "power": 181,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:19Z",
+              "heart_rate": 159,
+              "power": 172,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:20Z",
+              "heart_rate": 159,
+              "power": 163,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:21Z",
+              "heart_rate": 159,
+              "power": 153,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:22Z",
+              "heart_rate": 159,
+              "power": 144,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:23Z",
+              "heart_rate": 159,
+              "power": 135,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:24Z",
+              "heart_rate": 159,
+              "power": 125,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:25Z",
+              "heart_rate": 158,
+              "power": 117,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:26Z",
+              "heart_rate": 157,
+              "power": 111,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:27Z",
+              "heart_rate": 156,
+              "power": 105,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:28Z",
+              "heart_rate": 155,
+              "power": 102,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:29Z",
+              "heart_rate": 154,
+              "power": 101,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:30Z",
+              "heart_rate": 153,
+              "power": 101,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:31Z",
+              "heart_rate": 151,
+              "power": 104,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:32Z",
+              "heart_rate": 149,
+              "power": 108,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:33Z",
+              "heart_rate": 147,
+              "power": 114,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:34Z",
+              "heart_rate": 146,
+              "power": 122,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:35Z",
+              "heart_rate": 144,
+              "power": 130,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:36Z",
+              "heart_rate": 142,
+              "power": 140,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:37Z",
+              "heart_rate": 140,
+              "power": 150,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:38Z",
+              "heart_rate": 139,
+              "power": 159,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:39Z",
+              "heart_rate": 137,
+              "power": 168,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:40Z",
+              "heart_rate": 135,
+              "power": 177,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:41Z",
+              "heart_rate": 133,
+              "power": 185,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:42Z",
+              "heart_rate": 131,
+              "power": 191,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:43Z",
+              "heart_rate": 129,
+              "power": 196,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:44Z",
+              "heart_rate": 128,
+              "power": 199,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:45Z",
+              "heart_rate": 126,
+              "power": 199,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:46Z",
+              "heart_rate": 125,
+              "power": 198,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:47Z",
+              "heart_rate": 124,
+              "power": 195,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:48Z",
+              "heart_rate": 123,
+              "power": 190,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:49Z",
+              "heart_rate": 122,
+              "power": 184,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:02:50Z",
+              "heart_rate": 121,
+              "power": 176,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:51Z",
+              "heart_rate": 121,
+              "power": 167,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:52Z",
+              "heart_rate": 121,
+              "power": 157,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:53Z",
+              "heart_rate": 121,
+              "power": 148,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:54Z",
+              "heart_rate": 121,
+              "power": 138,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:55Z",
+              "heart_rate": 121,
+              "power": 129,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:02:56Z",
+              "heart_rate": 122,
+              "power": 121,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:57Z",
+              "heart_rate": 122,
+              "power": 113,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:58Z",
+              "heart_rate": 123,
+              "power": 107,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:02:59Z",
+              "heart_rate": 124,
+              "power": 103,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:03:00Z",
+              "heart_rate": 125,
+              "power": 101,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:03:01Z",
+              "heart_rate": 127,
+              "power": 101,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:03:02Z",
+              "heart_rate": 128,
+              "power": 102,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:03:03Z",
+              "heart_rate": 130,
+              "power": 106,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:03:04Z",
+              "heart_rate": 132,
+              "power": 111,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:03:05Z",
+              "heart_rate": 134,
+              "power": 118,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:06Z",
+              "heart_rate": 136,
+              "power": 127,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:07Z",
+              "heart_rate": 138,
+              "power": 136,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:08Z",
+              "heart_rate": 140,
+              "power": 146,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:09Z",
+              "heart_rate": 141,
+              "power": 155,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:10Z",
+              "heart_rate": 142,
+              "power": 164,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:11Z",
+              "heart_rate": 144,
+              "power": 174,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:12Z",
+              "heart_rate": 146,
+              "power": 182,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:03:13Z",
+              "heart_rate": 148,
+              "power": 189,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:03:14Z",
+              "heart_rate": 150,
+              "power": 194,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:03:15Z",
+              "heart_rate": 152,
+              "power": 198,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:03:16Z",
+              "heart_rate": 153,
+              "power": 199,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:03:17Z",
+              "heart_rate": 155,
+              "power": 199,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:03:18Z",
+              "heart_rate": 156,
+              "power": 197,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:03:19Z",
+              "heart_rate": 157,
+              "power": 193,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:03:20Z",
+              "heart_rate": 158,
+              "power": 187,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:03:21Z",
+              "heart_rate": 158,
+              "power": 179,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:03:22Z",
+              "heart_rate": 159,
+              "power": 171,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:23Z",
+              "heart_rate": 159,
+              "power": 161,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:24Z",
+              "heart_rate": 159,
+              "power": 152,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:25Z",
+              "heart_rate": 159,
+              "power": 143,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:26Z",
+              "heart_rate": 159,
+              "power": 133,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:27Z",
+              "heart_rate": 159,
+              "power": 124,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:28Z",
+              "heart_rate": 158,
+              "power": 116,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:29Z",
+              "heart_rate": 157,
+              "power": 110,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:30Z",
+              "heart_rate": 156,
+              "power": 105,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:31Z",
+              "heart_rate": 155,
+              "power": 102,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:32Z",
+              "heart_rate": 154,
+              "power": 101,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:33Z",
+              "heart_rate": 152,
+              "power": 101,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:34Z",
+              "heart_rate": 151,
+              "power": 104,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:35Z",
+              "heart_rate": 149,
+              "power": 109,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:36Z",
+              "heart_rate": 147,
+              "power": 115,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:37Z",
+              "heart_rate": 145,
+              "power": 123,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:38Z",
+              "heart_rate": 143,
+              "power": 132,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:39Z",
+              "heart_rate": 141,
+              "power": 141,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:40Z",
+              "heart_rate": 140,
+              "power": 150,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:41Z",
+              "heart_rate": 138,
+              "power": 160,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:42Z",
+              "heart_rate": 136,
+              "power": 170,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:43Z",
+              "heart_rate": 134,
+              "power": 178,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:44Z",
+              "heart_rate": 133,
+              "power": 186,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:45Z",
+              "heart_rate": 131,
+              "power": 192,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:46Z",
+              "heart_rate": 129,
+              "power": 196,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:47Z",
+              "heart_rate": 127,
+              "power": 199,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:48Z",
+              "heart_rate": 126,
+              "power": 199,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:49Z",
+              "heart_rate": 125,
+              "power": 198,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:50Z",
+              "heart_rate": 124,
+              "power": 195,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:51Z",
+              "heart_rate": 123,
+              "power": 189,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:52Z",
+              "heart_rate": 122,
+              "power": 183,
+              "cadence": 76
+            },
+            {
+              "timestamp": "2024-01-05T10:03:53Z",
+              "heart_rate": 121,
+              "power": 175,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:54Z",
+              "heart_rate": 121,
+              "power": 165,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:55Z",
+              "heart_rate": 121,
+              "power": 156,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:56Z",
+              "heart_rate": 121,
+              "power": 147,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:57Z",
+              "heart_rate": 121,
+              "power": 137,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:58Z",
+              "heart_rate": 121,
+              "power": 128,
+              "cadence": 77
+            },
+            {
+              "timestamp": "2024-01-05T10:03:59Z",
+              "heart_rate": 122,
+              "power": 119,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:04:00Z",
+              "heart_rate": 122,
+              "power": 112,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:04:01Z",
+              "heart_rate": 123,
+              "power": 106,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:04:02Z",
+              "heart_rate": 124,
+              "power": 103,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:04:03Z",
+              "heart_rate": 126,
+              "power": 101,
+              "cadence": 78
+            },
+            {
+              "timestamp": "2024-01-05T10:04:04Z",
+              "heart_rate": 127,
+              "power": 101,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:04:05Z",
+              "heart_rate": 129,
+              "power": 103,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:04:06Z",
+              "heart_rate": 130,
+              "power": 107,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:04:07Z",
+              "heart_rate": 132,
+              "power": 112,
+              "cadence": 79
+            },
+            {
+              "timestamp": "2024-01-05T10:04:08Z",
+              "heart_rate": 134,
+              "power": 120,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:09Z",
+              "heart_rate": 136,
+              "power": 128,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:10Z",
+              "heart_rate": 138,
+              "power": 137,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:11Z",
+              "heart_rate": 140,
+              "power": 147,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:12Z",
+              "heart_rate": 141,
+              "power": 156,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:13Z",
+              "heart_rate": 143,
+              "power": 166,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:14Z",
+              "heart_rate": 145,
+              "power": 175,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:15Z",
+              "heart_rate": 147,
+              "power": 183,
+              "cadence": 80
+            },
+            {
+              "timestamp": "2024-01-05T10:04:16Z",
+              "heart_rate": 149,
+              "power": 190,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:04:17Z",
+              "heart_rate": 150,
+              "power": 195,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:04:18Z",
+              "heart_rate": 152,
+              "power": 198,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:04:19Z",
+              "heart_rate": 153,
+              "power": 199,
+              "cadence": 81
+            },
+            {
+              "timestamp": "2024-01-05T10:04:20Z",
+              "heart_rate": 155,
+              "power": 199,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:04:21Z",
+              "heart_rate": 156,
+              "power": 196,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:04:22Z",
+              "heart_rate": 157,
+              "power": 192,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:04:23Z",
+              "heart_rate": 158,
+              "power": 186,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:04:24Z",
+              "heart_rate": 159,
+              "power": 178,
+              "cadence": 82
+            },
+            {
+              "timestamp": "2024-01-05T10:04:25Z",
+              "heart_rate": 159,
+              "power": 169,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:26Z",
+              "heart_rate": 159,
+              "power": 160,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:27Z",
+              "heart_rate": 159,
+              "power": 150,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:28Z",
+              "heart_rate": 159,
+              "power": 141,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:29Z",
+              "heart_rate": 159,
+              "power": 131,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:30Z",
+              "heart_rate": 159,
+              "power": 123,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:31Z",
+              "heart_rate": 158,
+              "power": 115,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:32Z",
+              "heart_rate": 157,
+              "power": 109,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:33Z",
+              "heart_rate": 156,
+              "power": 104,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:34Z",
+              "heart_rate": 155,
+              "power": 101,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:35Z",
+              "heart_rate": 153,
+              "power": 101,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:36Z",
+              "heart_rate": 152,
+              "power": 102,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:37Z",
+              "heart_rate": 150,
+              "power": 105,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:38Z",
+              "heart_rate": 149,
+              "power": 110,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:39Z",
+              "heart_rate": 147,
+              "power": 116,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:40Z",
+              "heart_rate": 145,
+              "power": 124,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:41Z",
+              "heart_rate": 143,
+              "power": 133,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:42Z",
+              "heart_rate": 141,
+              "power": 143,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:43Z",
+              "heart_rate": 140,
+              "power": 152,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:44Z",
+              "heart_rate": 138,
+              "power": 162,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:45Z",
+              "heart_rate": 136,
+              "power": 171,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:46Z",
+              "heart_rate": 134,
+              "power": 180,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:47Z",
+              "heart_rate": 132,
+              "power": 187,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:48Z",
+              "heart_rate": 130,
+              "power": 193,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:49Z",
+              "heart_rate": 129,
+              "power": 197,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:50Z",
+              "heart_rate": 127,
+              "power": 199,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:51Z",
+              "heart_rate": 126,
+              "power": 199,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:52Z",
+              "heart_rate": 125,
+              "power": 198,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:53Z",
+              "heart_rate": 123,
+              "power": 194,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:54Z",
+              "heart_rate": 122,
+              "power": 188,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:55Z",
+              "heart_rate": 122,
+              "power": 181,
+              "cadence": 84
+            },
+            {
+              "timestamp": "2024-01-05T10:04:56Z",
+              "heart_rate": 121,
+              "power": 173,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:57Z",
+              "heart_rate": 121,
+              "power": 164,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:58Z",
+              "heart_rate": 121,
+              "power": 154,
+              "cadence": 83
+            },
+            {
+              "timestamp": "2024-01-05T10:04:59Z",
+              "heart_rate": 121,
+              "power": 145,
+              "cadence": 83
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

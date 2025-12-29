@@ -35,24 +35,8 @@ func main() {
 		log.Fatalf("Failed to parse JSON: %v", err)
 	}
 
-	// 3. Extract HR Stream
-	var hrStream []int
-	for _, session := range activity.Sessions {
-		for _, lap := range session.Laps {
-			for _, record := range lap.Records {
-				hrStream = append(hrStream, int(record.HeartRate))
-			}
-		}
-	}
-
-
-
-	// If stream is empty, user might be testing "empty file" scenario, or wants dummy data.
-	// For now, we proceed. If generator fails, it fails.
-	fmt.Printf("Extracted %d heart rate points\n", len(hrStream))
-
-	// 4. Generate FIT
-	fitData, err := file_generators.GenerateFitFile(&activity, hrStream)
+	// 3. Generate FIT
+	fitData, err := file_generators.GenerateFitFile(&activity)
 	if err != nil {
 		log.Fatalf("Failed to generate FIT file: %v", err)
 	}
@@ -64,4 +48,3 @@ func main() {
 
 	fmt.Printf("Successfully wrote FIT file to %s (%d bytes)\n", *outputFile, len(fitData))
 }
-

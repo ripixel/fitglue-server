@@ -121,6 +121,12 @@ func TestOrchestrator_Process(t *testing.T) {
 			Timestamp: "2023-01-01T10:00:00Z",
 			StandardizedActivity: &pb.StandardizedActivity{
 				Name: "Original Run",
+				Sessions: []*pb.Session{
+					{
+						StartTime:        "2023-01-01T10:00:00Z",
+						TotalElapsedTime: 60,
+					},
+				},
 			},
 		}
 
@@ -169,6 +175,12 @@ func TestOrchestrator_Process(t *testing.T) {
 			Source: pb.ActivitySource_SOURCE_HEVY,
 			StandardizedActivity: &pb.StandardizedActivity{
 				Name: "Run",
+				Sessions: []*pb.Session{
+					{
+						StartTime:        "2023-01-01T10:00:00Z",
+						TotalElapsedTime: 60,
+					},
+				},
 			},
 			Timestamp: "2023-01-01T10:00:00Z",
 		}
@@ -183,6 +195,116 @@ func TestOrchestrator_Process(t *testing.T) {
 		}
 		if result.Events[0].PipelineId != "default-legacy" {
 			t.Errorf("Expected default-legacy pipeline, got %s", result.Events[0].PipelineId)
+		}
+	})
+
+	t.Run("Fails if multiple sessions present", func(t *testing.T) {
+		mockDB := &MockDatabase{
+			GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
+				return map[string]interface{}{"user_id": id}, nil
+			},
+		}
+		orchestrator := NewOrchestrator(mockDB, &MockBlobStore{}, "test-bucket")
+		payload := &pb.ActivityPayload{
+			UserId: "user-1",
+			StandardizedActivity: &pb.StandardizedActivity{
+				Sessions: []*pb.Session{{}, {}}, // Two sessions
+			},
+		}
+		_, err := orchestrator.Process(ctx, payload, "exec-1")
+		if err == nil || err.Error() != "multiple sessions not supported" {
+			t.Errorf("Expected 'multiple sessions not supported' error, got %v", err)
+		}
+	})
+
+	t.Run("Fails if session duration is zero", func(t *testing.T) {
+		mockDB := &MockDatabase{
+			GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
+				return map[string]interface{}{"user_id": id}, nil
+			},
+		}
+		orchestrator := NewOrchestrator(mockDB, &MockBlobStore{}, "test-bucket")
+		payload := &pb.ActivityPayload{
+			UserId: "user-1",
+			StandardizedActivity: &pb.StandardizedActivity{
+				Sessions: []*pb.Session{
+					{TotalElapsedTime: 0},
+				},
+			},
+		}
+		_, err := orchestrator.Process(ctx, payload, "exec-1")
+		if err == nil || err.Error() != "session total elapsed time is 0" {
+			t.Errorf("Expected 'session total elapsed time is 0' error, got %v", err)
+		}
+	})
+
+	t.Run("Aggregates HR stream into Records", func(t *testing.T) {
+		mockDB := &MockDatabase{
+			GetUserFunc: func(ctx context.Context, id string) (map[string]interface{}, error) {
+				return map[string]interface{}{
+					"user_id": id,
+					"pipelines": []interface{}{
+						map[string]interface{}{
+							"id":        "p1",
+							"source":    "SOURCE_HEVY",
+							"enrichers": []interface{}{map[string]interface{}{"name": "hr-provider"}},
+						},
+					},
+				}, nil
+			},
+		}
+		mockProvider := &MockProvider{
+			NameFunc: func() string { return "hr-provider" },
+			EnrichFunc: func(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputConfig map[string]string) (*providers.EnrichmentResult, error) {
+				return &providers.EnrichmentResult{
+					HeartRateStream: []int{100, 110, 120}, // 3 data points
+				}, nil
+			},
+		}
+		orchestrator := NewOrchestrator(mockDB, &MockBlobStore{}, "test-bucket")
+		orchestrator.Register(mockProvider)
+
+		payload := &pb.ActivityPayload{ // Set source explicitly
+			Source: pb.ActivitySource_SOURCE_HEVY,
+			UserId: "u1",
+			StandardizedActivity: &pb.StandardizedActivity{
+				StartTime: "2024-01-01T10:00:00Z",
+				Sessions: []*pb.Session{
+					{
+						StartTime:        "2024-01-01T10:00:00Z",
+						TotalElapsedTime: 3,
+						// No initial records
+					},
+				},
+			},
+		}
+
+		_, err := orchestrator.Process(ctx, payload, "exec-1")
+		if err != nil {
+			t.Fatalf("Process failed: %v", err)
+		}
+
+		// Verify records were populated
+		if len(payload.StandardizedActivity.Sessions) == 0 {
+			t.Fatal("Session missing")
+		}
+		session := payload.StandardizedActivity.Sessions[0]
+		if len(session.Laps) == 0 {
+			t.Fatal("Lap missing") // Orchestrator adds default lap
+		}
+		records := session.Laps[0].Records
+		if len(records) != 3 {
+			t.Errorf("Expected 3 records, got %d", len(records))
+		} else {
+			if records[0].HeartRate != 100 {
+				t.Errorf("Expected HR 100, got %d", records[0].HeartRate)
+			}
+			if records[1].HeartRate != 110 {
+				t.Errorf("Expected HR 110, got %d", records[1].HeartRate)
+			}
+			if records[2].HeartRate != 120 {
+				t.Errorf("Expected HR 120, got %d", records[2].HeartRate)
+			}
 		}
 	})
 }

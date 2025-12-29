@@ -15,10 +15,20 @@ func TestGenerateFitFile(t *testing.T) {
 	startTime := time.Now().Format(time.RFC3339)
 	activity := &pb.StandardizedActivity{
 		StartTime: startTime,
+		Type:      "WEIGHT_TRAINING",
 		Sessions: []*pb.Session{
 			{
 				StartTime:        startTime,
 				TotalElapsedTime: 3,
+				Laps: []*pb.Lap{
+					{
+						Records: []*pb.Record{
+							{Timestamp: startTime, HeartRate: 140},
+							{Timestamp: startTime, HeartRate: 145}, // Logic usually adds seconds, simplified here
+							{Timestamp: startTime, HeartRate: 150},
+						},
+					},
+				},
 				StrengthSets: []*pb.StrengthSet{
 					{
 						ExerciseName:    "Bench Press",
@@ -30,10 +40,8 @@ func TestGenerateFitFile(t *testing.T) {
 			},
 		},
 	}
-	hrStream := []int{140, 145, 150}
-
 	// Exec
-	result, err := GenerateFitFile(activity, hrStream)
+	result, err := GenerateFitFile(activity)
 
 	// Verify
 	if err != nil {
@@ -69,8 +77,8 @@ func TestGenerateFitFile(t *testing.T) {
 	}
 
 	// Expectations
-	if recordCount != len(hrStream) {
-		t.Errorf("Expected %d Record messages, got %d", len(hrStream), recordCount)
+	if recordCount != 3 {
+		t.Errorf("Expected 3 Record messages, got %d", recordCount)
 	}
 	if setCount != 1 {
 		t.Errorf("Expected 1 Set message, got %d", setCount)
@@ -105,15 +113,15 @@ func TestGenerateFitFile_NoHR(t *testing.T) {
 			},
 		},
 	}
-	// Empty HR stream
-	var hrStream []int
+	// Empty HR stream - no longer needed as an argument
 
-	result, err := GenerateFitFile(activity, hrStream)
+	// Generate FIT file
+	fitFileBytes, err := GenerateFitFile(activity)
 	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
+		t.Fatalf("GenerateFitFile failed: %v", err)
 	}
 
-	fitDecoder := decoder.New(bytes.NewReader(result))
+	fitDecoder := decoder.New(bytes.NewReader(fitFileBytes))
 	fitData, err := fitDecoder.Decode()
 	if err != nil {
 		t.Fatalf("Failed to decode generated FIT file: %v", err)
