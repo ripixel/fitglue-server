@@ -261,6 +261,37 @@ program.command('users:delete')
         }
     });
 
+// Helper to map EnricherProviderType to human-readable names
+const getEnricherProviderName = (providerType: EnricherProviderType): string => {
+    const mapping: Record<EnricherProviderType, string> = {
+        [EnricherProviderType.ENRICHER_PROVIDER_UNSPECIFIED]: 'Unspecified',
+        [EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE]: 'Fitbit Heart Rate',
+        [EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY]: 'Workout Summary',
+        [EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP]: 'Muscle Heatmap',
+        [EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS]: 'Virtual GPS',
+        [EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK]: 'Source Link',
+        [EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH]: 'Metadata Passthrough',
+        [EnricherProviderType.ENRICHER_PROVIDER_MOCK]: 'Mock',
+        [EnricherProviderType.UNRECOGNIZED]: 'Unrecognized',
+    };
+    return mapping[providerType] || `Unknown (${providerType})`;
+};
+
+// Helper to get available enricher choices, excluding already-selected ones
+const getAvailableEnricherChoices = (selectedProviderTypes: EnricherProviderType[]) => {
+    const allChoices = [
+        { name: 'Fitbit Heart Rate', value: EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE },
+        { name: 'Workout Summary', value: EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY },
+        { name: 'Muscle Heatmap', value: EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP },
+        { name: 'Virtual GPS', value: EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS },
+        { name: 'Source Link', value: EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK },
+        { name: 'Metadata Passthrough', value: EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH },
+        { name: 'Mock', value: EnricherProviderType.ENRICHER_PROVIDER_MOCK }
+    ];
+
+    return allChoices.filter(choice => !selectedProviderTypes.includes(choice.value));
+};
+
 // Helper to format user output
 const formatUserOutput = (doc: admin.firestore.DocumentSnapshot) => {
     const data = doc.data();
@@ -282,7 +313,7 @@ const formatUserOutput = (doc: admin.firestore.DocumentSnapshot) => {
             console.log(`     #${index + 1} [${p.id}]`);
             console.log(`       Source: ${p.source}`);
             if (p.enrichers && p.enrichers.length > 0) {
-                const enricherDesc = p.enrichers.map((e: any) => e.name).join(' -> ');
+                const enricherDesc = p.enrichers.map((e: any) => getEnricherProviderName(e.providerType)).join(' -> ');
                 console.log(`       Enrichers: ${enricherDesc}`);
             } else {
                 console.log(`       Enrichers: (None)`);
@@ -487,6 +518,14 @@ program.command('users:add-pipeline')
 
             console.log('\n--- Configure Enrichers (Order Matters) ---');
             while (addMore) {
+                const selectedProviderTypes = enrichers.map((e: any) => e.providerType);
+                const availableChoices = getAvailableEnricherChoices(selectedProviderTypes);
+
+                if (availableChoices.length === 0) {
+                    console.log('All available enrichers have been added.');
+                    break;
+                }
+
                 const enricherAnswer = await inquirer.prompt([
                     {
                         type: 'confirm',
@@ -505,15 +544,7 @@ program.command('users:add-pipeline')
                         type: 'list',
                         name: 'providerType',
                         message: 'Enricher Provider:',
-                        choices: [
-                            { name: 'Fitbit Heart Rate', value: EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE },
-                            { name: 'Workout Summary', value: EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY },
-                            { name: 'Muscle Heatmap', value: EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP },
-                            { name: 'Virtual GPS', value: EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS },
-                            { name: 'Source Link', value: EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK },
-                            { name: 'Metadata Passthrough', value: EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH },
-                            { name: 'Mock', value: EnricherProviderType.ENRICHER_PROVIDER_MOCK }
-                        ]
+                        choices: availableChoices
                     },
                     // We could ask for inputs here dynamically, but for now simple inputs
                     {
@@ -650,6 +681,14 @@ program.command('users:replace-pipeline')
             console.log('\n--- Configure Enrichers (Order Matters) ---');
             // eslint-disable-next-line no-constant-condition
             while (true) {
+                const selectedProviderTypes = enrichers.map((e: any) => e.providerType);
+                const availableChoices = getAvailableEnricherChoices(selectedProviderTypes);
+
+                if (availableChoices.length === 0) {
+                    console.log('All available enrichers have been added.');
+                    break;
+                }
+
                 const enricherAnswer = await inquirer.prompt([
                     {
                         type: 'confirm',
@@ -666,15 +705,7 @@ program.command('users:replace-pipeline')
                         type: 'list',
                         name: 'providerType',
                         message: 'Enricher Provider:',
-                        choices: [
-                            { name: 'Fitbit Heart Rate', value: EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE },
-                            { name: 'Workout Summary', value: EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY },
-                            { name: 'Muscle Heatmap', value: EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP },
-                            { name: 'Virtual GPS', value: EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS },
-                            { name: 'Source Link', value: EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK },
-                            { name: 'Metadata Passthrough', value: EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH },
-                            { name: 'Mock', value: EnricherProviderType.ENRICHER_PROVIDER_MOCK }
-                        ]
+                        choices: availableChoices
                     },
                     {
                         type: 'input',
