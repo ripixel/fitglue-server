@@ -2,6 +2,7 @@ package enricher_providers
 
 import (
 	"context"
+	"fmt"
 	"math"
 
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
@@ -116,6 +117,7 @@ func (p *VirtualGPSProvider) Enrich(ctx context.Context, activity *pb.Standardiz
 	return &EnrichmentResult{
 		PositionLatStream:  latStream,
 		PositionLongStream: longStream,
+		Description:        fmt.Sprintf("🗺️ Took a virtual tour of %s (GPS generated for this indoor workout)\n", route.Name),
 		Metadata: map[string]string{
 			"virtual_gps_route": route.Name,
 		},
