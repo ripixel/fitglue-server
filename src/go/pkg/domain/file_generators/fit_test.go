@@ -52,7 +52,7 @@ func TestGenerateFitFile(t *testing.T) {
 	}
 
 	// Count messages
-	var recordCount, setCount, sessionCount, activityCount int
+	var recordCount, setCount, sessionCount, activityCount, lapCount int
 	for _, msg := range fitData.Messages {
 		switch msg.Num {
 		case typedef.MesgNumRecord:
@@ -63,6 +63,8 @@ func TestGenerateFitFile(t *testing.T) {
 			sessionCount++
 		case typedef.MesgNumActivity:
 			activityCount++
+		case typedef.MesgNumLap:
+			lapCount++
 		}
 	}
 
@@ -78,5 +80,8 @@ func TestGenerateFitFile(t *testing.T) {
 	}
 	if activityCount != 1 {
 		t.Errorf("Expected 1 Activity message, got %d", activityCount)
+	}
+	if lapCount != 1 {
+		t.Errorf("Expected 1 Lap message, got %d", lapCount)
 	}
 }

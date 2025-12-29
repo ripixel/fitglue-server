@@ -117,6 +117,20 @@ func GenerateFitFile(activity *pb.StandardizedActivity, hrStream []int) ([]byte,
 		fit.Messages = append(fit.Messages, setMsg.ToMesg(nil))
 	}
 
+	// 6. Lap message
+	lapMsg := mesgdef.NewLap(nil).
+		SetTimestamp(startTime).
+		SetStartTime(startTime).
+		SetSport(typedef.SportTraining).
+		SetMessageIndex(0)
+
+	if session.TotalElapsedTime > 0 {
+		lapMsg.SetTotalElapsedTime(uint32(session.TotalElapsedTime * 1000))
+		lapMsg.SetTotalTimerTime(uint32(session.TotalElapsedTime * 1000))
+	}
+
+	fit.Messages = append(fit.Messages, lapMsg.ToMesg(nil))
+
 	// 6. Append Summary Messages (Session, Activity) at the end
 	fit.Messages = append(fit.Messages, sessionMsg.ToMesg(nil))
 	fit.Messages = append(fit.Messages, activityMsg.ToMesg(nil))
