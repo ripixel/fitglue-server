@@ -100,7 +100,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 		errs := make([]error, len(configs))
 
 		for i, cfg := range configs {
-            providerName := o.getProviderNameFromType(cfg.ProviderType)
+			providerName := o.getProviderNameFromType(cfg.ProviderType)
 			provider, ok := o.providers[providerName]
 			if !ok {
 				slog.Warn("Provider not found, skipping", "name", providerName, "type", cfg.ProviderType)
@@ -252,6 +252,20 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 					}
 				}
 			}
+			if len(res.PositionLatStream) > 0 {
+				for idx, val := range res.PositionLatStream {
+					if idx < len(lap.Records) {
+						lap.Records[idx].PositionLat = val
+					}
+				}
+			}
+			if len(res.PositionLongStream) > 0 {
+				for idx, val := range res.PositionLongStream {
+					if idx < len(lap.Records) {
+						lap.Records[idx].PositionLong = val
+					}
+				}
+			}
 
 			for k, v := range res.Metadata {
 				finalEvent.EnrichmentMetadata[k] = v
@@ -301,8 +315,8 @@ func (o *Orchestrator) resolvePipelines(source pb.ActivitySource, userRec *pb.Us
 			var enrichers []configuredEnricher
 			for _, e := range p.Enrichers {
 				enrichers = append(enrichers, configuredEnricher{
-					ProviderType:   e.ProviderType,
-					Inputs: e.Inputs,
+					ProviderType: e.ProviderType,
+					Inputs:       e.Inputs,
 				})
 			}
 			pipelines = append(pipelines, configuredPipeline{
@@ -351,6 +365,8 @@ func (o *Orchestrator) getProviderNameFromType(t pb.EnricherProviderType) string
 		return "source-link"
 	case pb.EnricherProviderType_ENRICHER_PROVIDER_METADATA_PASSTHROUGH:
 		return "metadata-passthrough"
+	case pb.EnricherProviderType_ENRICHER_PROVIDER_VIRTUAL_GPS:
+		return "virtual-gps"
 	case pb.EnricherProviderType_ENRICHER_PROVIDER_MOCK:
 		return "mock-enricher"
 	default:

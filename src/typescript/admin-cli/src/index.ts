@@ -509,6 +509,7 @@ program.command('users:add-pipeline')
                             { name: 'Fitbit Heart Rate', value: EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE },
                             { name: 'Workout Summary', value: EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY },
                             { name: 'Muscle Heatmap', value: EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP },
+                            { name: 'Virtual GPS', value: EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS },
                             { name: 'Source Link', value: EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK },
                             { name: 'Metadata Passthrough', value: EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH },
                             { name: 'Mock', value: EnricherProviderType.ENRICHER_PROVIDER_MOCK }
@@ -669,6 +670,7 @@ program.command('users:replace-pipeline')
                             { name: 'Fitbit Heart Rate', value: EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE },
                             { name: 'Workout Summary', value: EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY },
                             { name: 'Muscle Heatmap', value: EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP },
+                            { name: 'Virtual GPS', value: EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS },
                             { name: 'Source Link', value: EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK },
                             { name: 'Metadata Passthrough', value: EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH },
                             { name: 'Mock', value: EnricherProviderType.ENRICHER_PROVIDER_MOCK }

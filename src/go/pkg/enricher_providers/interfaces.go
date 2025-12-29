@@ -14,8 +14,10 @@ type EnrichmentResult struct {
 	Name         string
 
 	// Raw Data Streams (for merging)
-	HeartRateStream []int
-	PowerStream     []int
+	HeartRateStream    []int
+	PowerStream        []int
+	PositionLatStream  []float64
+	PositionLongStream []float64
 
 	// Artifacts (Providers can still generate specific artifacts if independent)
 	// But main FIT generation should normally happen in Orchestrator fan-in.

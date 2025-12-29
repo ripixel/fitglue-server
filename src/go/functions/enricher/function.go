@@ -33,6 +33,10 @@ func init() {
 	// Register default providers
 	providerRegistry = []providers.Provider{
 		providers.NewFitBitHeartRate(),
+		providers.NewWorkoutSummaryProvider(),
+		providers.NewMuscleHeatmapProvider(),
+		providers.NewSourceLinkProvider(),
+		providers.NewVirtualGPSProvider(),
 	}
 }
 
