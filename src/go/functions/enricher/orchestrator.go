@@ -50,6 +50,7 @@ type ProviderExecution struct {
 	Status       string
 	Error        string
 	DurationMs   int64
+	Metadata     map[string]string
 }
 
 // Process executes the enrichment pipelines for the activity
@@ -116,9 +117,13 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 
 				startTime := time.Now()
 
+				// Generate ExecutionID for tracking
+				execID := uuid.NewString()
+
 				// Log child execution start (non-blocking, best effort)
 				// We don't fail the enrichment if logging fails
 				providerExecs[idx].ProviderName = p.Name()
+				providerExecs[idx].ExecutionID = execID
 				providerExecs[idx].Status = "STARTED"
 
 				res, err := p.Enrich(ctx, payload.StandardizedActivity, userRec, inputs)
@@ -126,7 +131,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				providerExecs[idx].DurationMs = duration
 
 				if err != nil {
-					slog.Error("Enricher failed", "name", p.Name(), "error", err, "duration_ms", duration)
+					slog.Error("Enricher failed", "name", p.Name(), "error", err, "duration_ms", duration, "execution_id", execID)
 					errs[idx] = err
 					providerExecs[idx].Status = "FAILED"
 					providerExecs[idx].Error = err.Error()
@@ -134,8 +139,9 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				}
 
 				providerExecs[idx].Status = "SUCCESS"
+				providerExecs[idx].Metadata = res.Metadata
 				results[idx] = res
-				slog.Info("Enricher completed", "name", p.Name(), "duration_ms", duration)
+				slog.Info("Enricher completed", "name", p.Name(), "duration_ms", duration, "execution_id", execID)
 			}(i, provider, cfg.Inputs)
 		}
 		wg.Wait()

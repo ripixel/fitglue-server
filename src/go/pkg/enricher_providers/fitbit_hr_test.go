@@ -73,6 +73,12 @@ func TestFitBitHeartRate_Enrich(t *testing.T) {
 	if result.Metadata["hr_source"] != "fitbit" {
 		t.Errorf("Expected hr_source=fitbit, got %s", result.Metadata["hr_source"])
 	}
+	if result.Metadata["status_detail"] != "Success" {
+		t.Errorf("Expected status_detail=Success, got %s", result.Metadata["status_detail"])
+	}
+	if result.Metadata["query_start"] != "10:00" {
+		t.Errorf("Expected query_start=10:00, got %s", result.Metadata["query_start"])
+	}
 
 	if len(result.HeartRateStream) != 3600 {
 		t.Errorf("Expected heart rate stream of 3600 seconds, got %d", len(result.HeartRateStream))

@@ -137,10 +137,19 @@ func (p *FitBitHeartRate) EnrichWithClient(ctx context.Context, activity *pb.Sta
 		slog.Warn("Heart rate stream is empty after processing")
 	}
 
+	// Status Message
+	statusMsg := "Success"
+	if pointsFound == 0 {
+		statusMsg = "No heart rate data points found in Fitbit response"
+	}
+
 	return &EnrichmentResult{
 		Metadata: map[string]string{
-			"hr_source": "fitbit",
-			"hr_points": strconv.Itoa(len(hrResponse.ActivitiesHeartIntraday.Dataset)),
+			"hr_source":     "fitbit",
+			"hr_points":     strconv.Itoa(pointsFound),
+			"query_start":   startTimeStr,
+			"query_end":     endTimeStr,
+			"status_detail": statusMsg,
 		},
 		HeartRateStream: stream,
 	}, nil
