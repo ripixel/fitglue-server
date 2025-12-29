@@ -85,8 +85,15 @@ func TestFitBitHeartRate_Enrich(t *testing.T) {
 	}
 
 	// Verify heart rate stream has data
-	if len(result.HeartRateStream) > 0 {
-		t.Logf("Heart rate stream populated with %d values", len(result.HeartRateStream))
+	foundData := false
+	for _, val := range result.HeartRateStream {
+		if val > 0 {
+			foundData = true
+			break
+		}
+	}
+	if !foundData {
+		t.Error("Heart rate stream contains only zeros, expected populated data")
 	}
 }
 

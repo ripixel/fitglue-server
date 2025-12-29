@@ -60,6 +60,8 @@ build-go: clean-go
 	cd $(GO_SRC_DIR) && $(GOBUILD) -v ./...
 	@echo "Building fit-gen tool..."
 	cd $(GO_SRC_DIR) && $(GOBUILD) -o ../../bin/fit-gen ./cmd/fit-gen
+	@echo "Building fit-inspect tool..."
+	cd $(GO_SRC_DIR) && $(GOBUILD) -o ../../bin/fit-inspect ./cmd/fit-inspect
 
 test-go:
 	@echo "Testing Go services..."

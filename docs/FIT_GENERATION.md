@@ -43,3 +43,47 @@ To manually verify FIT file correctness (e.g., for Strava):
     ```
 3.  **Upload:** Upload the resulting `.fit` file to Strava (or other platform).
 4.  **Verify:** Check that all data fields (Heart Rate, GPS map, Power, etc.) are displayed correctly.
+
+## FIT Inspector Tool (`fit-inspect`)
+
+The `fit-inspect` CLI tool (`src/go/cmd/fit-inspect`) provides a quick way to analyze the contents of a FIT file without uploading it to a third-party service. It calculates statistics for key metrics and can dump raw record data.
+
+### Build
+```bash
+make build-go
+# Binary location: ./bin/fit-inspect
+```
+
+### Usage
+```bash
+./bin/fit-inspect -input <path-to-fit-file> [flags]
+```
+
+**Flags:**
+- `-input`: (Required) Path to the FIT file to analyze.
+- `-detailed-dump`: (Optional) If set, prints every record's raw field values and types to stdout. Useful for debugging field name mismatches or data issues.
+
+### Output
+The tool outputs a statistical summary table for the following fields (if present):
+- HeartRate
+- Power
+- Cadence
+- Speed
+- Distance
+- Altitude
+- PositionLat
+- PositionLong
+
+**Example Output:**
+```text
+Analyzing FIT file...
+
+Total Records: 300
+
+Field Statistics:
+Field           Count   Coverage   Min              Max              Avg
+-----           -----   --------   ---              ---              ---
+heart_rate      300     100.0%     121.00           159.00           140.56
+power           300     100.0%     200.00           250.00           225.00
+...
+```

@@ -107,7 +107,7 @@ func (p *FitBitHeartRate) EnrichWithClient(ctx context.Context, activity *pb.Sta
 
 	for _, dataPoint := range hrResponse.ActivitiesHeartIntraday.Dataset {
 		ptTime, _ := time.Parse("15:04:05", dataPoint.Time)
-		startDayTime, _ := time.Parse("15:04:05", startTimeStr)
+		startDayTime, _ := time.Parse("15:04", startTimeStr)
 
 		offset := int(ptTime.Sub(startDayTime).Seconds())
 
