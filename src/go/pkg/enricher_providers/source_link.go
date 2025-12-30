@@ -45,5 +45,9 @@ func (p *SourceLinkProvider) Enrich(ctx context.Context, activity *pb.Standardiz
 
 	return &EnrichmentResult{
 		Description: desc,
+		Metadata: map[string]string{
+			"source": sourceDisplay,
+			"link":   link,
+		},
 	}, nil
 }

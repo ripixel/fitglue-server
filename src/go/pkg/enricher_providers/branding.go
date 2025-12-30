@@ -26,5 +26,8 @@ func (p *BrandingProvider) Enrich(ctx context.Context, activity *pb.Standardized
 
 	return &EnrichmentResult{
 		Description: "\n\n" + message,
+		Metadata: map[string]string{
+			"message": message,
+		},
 	}, nil
 }

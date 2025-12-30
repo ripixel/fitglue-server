@@ -172,6 +172,10 @@ func (p *MuscleHeatmapProvider) Enrich(ctx context.Context, activity *pb.Standar
 
 	return &EnrichmentResult{
 		Description: sb.String(),
+		Metadata: map[string]string{
+			"muscle_groups_displayed": fmt.Sprintf("%d", len(keys)),
+			"max_score":               fmt.Sprintf("%.2f", maxScore),
+		},
 	}, nil
 }
 

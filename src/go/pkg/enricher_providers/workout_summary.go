@@ -170,6 +170,12 @@ func (p *WorkoutSummaryProvider) Enrich(ctx context.Context, activity *pb.Standa
 
 	return &EnrichmentResult{
 		Description: sb.String(),
+		Metadata: map[string]string{
+			"exercise_count": fmt.Sprintf("%d", len(blocks)),
+			"total_sets":     fmt.Sprintf("%d", len(allSets)),
+			"has_supersets":  fmt.Sprintf("%t", hasSupersets),
+			"has_set_types":  fmt.Sprintf("%t", hasSetTypes),
+		},
 	}, nil
 }
 

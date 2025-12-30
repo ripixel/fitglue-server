@@ -127,6 +127,10 @@ func TestDescriptionEngine_Integration(t *testing.T) {
 
 		// Muscle Heatmap (should be sorted by volume, descending)
 		"Muscle Heatmap:",
+		// Check for at least some muscle groups being displayed
+		"Triceps:",
+		"Biceps:",
+		"Chest:",
 
 		// Source link
 		"View on Hevy: https://hevy.com/workout/test-uuid",
@@ -140,6 +144,9 @@ func TestDescriptionEngine_Integration(t *testing.T) {
 			t.Errorf("Expected description to contain %q, but got:\n%s", part, finalDesc)
 		}
 	}
+
+	// Print full description for debugging
+	t.Logf("Full description:\n%s", finalDesc)
 
 	// Verify muscle heatmap is sorted by volume (descending)
 	// The heatmap should appear with highest volume muscles first
