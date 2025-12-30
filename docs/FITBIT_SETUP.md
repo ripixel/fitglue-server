@@ -32,8 +32,9 @@ We need to set the verification code that Fitbit will use to verify our webhook 
 5.  Set **Callback URL**: `https://<YOUR_DOMAIN>/auth/fitbit/callback` (or your OAuth Handler URL).
 6.  Click **Save**.
 7.  Click on the **Subscription/Subscriber Interface** tab (or "Manage" button next to "Webhook").
-8.  **Endpoint URL**: Enter the URL of your deployed `fitbit-webhook-handler`.
-    *   Find it via: `gcloud functions describe fitbit-webhook-handler --region=us-central1 --format='value(serviceConfig.uri)'`
+8.  **Endpoint URL**: Enter the URL of your deployed webhook handler.
+    *   **Recommended**: `https://<YOUR_DOMAIN>/hooks/fitbit` (via Firebase Hosting)
+    *   **Alternative**: The raw function URL (found via `gcloud functions describe fitbit-webhook-handler ...`)
 9.  **Verification Code**: Enter the *same string* you set in Step 2.
 10. Click **Apply** (or Verify).
     *   Fitbit will send a `GET` request to your handler.
