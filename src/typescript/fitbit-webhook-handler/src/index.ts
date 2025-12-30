@@ -1,5 +1,5 @@
-import { createCloudFunction, FrameworkContext, TOPICS } from '@fitglue/shared';
-const crypto = require('crypto');
+import { createCloudFunction, FrameworkContext } from '@fitglue/shared';
+import { createHmac } from 'crypto';
 
 const VERIFY_TOKEN_SECRET = 'FITBIT_VERIFICATION_CODE';
 const CLIENT_SECRET_Name = 'FITBIT_CLIENT_SECRET';
@@ -48,7 +48,7 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
         return;
       }
 
-      const hmac = crypto.createHmac('sha1', `${clientSecret}&`);
+      const hmac = createHmac('sha1', `${clientSecret}&`);
       hmac.update(rawBody);
       const expectedSignature = hmac.digest('base64');
 
