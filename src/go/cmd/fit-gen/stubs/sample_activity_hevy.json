@@ -1,156 +1,530 @@
 {
   "source": "HEVY",
-  "externalId": "b08cd357-1166-41fa-94bc-bda76fa26d61",
+  "externalId": "2e4a1e83-a83e-417b-94ff-dd88b9c6994d",
   "userId": "832bc50d-4814-4fce-89ff-f94ef4bba9b1",
-  "startTime": "2025-12-29T18:12:58+00:00",
-  "name": "Bedtime Core",
+  "startTime": "2025-12-29T08:00:06+00:00",
+  "name": "Hybrid Class",
   "type": "WEIGHT_TRAINING",
-  "description": "Testinggg 💪",
+  "description": "Was it wise to get up to do this at 8am? No. Did I do it anyway? Yes. Did I love it? Also yes 💪 \n\nOuter circuit x 3, Inner circuit (upper, lower, core) - 40s on, 20s off, 1min between circuits",
   "sessions": [
     {
-      "startTime": "2025-12-29T18:12:58+00:00",
-      "totalElapsedTime": 255,
-      "totalDistance": 0,
+      "startTime": "2025-12-29T08:00:06+00:00",
+      "totalElapsedTime": 2700,
+      "totalDistance": 180,
       "laps": [],
       "strengthSets": [
         {
-          "exerciseName": "Warm Up",
+          "exerciseName": "Kettlebell Swing",
+          "reps": 16,
+          "weightKg": 16,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Kettlebell Swing",
+          "reps": 16,
+          "weightKg": 16,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Kettlebell Swing",
+          "reps": 16,
+          "weightKg": 16,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Farmers Walk",
+          "reps": 0,
+          "weightKg": 32,
+          "distanceMeters": 30,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Farmers Walk",
+          "reps": 0,
+          "weightKg": 32,
+          "distanceMeters": 30,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Farmers Walk",
+          "reps": 0,
+          "weightKg": 32,
+          "distanceMeters": 30,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Battle Ropes",
           "reps": 0,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
           "notes": "",
-          "primaryMuscleGroup": "full_body",
-          "secondaryMuscleGroups": []
+          "supersetId": "0",
+          "primaryMuscleGroup": 17,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
         },
         {
-          "exerciseName": "Plank",
+          "exerciseName": "Battle Ropes",
           "reps": 0,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
+          "supersetId": "0",
+          "primaryMuscleGroup": 17,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
         },
         {
-          "exerciseName": "Dead Bug",
-          "reps": 30,
-          "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
-          "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
-        },
-        {
-          "exerciseName": "Sit Up",
-          "reps": 20,
-          "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
-          "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
-        },
-        {
-          "exerciseName": "Side Plank",
+          "exerciseName": "Battle Ropes",
           "reps": 0,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
+          "supersetId": "0",
+          "primaryMuscleGroup": 17,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
         },
         {
-          "exerciseName": "Side Plank",
+          "exerciseName": "Wall Sit",
           "reps": 0,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
-        },
-        {
-          "exerciseName": "Single Leg Glute Bridge",
-          "reps": 20,
-          "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
-          "notes": "",
-          "primaryMuscleGroup": "glutes",
+          "supersetId": "0",
+          "primaryMuscleGroup": 6,
           "secondaryMuscleGroups": [
-            "hamstrings",
-            "quadriceps"
-          ]
+            1
+          ],
+          "setType": "normal"
         },
         {
-          "exerciseName": "Single Leg Glute Bridge",
-          "reps": 20,
+          "exerciseName": "Wall Sit",
+          "reps": 0,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
-          "durationSeconds": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
           "notes": "",
-          "primaryMuscleGroup": "glutes",
+          "supersetId": "0",
+          "primaryMuscleGroup": 6,
           "secondaryMuscleGroups": [
-            "hamstrings",
-            "quadriceps"
-          ]
+            1
+          ],
+          "setType": "normal"
         },
         {
-          "exerciseName": "Superman",
-          "reps": 20,
+          "exerciseName": "Wall Sit",
+          "reps": 0,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            1
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Walking Lunge (Dumbbell)",
+          "reps": 0,
+          "weightKg": 10,
+          "distanceMeters": 30,
+          "startTime": "2025-12-29T08:00:06+00:00",
           "durationSeconds": 0,
           "notes": "",
-          "primaryMuscleGroup": "lower_back",
+          "supersetId": "0",
+          "primaryMuscleGroup": 6,
           "secondaryMuscleGroups": [
-            "glutes",
-            "hamstrings"
-          ]
+            9,
+            7
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Walking Lunge (Dumbbell)",
+          "reps": 0,
+          "weightKg": 10,
+          "distanceMeters": 30,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            9,
+            7
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Walking Lunge (Dumbbell)",
+          "reps": 0,
+          "weightKg": 10,
+          "distanceMeters": 30,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            9,
+            7
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Burpee Box Jump",
+          "reps": 8,
+          "weightKg": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Burpee Box Jump",
+          "reps": 8,
+          "weightKg": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Burpee Box Jump",
+          "reps": 8,
+          "weightKg": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "0",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Overhead Press (Dumbbell)",
+          "reps": 14,
+          "weightKg": 20,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "1",
+          "primaryMuscleGroup": 2,
+          "secondaryMuscleGroups": [
+            4
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Lateral Raise (Dumbbell)",
+          "reps": 16,
+          "weightKg": 12,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "1",
+          "primaryMuscleGroup": 2,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Bent Over Row (Dumbbell)",
+          "reps": 12,
+          "weightKg": 20,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "1",
+          "primaryMuscleGroup": 13,
+          "secondaryMuscleGroups": [
+            12,
+            3,
+            5
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Snatch",
+          "reps": 10,
+          "weightKg": 20,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "1",
+          "primaryMuscleGroup": 19,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Bicep Curl (Dumbbell)",
+          "reps": 12,
+          "weightKg": 20,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "1",
+          "primaryMuscleGroup": 3,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Triceps Kickback (Dumbbell)",
+          "reps": 14,
+          "weightKg": 12,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "1",
+          "primaryMuscleGroup": 4,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Front Squat",
+          "reps": 12,
+          "weightKg": 20,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "2",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            7,
+            9
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Sumo Squat (Kettlebell)",
+          "reps": 14,
+          "weightKg": 28,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "2",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            9,
+            11,
+            7
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Lunge (Dumbbell)",
+          "reps": 14,
+          "weightKg": 20,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "2",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            7,
+            9
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Romanian Deadlift (Dumbbell)",
+          "reps": 12,
+          "weightKg": 32,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "2",
+          "primaryMuscleGroup": 7,
+          "secondaryMuscleGroups": [
+            9,
+            15,
+            13,
+            12
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Curtsy Lunge (Dumbbell)",
+          "reps": 12,
+          "weightKg": 10,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "2",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            9,
+            7,
+            11
+          ],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Pulses",
+          "reps": 0,
+          "weightKg": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
+          "notes": "",
+          "supersetId": "2",
+          "primaryMuscleGroup": 6,
+          "secondaryMuscleGroups": [
+            7
+          ],
+          "setType": "normal"
         },
         {
           "exerciseName": "Crunch",
           "reps": 30,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
           "durationSeconds": 0,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
+          "supersetId": "3",
+          "primaryMuscleGroup": 1,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
         },
         {
-          "exerciseName": "Russian Twist (Bodyweight)",
-          "reps": 70,
-          "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
+          "exerciseName": "Russian Twist (Weighted)",
+          "reps": 20,
+          "weightKg": 6,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
           "durationSeconds": 0,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
+          "supersetId": "3",
+          "primaryMuscleGroup": 1,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
         },
         {
           "exerciseName": "Lying Leg Raise",
           "reps": 20,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
           "durationSeconds": 0,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
+          "supersetId": "3",
+          "primaryMuscleGroup": 1,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Shoulder Taps",
+          "reps": 22,
+          "weightKg": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 0,
+          "notes": "",
+          "supersetId": "3",
+          "primaryMuscleGroup": 2,
+          "secondaryMuscleGroups": [
+            16,
+            4
+          ],
+          "setType": "normal"
         },
         {
           "exerciseName": "Heel Taps",
-          "reps": 70,
+          "reps": 40,
           "weightKg": 0,
-          "startTime": "2025-12-29T18:12:58+00:00",
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
           "durationSeconds": 0,
           "notes": "",
-          "primaryMuscleGroup": "abdominals",
-          "secondaryMuscleGroups": []
+          "supersetId": "3",
+          "primaryMuscleGroup": 1,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
+        },
+        {
+          "exerciseName": "Plank",
+          "reps": 0,
+          "weightKg": 0,
+          "distanceMeters": 0,
+          "startTime": "2025-12-29T08:00:06+00:00",
+          "durationSeconds": 40,
+          "notes": "",
+          "supersetId": "3",
+          "primaryMuscleGroup": 1,
+          "secondaryMuscleGroups": [],
+          "setType": "normal"
         }
       ]
     }

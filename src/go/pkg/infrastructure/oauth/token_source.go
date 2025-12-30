@@ -184,12 +184,16 @@ func (s *FirestoreTokenSource) refreshToken(ctx context.Context, refreshToken st
 		newExpiry = time.Unix(result.ExpiresAt, 0)
 	}
 
-	// Update Firestore
-	updateData := map[string]interface{}{}
-	baseKey := fmt.Sprintf("integrations.%s", s.provider)
-	updateData[baseKey+".access_token"] = result.AccessToken
-	updateData[baseKey+".refresh_token"] = result.RefreshToken
-	updateData[baseKey+".expires_at"] = newExpiry
+	// Update Firestore with properly nested structure
+	updateData := map[string]interface{}{
+		"integrations": map[string]interface{}{
+			s.provider: map[string]interface{}{
+				"access_token":  result.AccessToken,
+				"refresh_token": result.RefreshToken,
+				"expires_at":    newExpiry,
+			},
+		},
+	}
 
 	if err := s.db.DB.UpdateUser(ctx, s.userID, updateData); err != nil {
 		return nil, fmt.Errorf("failed to persist new tokens: %w", err)
