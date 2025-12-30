@@ -5,6 +5,34 @@ import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from '../
 import { AuthStrategy, ApiKeyStrategy } from './auth';
 
 import { PubSub } from '@google-cloud/pubsub';
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+
+// Initialize Secret Manager
+const secretClient = new SecretManagerServiceClient();
+
+export interface SecretsHelper {
+  get(name: string): Promise<string>;
+}
+
+class SecretManagerHelper implements SecretsHelper {
+  private projectId: string;
+
+  constructor(projectId: string) {
+    this.projectId = projectId;
+  }
+
+  async get(name: string): Promise<string> {
+    if (!this.projectId) {
+      // Fallback logic could go here, or we enforce project ID availability
+      throw new Error('Project ID not configured for SecretsHelper');
+    }
+    // Access latest version
+    const [version] = await secretClient.accessSecretVersion({
+      name: `projects/${this.projectId}/secrets/${name}/versions/latest`,
+    });
+    return version.payload?.data?.toString() || '';
+  }
+}
 
 // Initialize Firebase (Idempotent)
 if (admin.apps.length === 0) {
@@ -45,6 +73,7 @@ const logger = winston.createLogger({
 export interface FrameworkContext {
   db: admin.firestore.Firestore;
   pubsub: PubSub;
+  secrets: SecretsHelper;
   logger: winston.Logger;
   executionId: string;
   userId?: string;
@@ -139,6 +168,7 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
       const tempCtx: FrameworkContext = {
         db,
         pubsub,
+        secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
         logger: preambleLogger,
         executionId: 'pre-auth'
       };
@@ -200,6 +230,7 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
     const ctx: FrameworkContext = {
       db,
       pubsub,
+      secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
       logger: contextLogger,
       executionId,
       userId,

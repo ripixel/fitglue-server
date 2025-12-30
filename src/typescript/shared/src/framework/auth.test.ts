@@ -28,6 +28,7 @@ const mockCtx: FrameworkContext = {
   db: mockDb,
   pubsub: {} as any,
   logger: mockLogger,
+  secrets: { get: jest.fn() } as any,
   executionId: 'test-exec'
 };
 
