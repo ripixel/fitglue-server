@@ -55,7 +55,26 @@ func GenerateFitFile(activity *pb.StandardizedActivity) ([]byte, error) {
 		SetType(typedef.ActivityManual).
 		SetNumSessions(1)
 
-	// 3. Session message (Appended last)
+	// 3a. DeviceInfo: Source App (e.g. Hevy)
+	manuf, product := mapSourceToDevice(activity.Source)
+	sourceDeviceMsg := mesgdef.NewDeviceInfo(nil).
+		SetTimestamp(startTime).
+		SetManufacturer(manuf).
+		SetProduct(0).
+		SetProductName(product).
+		SetDeviceIndex(0) // Primary device
+	fit.Messages = append(fit.Messages, sourceDeviceMsg.ToMesg(nil))
+
+	// 3b. DeviceInfo: FitGlue (Enricher/Aggregator)
+	fitGlueDeviceMsg := mesgdef.NewDeviceInfo(nil).
+		SetTimestamp(startTime).
+		SetManufacturer(typedef.ManufacturerDevelopment).
+		SetProduct(1).
+		SetProductName("FitGlue").
+		SetDeviceIndex(1) // Secondary device
+	fit.Messages = append(fit.Messages, fitGlueDeviceMsg.ToMesg(nil))
+
+	// 4. Session message (Appended last)
 	sessionMsg := mesgdef.NewSession(nil).
 		SetTimestamp(startTime).
 		SetSport(sport).
@@ -72,7 +91,7 @@ func GenerateFitFile(activity *pb.StandardizedActivity) ([]byte, error) {
 		sessionMsg.SetTotalDistance(uint32(session.TotalDistance * 100))
 	}
 
-	// 4. Lap message (One per session for now)
+	// 5. Lap message (One per session for now)
 	lapMsg := mesgdef.NewLap(nil).
 		SetTimestamp(startTime).
 		SetStartTime(startTime).
@@ -88,7 +107,7 @@ func GenerateFitFile(activity *pb.StandardizedActivity) ([]byte, error) {
 		lapMsg.SetTotalDistance(uint32(session.TotalDistance * 100))
 	}
 
-	// 5. Records
+	// 6. Records
 	// We iterate through laps in the session (though we only created one Lap msg above,
 	// ideally we'd map session.Laps to FIT Laps, but enforcing single Lap for robust uploads first)
 	// We'll flatten all records from all laps into this single FIT Lap/Session for safety.
@@ -117,13 +136,8 @@ func GenerateFitFile(activity *pb.StandardizedActivity) ([]byte, error) {
 			}
 			if record.Altitude != 0 {
 				// Altitude: scale 5, offset 500
-				// float32((val + 500) * 5) ? No, library handles scaling usually check NewRecord SetAltitude signature
-				// SetAltitude(v uint16) ->  scaled value?
-				// Using SetAltitudeScaled(v float32) if available is safer.
-				// Library usually provides Scaled setters. Let's check imports.
-				// Assuming standard muktihari/fit generation:
-				// It has SetAltitude(uint16) which is raw.
-				// We need to manually scale: (altitude + 500) * 5
+				// Using SetAltitude which takes uint16 (scaled)
+				// Formula: scaled = (altitude + 500) * 5
 				alt := (record.Altitude + 500) * 5
 				if alt >= 0 {
 					recordMsg.SetAltitude(uint16(alt))
@@ -168,7 +182,7 @@ func GenerateFitFile(activity *pb.StandardizedActivity) ([]byte, error) {
 		}
 	}
 
-	// 6. Strength Sets (Only for training)
+	// 7. Strength Sets (Only for training)
 	if sport == typedef.SportTraining {
 		for i, set := range session.StrengthSets {
 			setStartTime := startTime
@@ -232,5 +246,22 @@ func mapSport(activityType string) (typedef.Sport, typedef.SubSport) {
 		return typedef.SportTraining, typedef.SubSportYoga
 	default:
 		return typedef.SportGeneric, typedef.SubSportGeneric
+	}
+}
+
+func mapSourceToDevice(source string) (typedef.Manufacturer, string) {
+	// 255 is ManufacturerDevelopment
+	// We use this because we don't have official Manufacturer IDs for these apps
+	const manufacturerDevelopment = typedef.Manufacturer(255)
+
+	switch source {
+	case "SOURCE_HEVY":
+		return manufacturerDevelopment, "Hevy"
+	case "SOURCE_KEISER":
+		return manufacturerDevelopment, "Keiser"
+	case "SOURCE_TEST":
+		return manufacturerDevelopment, "FitGlue Test"
+	default:
+		return manufacturerDevelopment, "FitGlue"
 	}
 }
