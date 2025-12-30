@@ -64,8 +64,12 @@ func (p *WorkoutSummaryProvider) Enrich(ctx context.Context, activity *pb.Standa
 		if set.Reps > 0 {
 			stats.totalReps += int(set.Reps)
 		}
-		if set.WeightKg > 0 && set.Reps > 0 {
-			stats.totalVolume += set.WeightKg * float64(set.Reps)
+		if set.WeightKg > 0 {
+			if set.Reps > 0 {
+				stats.totalVolume += set.WeightKg * float64(set.Reps)
+			} else if set.DistanceMeters > 0 {
+				stats.totalVolume += set.WeightKg * set.DistanceMeters
+			}
 			if set.WeightKg > stats.heaviestLift.weight {
 				stats.heaviestLift.weight = set.WeightKg
 				stats.heaviestLift.exercise = set.ExerciseName

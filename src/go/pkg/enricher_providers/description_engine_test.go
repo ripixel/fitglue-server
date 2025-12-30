@@ -34,6 +34,11 @@ func TestDescriptionEngine_Integration(t *testing.T) {
 					{ExerciseName: "Squat", Reps: 5, WeightKg: 140, PrimaryMuscleGroup: pb.MuscleGroup_MUSCLE_GROUP_QUADRICEPS, SecondaryMuscleGroups: []pb.MuscleGroup{pb.MuscleGroup_MUSCLE_GROUP_GLUTES, pb.MuscleGroup_MUSCLE_GROUP_HAMSTRINGS}},
 					{ExerciseName: "Squat", Reps: 5, WeightKg: 140, PrimaryMuscleGroup: pb.MuscleGroup_MUSCLE_GROUP_QUADRICEPS, SecondaryMuscleGroups: []pb.MuscleGroup{pb.MuscleGroup_MUSCLE_GROUP_GLUTES, pb.MuscleGroup_MUSCLE_GROUP_HAMSTRINGS}},
 
+					// Distance-based weighted exercise (Farmer's Walk)
+					// Volume = 32kg * 30m = 960kg
+					// Should be included in total volume
+					{ExerciseName: "Farmer's Walk", Reps: 0, WeightKg: 32, DistanceMeters: 30, PrimaryMuscleGroup: pb.MuscleGroup_MUSCLE_GROUP_TRAPS},
+
 					// Cardio exercises (distance/duration based)
 					{ExerciseName: "Running", Reps: 0, WeightKg: 0, DistanceMeters: 1000, DurationSeconds: 300, PrimaryMuscleGroup: pb.MuscleGroup_MUSCLE_GROUP_CARDIO},
 					{ExerciseName: "Rowing Machine", Reps: 0, WeightKg: 0, DistanceMeters: 500, DurationSeconds: 120, PrimaryMuscleGroup: pb.MuscleGroup_MUSCLE_GROUP_CARDIO},
@@ -96,7 +101,9 @@ func TestDescriptionEngine_Integration(t *testing.T) {
 
 		// Workout Summary
 		"Workout Summary:",
-		"📊 22 sets • 8355kg volume • 208 reps • 1.5km distance • Heaviest: 140kg (Squat)",
+		// Updated volume: 8355 + 960 (Farmers Walk) = 9315
+		// Total sets: 22 + 1 = 23
+		"📊 23 sets • 9315kg volume • 208 reps • 1.5km distance • Heaviest: 140kg (Squat)",
 		"(Exercises with matching numbers are supersets - performed back-to-back)",
 		"([W]=Warmup, [F]=Failure, [D]=Dropset)",
 
