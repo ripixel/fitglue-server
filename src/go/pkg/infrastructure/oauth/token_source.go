@@ -133,11 +133,12 @@ func (s *FirestoreTokenSource) refreshToken(ctx context.Context, refreshToken st
 	}
 
 	var tokenURL string
-	if s.provider == "strava" {
+	switch s.provider {
+	case "strava":
 		tokenURL = "https://www.strava.com/oauth/token"
-	} else if s.provider == "fitbit" {
+	case "fitbit":
 		tokenURL = "https://api.fitbit.com/oauth2/token"
-	} else {
+	default:
 		return nil, fmt.Errorf("unsupported provider for refresh: %s", s.provider)
 	}
 
