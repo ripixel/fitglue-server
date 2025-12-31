@@ -1,4 +1,4 @@
-import { createCloudFunction, FrameworkContext, TOPICS, createFitbitClient, UserService } from '@fitglue/shared';
+import { createCloudFunction, FrameworkContext, TOPICS, createFitbitClient, UserService, ActivitySource } from '@fitglue/shared';
 import { mapTCXToStandardized } from './mapper';
 
 const handler = async (req: any, res: any, ctx: FrameworkContext) => {
@@ -22,22 +22,22 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
 
   if (collectionType !== 'activities') {
     logger.info(`Skipping non-activity update`, { collectionType });
-    return;
+    // This is not an error, just a skip. We can return success with skipped status.
+    return { status: 'skipped', reason: 'non_activity_update', collectionType };
   }
 
   logger.info(`Processing Fitbit update`, { ownerId, date });
 
   // 2. Resolve User
-  // We need to find the FitGlue User ID associated with this Fitbit ownerId.
-  // Query users collection where `integrations.fitbit.id` == ownerId
   const usersSnapshot = await db.collection('users')
-    .where('integrations.fitbit.id', '==', ownerId)
+    .where('integrations.fitbit.fitbitUserId', '==', ownerId)
     .limit(1)
     .get();
 
   if (usersSnapshot.empty) {
     logger.warn(`No user found for Fitbit ID: ${ownerId}`);
-    return;
+    // This IS an error condition for the system logic
+    throw new Error(`No user found for Fitbit ID: ${ownerId}`);
   }
 
   const userDoc = usersSnapshot.docs[0];
@@ -62,6 +62,10 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
 
   const activities = activityList.activities;
   logger.info(`Found ${activities.length} activities for date ${date}`);
+
+  let publishedCount = 0;
+  let errors = 0;
+  const publishedIds: any[] = [];
 
   // 5. Process Activities
   for (const act of activities) {
@@ -94,9 +98,9 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
       const standardized = mapTCXToStandardized(tcxData as string, act, userId);
 
       // 7. Publish to Enrichment Pipeline
-      await pubsub.topic(TOPICS.RAW_ACTIVITY).publishMessage({
+      const messageId = await pubsub.topic(TOPICS.RAW_ACTIVITY).publishMessage({
         json: {
-          source: 'FITBIT',
+          source: ActivitySource.SOURCE_FITBIT,
           userId: userId,
           timestamp: new Date().toISOString(),
           standardizedActivity: standardized,
@@ -108,12 +112,25 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
         }
       });
 
-      logger.info(`Published activity ${act.logId} to enrichment pipeline`);
+      logger.info(`Published activity ${act.logId} to enrichment pipeline`, { messageId });
+      publishedCount++;
+      publishedIds.push(act.logId);
 
     } catch (mapErr) {
       logger.error(`Failed to map/publish activity ${act.logId}`, { error: mapErr });
+      errors++;
     }
   }
+
+  return {
+    action: 'ingest',
+    date,
+    userId,
+    foundActivities: activities.length,
+    publishedCount,
+    publishedIds,
+    errors
+  };
 };
 
 export const fitbitIngest = createCloudFunction(handler);

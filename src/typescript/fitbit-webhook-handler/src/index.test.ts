@@ -67,7 +67,9 @@ describe('Fitbit Webhook Handler', () => {
       req.query.verify = 'wrong-code';
       process.env.FITBIT_VERIFICATION_CODE = 'correct-code';
 
-      await (fitbitWebhookHandler as any)(req, res);
+      await expect(async () => {
+        await (fitbitWebhookHandler as any)(req, res);
+      }).rejects.toThrow('Invalid verification code');
 
       expect(res.status).toHaveBeenCalledWith(404);
     });
@@ -111,7 +113,9 @@ describe('Fitbit Webhook Handler', () => {
       (req as any).rawBody = rawBody;
       req.headers['x-fitbit-signature'] = 'invalid-sig';
 
-      await (fitbitWebhookHandler as any)(req, res);
+      await expect(async () => {
+        await (fitbitWebhookHandler as any)(req, res);
+      }).rejects.toThrow('Invalid Signature');
 
       expect(res.status).toHaveBeenCalledWith(404);
       expect(mockPublishMessage).not.toHaveBeenCalled();

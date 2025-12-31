@@ -1,7 +1,7 @@
 import { createCloudFunction, FrameworkContext } from '@fitglue/shared';
 import { createHmac } from 'crypto';
 
-const VERIFY_TOKEN_SECRET = 'FITBIT_VERIFICATION_CODE';
+const FITBIT_VERIFICATION_CODE = 'FITBIT_VERIFICATION_CODE';
 const FITBIT_CLIENT_SECRET = 'FITBIT_CLIENT_SECRET';
 
 const handler = async (req: any, res: any, ctx: FrameworkContext) => {
@@ -17,15 +17,16 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
         return;
       }
 
-      const expectedCode = process.env[VERIFY_TOKEN_SECRET];
+      const expectedCode = process.env[FITBIT_VERIFICATION_CODE];
       if (verifyCode === expectedCode) {
         logger.info('Verification successful');
         res.status(204).send();
+        return { action: 'verification', status: 'success' };
       } else {
         logger.warn('Invalid verification code');
         res.status(404).send('Not Found');
+        throw new Error('Invalid verification code');
       }
-      return;
     }
 
     // 2. Notification Request (POST)
@@ -34,14 +35,14 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
       if (!signature) {
         logger.warn('Missing X-Fitbit-Signature header');
         res.status(400).send('Missing Signature');
-        return;
+        throw new Error('Missing X-Fitbit-Signature header');
       }
 
       const clientSecret = process.env[FITBIT_CLIENT_SECRET];
       if (!clientSecret) {
         logger.error('Missing FITBIT_CLIENT_SECRET env var');
         res.status(500).send('Configuration Error');
-        return;
+        throw new Error('Missing FITBIT_CLIENT_SECRET env var');
       }
 
       // Fitbit signature verification: HMAC-SHA1(body, secret + "&")
@@ -60,14 +61,14 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
       if (signature !== expectedSignature) {
         logger.warn('Invalid Signature', { expected: expectedSignature, received: signature });
         res.status(404).send('Not Found');
-        return;
+        throw new Error('Invalid Signature');
       }
 
       const body = req.body || [];
       if (!Array.isArray(body)) {
         logger.warn('Invalid body format', { body });
         res.status(400).send('Bad Request');
-        return;
+        throw new Error('Invalid body format');
       }
 
       logger.info(`Received ${body.length} updates`);
@@ -79,18 +80,34 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
             json: update,
           });
           logger.info('Published update', { ownerId: update.ownerId, date: update.date });
+          return update; // Return for counting
         }
+        return null;
       });
 
-      await Promise.all(publishPromises);
+      const results = await Promise.all(publishPromises);
+      const publishedCount = results.filter(r => r !== null).length;
+
       res.status(204).send();
-      return;
+      return {
+        action: 'notification',
+        received: body.length,
+        published: publishedCount,
+        updates: body
+      };
     }
 
     res.status(405).send('Method Not Allowed');
-  } catch (err) {
+    throw new Error(`Method Not Allowed: ${req.method}`);
+
+  } catch (err: any) {
     logger.error('Handler error', { error: err });
-    res.status(500).send('Internal Error');
+    // If not already sent
+    if (!res.headersSent) {
+      res.status(500).send('Internal Error');
+    }
+    // Re-throw so framework catches it and logs failure
+    throw err;
   }
 };
 
