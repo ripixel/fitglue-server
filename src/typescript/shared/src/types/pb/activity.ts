@@ -13,7 +13,8 @@ export const protobufPackage = "fitglue";
 export enum ActivitySource {
   SOURCE_UNKNOWN = 0,
   SOURCE_HEVY = 1,
-  SOURCE_TEST = 3,
+  SOURCE_FITBIT = 3,
+  SOURCE_TEST = 99,
   UNRECOGNIZED = -1,
 }
 

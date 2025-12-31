@@ -575,7 +575,7 @@ program.command('users:add-pipeline')
                     type: 'list',
                     name: 'source',
                     message: 'Select Source:',
-                    choices: ['SOURCE_HEVY', 'SOURCE_TEST']
+                    choices: ['SOURCE_HEVY', 'SOURCE_FITBIT', 'SOURCE_TEST']
                 }
             ]);
 
@@ -733,7 +733,7 @@ program.command('users:replace-pipeline')
                     type: 'list',
                     name: 'source',
                     message: 'Select Source:',
-                    choices: ['SOURCE_HEVY', 'SOURCE_TEST']
+                    choices: ['SOURCE_HEVY', 'SOURCE_FITBIT', 'SOURCE_TEST']
                 }
             ]);
 
