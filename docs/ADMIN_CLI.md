@@ -187,7 +187,7 @@ Adds a data processing pipeline to a user. This command allows you to define com
 ```
 
 **Prompts:**
-1.  **Source**: Select the data source triggering this pipeline (e.g., `SOURCE_HEVY`, `SOURCE_KEISER`).
+1.  **Source**: Select the data source triggering this pipeline (e.g., `SOURCE_HEVY`).
 2.  **Enrichers**:
     *   Add enrichers in sequence (e.g., first `fitbit-heart-rate`, then `ai-description`).
     *   You can optionally provide a JSON string for specific enricher inputs.

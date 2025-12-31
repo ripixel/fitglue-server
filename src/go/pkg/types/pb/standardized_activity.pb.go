@@ -126,13 +126,13 @@ func (MuscleGroup) EnumDescriptor() ([]byte, []int) {
 
 // StandardizedActivity represents a normalized fitness activity.
 // It is designed to be the canonical input format for the Enricher,
-// decoupling it from specific ingestion sources (Hevy, Keiser, etc).
+// decoupling it from specific ingestion sources (Hevy, etc).
 //
 // Structure mimics the FIT SDK hierarchy:
 // Activity -> Sessions -> Laps -> Records
 type StandardizedActivity struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
-	Source     string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`                           // e.g. "HEVY", "KEISER"
+	Source     string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`                           // e.g. "HEVY"
 	ExternalId string                 `protobuf:"bytes,2,opt,name=external_id,json=externalId,proto3" json:"external_id,omitempty"` // Source's ID (e.g. Hevy workout ID)
 	UserId     string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// High-level summary

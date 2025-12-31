@@ -23,7 +23,6 @@ export const mapTCXToStandardized = (tcxXml: string, logData: any, userId: strin
   const sport = activity['@_Sport']; // e.g. Biking, Running
 
   const generatedLaps: Lap[] = [];
-  let totalCalories = 0;
   let totalDistanceToCheck = 0;
   let totalElapsedTime = 0;
 
@@ -86,7 +85,6 @@ export const mapTCXToStandardized = (tcxXml: string, logData: any, userId: strin
       records: records
     };
 
-    totalCalories += parseFloat(tcxLap.Calories || '0');
     totalDistanceToCheck += lap.totalDistance;
     totalElapsedTime += lap.totalElapsedTime;
     generatedLaps.push(lap);

@@ -36,13 +36,13 @@ export enum MuscleGroup {
 /**
  * StandardizedActivity represents a normalized fitness activity.
  * It is designed to be the canonical input format for the Enricher,
- * decoupling it from specific ingestion sources (Hevy, Keiser, etc).
+ * decoupling it from specific ingestion sources (Hevy, etc).
  *
  * Structure mimics the FIT SDK hierarchy:
  * Activity -> Sessions -> Laps -> Records
  */
 export interface StandardizedActivity {
-  /** e.g. "HEVY", "KEISER" */
+  /** e.g. "HEVY" */
   source: string;
   /** Source's ID (e.g. Hevy workout ID) */
   externalId: string;

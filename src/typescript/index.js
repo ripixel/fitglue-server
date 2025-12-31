@@ -8,11 +8,6 @@ exports.hevyWebhookHandler = (req, res) => {
   return hevy.hevyWebhookHandler(req, res);
 };
 
-exports.keiserPoller = (req, res) => {
-  const keiser = require('./keiser-poller/build/index');
-  return keiser.keiserPoller(req, res);
-};
-
 exports.stravaOAuthHandler = (req, res) => {
   const strava = require('./strava-oauth-handler/build/index');
   return strava.stravaOAuthHandler(req, res);
@@ -21,4 +16,14 @@ exports.stravaOAuthHandler = (req, res) => {
 exports.fitbitOAuthHandler = (req, res) => {
   const fitbit = require('./fitbit-oauth-handler/build/index');
   return fitbit.fitbitOAuthHandler(req, res);
+};
+
+exports.fitbitWebhookHandler = (req, res) => {
+  const fitbit = require('./fitbit-webhook-handler/build/index');
+  return fitbit.fitbitWebhookHandler(req, res);
+};
+
+exports.fitbitIngest = (req, res) => {
+  const fitbit = require('./fitbit-ingest/build/index');
+  return fitbit.fitbitIngest(req, res);
 };

@@ -16,7 +16,7 @@
     "gcsBucket": "fitglue-server-dev-artifacts",
     "endpoints": {
       "hevyWebhook": "https://us-central1-fitglue-server-dev.cloudfunctions.net/hevy-webhook-handler",
-      "keiserPoller": "https://us-central1-fitglue-server-dev.cloudfunctions.net/keiser-poller"
+      "fitbitWebhook": "https://us-central1-fitglue-server-dev.cloudfunctions.net/fitbit-webhook-handler"
     },
     "topics": {
       "rawActivity": "topic-raw-activity",
@@ -30,7 +30,7 @@
     "gcsBucket": "fitglue-server-test-artifacts",
     "endpoints": {
       "hevyWebhook": "https://us-central1-fitglue-server-test.cloudfunctions.net/hevy-webhook-handler",
-      "keiserPoller": "https://us-central1-fitglue-server-test.cloudfunctions.net/keiser-poller"
+      "fitbitWebhook": "https://us-central1-fitglue-server-test.cloudfunctions.net/fitbit-webhook-handler"
     },
     "topics": {
       "rawActivity": "topic-raw-activity",
@@ -44,7 +44,7 @@
     "gcsBucket": "fitglue-server-prod-artifacts",
     "endpoints": {
       "hevyWebhook": "https://us-central1-fitglue-server-prod.cloudfunctions.net/hevy-webhook-handler",
-      "keiserPoller": "https://us-central1-fitglue-server-prod.cloudfunctions.net/keiser-poller"
+      "fitbitWebhook": "https://us-central1-fitglue-server-prod.cloudfunctions.net/fitbit-webhook-handler"
     },
     "topics": {
       "rawActivity": "topic-raw-activity",

@@ -6,12 +6,12 @@ option go_package = "fitglue/pkg/shared/pb";
 
 // StandardizedActivity represents a normalized fitness activity.
 // It is designed to be the canonical input format for the Enricher,
-// decoupling it from specific ingestion sources (Hevy, Keiser, etc).
+// decoupling it from specific ingestion sources (Hevy, etc).
 //
 // Structure mimics the FIT SDK hierarchy:
 // Activity -> Sessions -> Laps -> Records
 message StandardizedActivity {
-  string source = 1;      // e.g. "HEVY", "KEISER"
+  string source = 1;      // e.g. "HEVY"
   string external_id = 2; // Source's ID (e.g. Hevy workout ID)
   string user_id = 3;
 

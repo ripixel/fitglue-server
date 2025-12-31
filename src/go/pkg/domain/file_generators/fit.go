@@ -287,8 +287,6 @@ func mapSourceToDevice(source string) (typedef.Manufacturer, string) {
 	switch source {
 	case "SOURCE_HEVY":
 		return manufacturerDevelopment, "Hevy"
-	case "SOURCE_KEISER":
-		return manufacturerDevelopment, "Keiser"
 	case "SOURCE_TEST":
 		return manufacturerDevelopment, "FitGlue Test"
 	default:

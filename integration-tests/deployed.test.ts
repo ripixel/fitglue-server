@@ -81,33 +81,6 @@ describe('Deployed Environment Integration Tests', () => {
         throw new Error(`Failed to reach Hevy webhook: ${e.message}`);
       }
     });
-
-    it('should trigger Keiser Poller manually', async () => {
-      const testRunId = randomUUID();
-      testRunIds.push(testRunId);
-
-      if (!config.endpoints?.keiserPoller) {
-        throw new Error('Keiser Poller endpoint not configured');
-      }
-
-      // Keiser Poller is normally triggered by Cloud Scheduler
-      // We're testing manual HTTP trigger for integration testing
-      try {
-        const res = await axios.post(config.endpoints.keiserPoller, {}, {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Test-Run-Id': testRunId,
-          },
-          validateStatus: () => true,
-        });
-
-        // Expected: 200 (success) or 500 (if no users configured for Keiser)
-        expect([200, 500]).toContain(res.status);
-        console.log(`[Keiser Poller] Response status: ${res.status}`);
-      } catch (e: any) {
-        throw new Error(`Failed to reach Keiser Poller: ${e.message}`);
-      }
-    });
   });
 
   describe('Pub/Sub-triggered functions', () => {

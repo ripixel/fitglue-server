@@ -9,7 +9,6 @@ export interface TestConfig {
   gcsBucket: string;
   endpoints?: {
     hevyWebhook: string;
-    keiserPoller?: string;
     enricher?: string;
     router?: string;
     stravaUploader?: string;

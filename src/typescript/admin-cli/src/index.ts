@@ -366,7 +366,6 @@ const formatUserOutput = (doc: admin.firestore.DocumentSnapshot) => {
 
     const integrations = [];
     if (data.integrations?.hevy?.apiKey) integrations.push('Hevy');
-    if (data.integrations?.keiser?.enabled) integrations.push('Keiser');
     if (data.integrations?.strava?.enabled) integrations.push('Strava');
     if (data.integrations?.fitbit?.enabled) integrations.push('Fitbit');
 
@@ -576,7 +575,7 @@ program.command('users:add-pipeline')
                     type: 'list',
                     name: 'source',
                     message: 'Select Source:',
-                    choices: ['SOURCE_HEVY', 'SOURCE_KEISER', 'SOURCE_TEST']
+                    choices: ['SOURCE_HEVY', 'SOURCE_TEST']
                 }
             ]);
 
@@ -734,7 +733,7 @@ program.command('users:replace-pipeline')
                     type: 'list',
                     name: 'source',
                     message: 'Select Source:',
-                    choices: ['SOURCE_HEVY', 'SOURCE_KEISER', 'SOURCE_TEST']
+                    choices: ['SOURCE_HEVY', 'SOURCE_TEST']
                 }
             ]);
 

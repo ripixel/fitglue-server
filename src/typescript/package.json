@@ -2,7 +2,6 @@
   "private": true,
   "workspaces": [
     "hevy-handler",
-    "keiser-poller",
     "shared",
     "admin-cli",
     "strava-oauth-handler",
