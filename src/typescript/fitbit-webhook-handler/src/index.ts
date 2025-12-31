@@ -2,10 +2,10 @@ import { createCloudFunction, FrameworkContext } from '@fitglue/shared';
 import { createHmac } from 'crypto';
 
 const VERIFY_TOKEN_SECRET = 'FITBIT_VERIFICATION_CODE';
-const CLIENT_SECRET_Name = 'FITBIT_CLIENT_SECRET';
+const FITBIT_CLIENT_SECRET = 'FITBIT_CLIENT_SECRET';
 
 const handler = async (req: any, res: any, ctx: FrameworkContext) => {
-  const { logger, secrets, pubsub } = ctx;
+  const { logger, pubsub } = ctx;
 
   try {
     // 1. Verification Request (GET)
@@ -17,7 +17,7 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
         return;
       }
 
-      const expectedCode = await secrets.get(VERIFY_TOKEN_SECRET);
+      const expectedCode = process.env[VERIFY_TOKEN_SECRET];
       if (verifyCode === expectedCode) {
         logger.info('Verification successful');
         res.status(204).send();
@@ -37,7 +37,12 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
         return;
       }
 
-      const clientSecret = await secrets.get(CLIENT_SECRET_Name);
+      const clientSecret = process.env[FITBIT_CLIENT_SECRET];
+      if (!clientSecret) {
+        logger.error('Missing FITBIT_CLIENT_SECRET env var');
+        res.status(500).send('Configuration Error');
+        return;
+      }
 
       // Fitbit signature verification: HMAC-SHA1(body, secret + "&")
       const rawBody = (req as any).rawBody;

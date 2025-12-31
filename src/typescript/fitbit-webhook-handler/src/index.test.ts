@@ -29,8 +29,11 @@ describe('Fitbit Webhook Handler', () => {
   let req: any;
   let res: any;
 
+  const OLD_ENV = process.env;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = { ...OLD_ENV }; // Copy env
     req = {
       method: 'GET',
       query: {},
@@ -43,15 +46,18 @@ describe('Fitbit Webhook Handler', () => {
     };
   });
 
+  afterAll(() => {
+    process.env = OLD_ENV; // Restore old env
+  });
+
   describe('GET (Verification)', () => {
     it('should verify successfully with correct code', async () => {
       req.method = 'GET';
       req.query.verify = 'correct-code';
-      mockSecretsGet.mockResolvedValue('correct-code');
+      process.env.FITBIT_VERIFICATION_CODE = 'correct-code';
 
       await (fitbitWebhookHandler as any)(req, res);
 
-      expect(mockSecretsGet).toHaveBeenCalledWith('FITBIT_VERIFICATION_CODE');
       expect(res.status).toHaveBeenCalledWith(204);
       expect(res.send).toHaveBeenCalled();
     });
@@ -59,7 +65,7 @@ describe('Fitbit Webhook Handler', () => {
     it('should fail verification with incorrect code', async () => {
       req.method = 'GET';
       req.query.verify = 'wrong-code';
-      mockSecretsGet.mockResolvedValue('correct-code');
+      process.env.FITBIT_VERIFICATION_CODE = 'correct-code';
 
       await (fitbitWebhookHandler as any)(req, res);
 
@@ -79,7 +85,7 @@ describe('Fitbit Webhook Handler', () => {
 
     beforeEach(() => {
       req.method = 'POST';
-      mockSecretsGet.mockResolvedValue(clientSecret);
+      process.env.FITBIT_CLIENT_SECRET = clientSecret;
     });
 
     it('should process valid signature notifications', async () => {
