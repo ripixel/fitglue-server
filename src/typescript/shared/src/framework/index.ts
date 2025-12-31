@@ -1,4 +1,4 @@
-import { HttpFunction } from '@google-cloud/functions-framework';
+// import { HttpFunction } from '@google-cloud/functions-framework';
 import * as admin from 'firebase-admin';
 import * as winston from 'winston';
 import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from '../execution/logger';
@@ -139,9 +139,53 @@ const AUTHORIZED_STRATEGIES: Record<string, AuthStrategy> = {
   'api_key': new ApiKeyStrategy()
 };
 
-export function createCloudFunction(handler: FrameworkHandler, options?: CloudFunctionOptions): HttpFunction {
-  return async (req, res) => {
+export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFunctionOptions) => {
+  return async (reqOrEvent: any, resOrContext?: any) => {
     const serviceName = process.env.K_SERVICE || 'unknown-function';
+
+    // DETECT TRIGGER TYPE
+    // HTTP: (req, res)
+    // CloudEvent: (event)
+    // Background (Legacy): (data, context)
+
+    let isHttp = false;
+    let req = reqOrEvent;
+    let res = resOrContext;
+
+    // If 'res' has 'status' and 'send' methods, it's HTTP
+    if (res && typeof res.status === 'function' && typeof res.send === 'function') {
+      isHttp = true;
+    }
+
+    // ADAPT CLOUDEVENT TO REQUEST-LIKE OBJECT
+    if (!isHttp) {
+      // It's a CloudEvent or Background Function
+      // We construct a synthetic "req" object to normalize downstream logic
+      const event = reqOrEvent;
+      req = {
+        body: event, // CloudEvents usually have data in body or are the body
+        headers: {},
+        method: 'POST', // Synthetic method
+        query: {}
+      };
+      // CloudEvents (v2) often come with data property directly
+      if (event.data && typeof event.data === 'string') {
+        // Handle base64 encoded data if raw
+        req.body = { message: { data: event.data } };
+      } else if (event.data) {
+        // Direct object
+        req.body = { message: { data: Buffer.from(JSON.stringify(event.data)).toString('base64') } };
+      }
+
+      // Mock Response object for the handler to use without crashing
+      res = {
+        status: () => res, // Chainable
+        send: () => { },
+        json: () => { },
+        set: () => { }, // Safe no-op for headers
+        headersSent: false
+      };
+    }
 
     // Extract metadata from request (handles both HTTP and Pub/Sub)
     let { userId } = extractMetadata(req);
@@ -151,17 +195,25 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
     const preambleLogger = logger.child({});
 
     // DEBUG: Log incoming request details
-    preambleLogger.debug('Incoming Request', {
-      method: req.method,
-      path: req.path,
-      query: req.query,
-      headers: req.headers,
-      body: req.body // Log full body for debugging (only happens at debug log level)
-    });
+    if (isHttp) {
+      preambleLogger.debug('Incoming HTTP Request', {
+        method: req.method,
+        path: req.path,
+        query: req.query,
+        headers: req.headers,
+        body: req.body // Log full body for debugging (only happens at debug log level)
+      });
+    } else {
+      preambleLogger.debug('Incoming Event', {
+        triggerType,
+        body: req.body
+      });
+    }
 
     // --- AUTHENTICATION MIDDLEWARE ---
+    // (Only run Auth for HTTP triggers usually, unless payload carries auth)
     let authScopes: string[] = [];
-    if (options?.auth?.strategies && options.auth.strategies.length > 0) {
+    if (isHttp && options?.auth?.strategies && options.auth.strategies.length > 0) {
       let authenticated = false;
 
       // Prepare context for Auth Strategy
@@ -237,11 +289,13 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
       authScopes
     };
 
-    contextLogger.info('Function started');
+    contextLogger.info('Function started', { isHttp });
 
     try {
       // Attach execution ID to response header early (so it's present even if handler sends response)
-      res.set('x-execution-id', executionId);
+      if (isHttp) {
+        res.set('x-execution-id', executionId);
+      }
 
       // Execute Handler
       const result = await handler(req, res, ctx);
@@ -258,7 +312,7 @@ export function createCloudFunction(handler: FrameworkHandler, options?: CloudFu
       await logExecutionFailure(db, executionId, err);
 
       // Attach execution ID to response header (safety check)
-      if (!res.headersSent) {
+      if (isHttp && !res.headersSent) {
         res.set('x-execution-id', executionId);
         res.status(500).send('Internal Server Error');
       }
