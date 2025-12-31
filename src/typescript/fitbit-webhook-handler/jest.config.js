@@ -1,10 +1,6 @@
+const baseConfig = require('../shared/jest.config.base.js');
+
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
-  rootDir: 'src',
-  transform: {
-    '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.json'
-    }]
-  }
+  ...baseConfig,
+  // Add any specific overrides here if needed
 };
