@@ -38,10 +38,8 @@ func (p *ParkrunProvider) Enrich(ctx context.Context, activity *pb.StandardizedA
 		tagValueStr = "Parkrun"
 	}
 
-	specialEvents := inputs["special_events"]
-	if specialEvents == "" {
-		specialEvents = "12-25,01-01"
-	}
+	// Special Events are hardcoded as per policy
+	specialEvents := "12-25,01-01"
 
 	// 1. Basic Checks
 	// Only care about Runs

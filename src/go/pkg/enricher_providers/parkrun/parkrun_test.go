@@ -81,13 +81,14 @@ func TestParkrunProvider_Enrich(t *testing.T) {
 			wantMatch: false,
 		},
 		{
-			name:      "Christmas Day (Special Event check)",
-			time:      "2025-12-25T09:00:00Z", // Thursday, but Xmas
-			lat:       51.4106,
-			long:      -0.3421,
-			inputs:    map[string]string{"special_events": "12-25"},
-			wantMatch: true,
-			wantName:  "Bushy Park Parkrun",
+			name: "Christmas Day (Special Event check)",
+			time: "2025-12-25T09:00:00Z", // Thursday, but Xmas
+			lat:  51.4106,
+			long: -0.3421,
+			inputs: map[string]string{
+				"enable_titling": "true",
+			}, wantMatch: true,
+			wantName: "Bushy Park Parkrun",
 		},
 		{
 			name: "Australian Parkrun (Timezone check - Albert Park)",

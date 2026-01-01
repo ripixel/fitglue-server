@@ -1440,6 +1440,25 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
             addRule = ruleAnswers.addAnother;
         }
         inputs = { rules: JSON.stringify(rules) };
+    } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_PARKRUN) {
+        const parkrunConfig = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'enableTitling',
+                message: 'Enable Activity Titling (e.g. "Bushy Park Parkrun")?',
+                default: true
+            },
+            {
+                type: 'input',
+                name: 'tags',
+                message: 'Tags to add (comma-separated):',
+                default: 'Race'
+            }
+        ]);
+        inputs = {
+            enable_titling: parkrunConfig.enableTitling.toString(),
+            tags: parkrunConfig.tags
+        };
     } else {
         // Only prompt for JSON if the provider might need config
         // Skip for providers with no config options
