@@ -7,7 +7,8 @@
     "strava-oauth-handler",
     "fitbit-oauth-handler",
     "fitbit-webhook-handler",
-    "fitbit-ingest"
+    "fitbit-ingest",
+    "auth-hooks"
   ],
   "scripts": {
     "build": "npm run build --workspace=@fitglue/shared && npm run build --workspaces --if-present",

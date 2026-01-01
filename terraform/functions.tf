@@ -302,3 +302,39 @@ resource "google_cloudfunctions2_function" "fitbit_ingest" {
     retry_policy   = var.retry_policy
   }
 }
+
+# ----------------- Auth Hooks -----------------
+# Triggered by Eventarc (Firebase Auth User Created)
+resource "google_cloudfunctions2_function" "auth_on_create" {
+  name        = "auth-on-create"
+  location    = var.region
+  description = "Triggered when a new user is created in Firebase Auth"
+
+  build_config {
+    runtime     = "nodejs20"
+    entry_point = "authOnCreate"
+    source {
+      storage_source {
+        bucket = google_storage_bucket.source_bucket.name
+        object = google_storage_bucket_object.typescript_source_zip.name
+      }
+    }
+    environment_variables = {}
+  }
+
+  service_config {
+    available_memory = "256Mi"
+    timeout_seconds  = 60
+    environment_variables = {
+      LOG_LEVEL            = var.log_level
+      GOOGLE_CLOUD_PROJECT = var.project_id
+    }
+    service_account_email = google_service_account.cloud_function_sa.email
+  }
+
+  event_trigger {
+    trigger_region = var.region
+    event_type     = "google.firebase.auth.user.v1.created"
+    retry_policy   = var.retry_policy
+  }
+}

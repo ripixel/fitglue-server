@@ -27,3 +27,8 @@ exports.fitbitIngest = (req, res) => {
   const fitbit = require('./fitbit-ingest/build/index');
   return fitbit.fitbitIngest(req, res);
 };
+
+exports.authOnCreate = (event) => {
+  const auth = require('./auth-hooks/build/index');
+  return auth.authOnCreate(event);
+};

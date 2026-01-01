@@ -19,6 +19,58 @@ addActivitiesCommands(program);
 
 import { randomUUID } from 'crypto';
 
+program.command('users:create-auth')
+    .argument('<userId>', 'User ID to create Auth user for')
+    .description('Create a Firebase Auth user for an existing Firestore User ID')
+    .action(async (userId) => {
+        try {
+            // Verify user exists
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (!userDoc.exists) {
+                console.error(`User ${userId} not found in Firestore`);
+                process.exit(1);
+            }
+
+            console.log(`Creating Auth user for ${userId}...`);
+
+            const answers = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'email',
+                    message: 'Email:',
+                    validate: (input) => input.includes('@') || 'Invalid email'
+                },
+                {
+                    type: 'password',
+                    name: 'password',
+                    message: 'Password (min 6 chars):',
+                    validate: (input) => input.length >= 6 || 'Password too short'
+                }
+            ]);
+
+            try {
+                const userRecord = await admin.auth().createUser({
+                    uid: userId, // FORCE the UID to match Firestore
+                    email: answers.email,
+                    password: answers.password,
+                });
+                console.log(`✅ Auth user created successfully: ${userRecord.uid}`);
+            } catch (err: any) {
+                if (err.code === 'auth/uid-already-exists') {
+                    console.error('❌ Auth user already exists for this UID.');
+                } else if (err.code === 'auth/email-already-exists') {
+                    console.error('❌ Email already in use.');
+                } else {
+                    console.error('❌ Error creating auth user:', err);
+                }
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            process.exit(1);
+        }
+    });
+
 program.command('users:create')
     .argument('[userId]', 'User ID to create (optional, will generate UUID if omitted)')
     .description('Create a new user and generating an Ingress API Key')
