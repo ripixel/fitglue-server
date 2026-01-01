@@ -333,8 +333,14 @@ resource "google_cloudfunctions2_function" "auth_on_create" {
   }
 
   event_trigger {
-    trigger_region = var.region
-    event_type     = "google.firebase.auth.user.v1.created"
-    retry_policy   = var.retry_policy
+    trigger_region        = var.region
+    event_type            = "google.firebase.auth.user.v1.created"
+    retry_policy          = var.retry_policy
+    service_account_email = google_service_account.cloud_function_sa.email
+
+    event_filters {
+      attribute = "project"
+      value     = var.project_id
+    }
   }
 }
