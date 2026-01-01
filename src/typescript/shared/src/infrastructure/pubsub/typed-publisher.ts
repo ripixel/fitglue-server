@@ -73,7 +73,9 @@ export class TypedPublisher<T> {
       // Try parsing as plain JSON in case the base64 assumption was wrong
       try {
         if (typeof data === 'string') return JSON.parse(data) as T;
-      } catch (ignore) { }
+      } catch (ignore) {
+        // ignore
+      }
       throw new Error(`Failed to unwrap message: ${err}`);
     }
   }

@@ -43,6 +43,7 @@ resource "google_cloudfunctions2_function" "strava_oauth_handler" {
       secret     = google_secret_manager_secret.strava_client_secret.secret_id
       version    = "latest"
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 }
 
@@ -99,6 +100,7 @@ resource "google_cloudfunctions2_function" "fitbit_oauth_handler" {
       secret     = google_secret_manager_secret.fitbit_client_secret.secret_id
       version    = "latest"
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 }
 

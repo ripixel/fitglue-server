@@ -117,6 +117,7 @@ resource "google_cloudfunctions2_function" "router" {
       ENABLE_PUBLISH       = "true"
       LOG_LEVEL            = var.log_level
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 
   event_trigger {
@@ -152,6 +153,7 @@ resource "google_cloudfunctions2_function" "strava_uploader" {
       GCS_ARTIFACT_BUCKET  = "${var.project_id}-artifacts"
       LOG_LEVEL            = var.log_level
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 
   event_trigger {
@@ -187,6 +189,7 @@ resource "google_cloudfunctions2_function" "hevy_handler" {
     environment_variables = {
       LOG_LEVEL = var.log_level
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 }
 
@@ -237,6 +240,7 @@ resource "google_cloudfunctions2_function" "fitbit_webhook_handler" {
       secret     = google_secret_manager_secret.fitbit_client_secret.secret_id
       version    = "latest"
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 }
 
@@ -288,6 +292,7 @@ resource "google_cloudfunctions2_function" "fitbit_ingest" {
       secret     = google_secret_manager_secret.fitbit_client_secret.secret_id
       version    = "latest"
     }
+    service_account_email = google_service_account.cloud_function_sa.email
   }
 
   event_trigger {
