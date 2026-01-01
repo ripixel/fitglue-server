@@ -88,6 +88,7 @@ Pipelines are configured per-user via the Admin CLI. See [Enricher Testing Guide
 - **[Enricher Testing](docs/ENRICHER_TESTING.md)** - Testing guide for enrichment providers
 - **[Manual QA Guide](docs/MANUAL_QA_GUIDE.md)** - End-to-end manual testing procedures
 - **[Integration Tests](docs/INTEGRATION_TESTS.md)** - Automated integration tests
+- **[Debugging Guide](docs/DEBUGGING.md)** - Troubleshooting integrations and scripts
 
 ### Infrastructure & Architecture
 - **[CI/CD Guide](docs/CICD.md)** - Deployment pipeline and infrastructure

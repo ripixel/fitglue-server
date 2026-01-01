@@ -500,7 +500,7 @@ program.command('users:connect')
                     `client_id=${clientId}&` +
                     `redirect_uri=${encodeURIComponent(`${baseUrl}/auth/fitbit/callback`)}&` +
                     `response_type=code&` +
-                    `scope=${encodeURIComponent('activity heartrate profile')}&` +
+                    `scope=${encodeURIComponent('activity heartrate profile location')}&` +
                     `state=${state}`;
             }
 
