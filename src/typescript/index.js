@@ -32,3 +32,8 @@ exports.authOnCreate = (event) => {
   const auth = require('./auth-hooks/build/index');
   return auth.authOnCreate(event);
 };
+
+exports.waitlistHandler = (req, res) => {
+  const waitlist = require('./waitlist-handler/build/index');
+  return waitlist.waitlistHandler(req, res);
+};
