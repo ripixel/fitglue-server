@@ -141,7 +141,8 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
       // Mark activity as processed
       await ctx.services.user.markActivityAsProcessed(userId, connector.name, standardizedActivity.externalId, {
         processedAt: new Date(),
-        source: connector.activitySource
+        source: connector.name,
+        externalId: standardizedActivity.externalId
       });
 
       publishedIds.push(activityExternalId);

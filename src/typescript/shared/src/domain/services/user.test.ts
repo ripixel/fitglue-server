@@ -65,8 +65,9 @@ describe('UserService', () => {
 
     it('should mark activity as processed', async () => {
       const now = new Date();
-      await userService.markActivityAsProcessed('u1', 'fitbit', 'a1', { processedAt: now, source: 1 });
-      expect(mockActivityStore.markProcessed).toHaveBeenCalledWith('u1', 'fitbit_a1', { processedAt: now, source: 1 });
+
+      await userService.markActivityAsProcessed('u1', 'fitbit', 'a1', { processedAt: now, source: 'fitbit', externalId: 'ext-1' });
+      expect(mockActivityStore.markProcessed).toHaveBeenCalledWith('u1', 'fitbit_a1', { processedAt: now, source: 'fitbit', externalId: 'ext-1' });
     });
   });
 });

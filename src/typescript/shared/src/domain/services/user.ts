@@ -1,4 +1,3 @@
-import * as admin from 'firebase-admin';
 import { UserStore, ActivityStore } from '../../storage/firestore';
 import { UserRecord, UserIntegrations } from '../../types/pb/user';
 
@@ -90,9 +89,13 @@ export class UserService {
      * Mark an activity as processed for a user.
      * Activity IDs are scoped by connector: {connectorName}_{activityId}
      */
-    async markActivityAsProcessed(userId: string, connectorName: string, activityId: string, metadata: { processedAt: Date; source: number }): Promise<void> {
+    async markActivityAsProcessed(userId: string, connectorName: string, activityId: string, metadata: { processedAt: Date; source: string; externalId: string }): Promise<void> {
         const scopedId = `${connectorName}_${activityId}`;
-        return this.activityStore.markProcessed(userId, scopedId, metadata);
+        return this.activityStore.markProcessed(userId, scopedId, {
+            source: metadata.source,
+            externalId: metadata.externalId,
+            processedAt: metadata.processedAt
+        });
     }
 
     /**
@@ -138,37 +141,30 @@ export class UserService {
      * Set Hevy integration for a user.
      */
     async setHevyIntegration(userId: string, apiKey: string): Promise<void> {
-        await this.userStore.update(userId, {
-            'integrations.hevy': {
-                enabled: true,
-                apiKey: apiKey, // camelCase
-                api_key: apiKey // snake_case for legacy compatibility
-            }
+        await this.userStore.setIntegration(userId, 'hevy', {
+            enabled: true,
+            apiKey: apiKey,
+            userId: userId // Enforcing userId requirement from HevyIntegration interface
         });
     }
 
     async setStravaIntegration(userId: string, accessToken: string, refreshToken: string, expiresAt: number, athleteId: number): Promise<void> {
-        await this.userStore.update(userId, {
-            'integrations.strava': {
-                enabled: true,
-                accessToken,
-                refreshToken,
-                expiresAt: admin.firestore.Timestamp.fromMillis(expiresAt * 1000),
-                athleteId
-            }
+        await this.userStore.setIntegration(userId, 'strava', {
+            enabled: true,
+            accessToken,
+            refreshToken,
+            expiresAt: new Date(expiresAt * 1000), // Convert to Date
+            athleteId
         });
     }
 
     async setFitbitIntegration(userId: string, accessToken: string, refreshToken: string, expiresAt: number, fitbitUserId: string): Promise<void> {
-        await this.userStore.update(userId, {
-            'integrations.fitbit': {
-                enabled: true,
-                accessToken,
-                refreshToken,
-                expiresAt: admin.firestore.Timestamp.fromMillis(expiresAt * 1000),
-                fitbitUserId,
-                fitbit_user_id: fitbitUserId
-            }
+        await this.userStore.setIntegration(userId, 'fitbit', {
+            enabled: true,
+            accessToken,
+            refreshToken,
+            expiresAt: new Date(expiresAt * 1000), // Convert to Date
+            fitbitUserId,
         });
     }
 
@@ -179,10 +175,8 @@ export class UserService {
     // Pipeline methods (legacy support)
     async addPipeline(userId: string, source: string, enrichers: any[], destinations: string[]): Promise<string> {
         const id = `pipe_${Date.now()}`;
-        await this.userStore.update(userId, {
-            pipelines: admin.firestore.FieldValue.arrayUnion({
-                id, source, enrichers, destinations
-            })
+        await this.userStore.addPipeline(userId, {
+            id, source, enrichers, destinations
         });
         return id;
     }
@@ -191,15 +185,13 @@ export class UserService {
         const user = await this.get(userId);
         if (!user || !user.pipelines) return;
         const newPipelines = user.pipelines.filter(p => p.id !== pipelineId);
-        await this.userStore.update(userId, { pipelines: newPipelines });
+        await this.userStore.updatePipelines(userId, newPipelines);
     }
 
     async replacePipeline(userId: string, pipelineId: string, source: string, enrichers: any[], destinations: string[]): Promise<void> {
         await this.removePipeline(userId, pipelineId);
-        await this.userStore.update(userId, {
-            pipelines: admin.firestore.FieldValue.arrayUnion({
-                id: pipelineId, source, enrichers, destinations
-            })
+        await this.userStore.addPipeline(userId, {
+            id: pipelineId, source, enrichers, destinations
         });
     }
 }

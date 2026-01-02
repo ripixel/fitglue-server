@@ -25,7 +25,7 @@ export class ActivityStore {
   /**
    * Mark an activity as processed.
    */
-  async markProcessed(userId: string, activityId: string, data: any): Promise<void> {
+  async markProcessed(userId: string, activityId: string, data: import('../../types/pb/user').ProcessedActivityRecord): Promise<void> {
     await this.collection(userId).doc(activityId).set(data);
   }
 }

@@ -57,10 +57,44 @@ export class UserStore {
   }
 
   /**
-   * Update a user document.
+   * Update a user document (root level fields only).
    */
-  async update(userId: string, data: any): Promise<void> {
+  async update(userId: string, data: Partial<UserRecord>): Promise<void> {
     await this.collection().doc(userId).update(data);
+  }
+
+  /**
+   * Set an integration configuration for a user.
+   * This handles the nested update path strictly.
+   */
+  async setIntegration<K extends keyof import('../../types/pb/user').UserIntegrations>(
+    userId: string,
+    provider: K,
+    data: import('../../types/pb/user').UserIntegrations[K]
+  ): Promise<void> {
+    // Construct the dot-notation key for updating nested field
+    const fieldPath = `integrations.${provider}`;
+    await this.collection().doc(userId).update({
+      [fieldPath]: data
+    });
+  }
+
+  /**
+   * Update pipelines for a user.
+   */
+  async updatePipelines(userId: string, pipelines: import('../../types/pb/user').PipelineConfig[]): Promise<void> {
+    await this.collection().doc(userId).update({
+      pipelines: pipelines
+    });
+  }
+
+  /**
+   * Add a pipeline to the user's list.
+   */
+  async addPipeline(userId: string, pipeline: import('../../types/pb/user').PipelineConfig): Promise<void> {
+    await this.collection().doc(userId).update({
+      pipelines: admin.firestore.FieldValue.arrayUnion(pipeline)
+    });
   }
 
   /**
