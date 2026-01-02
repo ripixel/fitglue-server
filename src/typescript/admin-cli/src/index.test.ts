@@ -18,7 +18,7 @@ describe('Admin CLI: Activities Commands', () => {
   });
 
   it('should register activities commands', () => {
-    addActivitiesCommands(program);
+    addActivitiesCommands(program, {} as any);
     const commands = program.commands.map(c => c.name());
     expect(commands).toContain('activities:list-processed');
     // Expect other commands if they exist, but at least verify registration happening

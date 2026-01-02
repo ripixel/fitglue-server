@@ -1,30 +1,26 @@
 import { Command } from 'commander';
-import { adminDb } from '../firebase';
+import { UserService } from '@fitglue/shared/dist/domain/services/user';
 
-export function addActivitiesCommands(program: Command) {
+export function addActivitiesCommands(program: Command, userService: UserService) {
   program.command('activities:list-processed <userId>')
     .description('List processed activities for a user')
     .action(async (userId) => {
       try {
         console.log(`Fetching processed activities for user: ${userId} `);
-        const ref = adminDb.collection('users').doc(userId).collection('raw_activities');
-        const snapshot = await ref
-          .orderBy('processed_at', 'desc')
-          .limit(20)
-          .get();
+        const activities = await userService.listProcessedActivities(userId);
 
-        if (snapshot.empty) {
+        if (activities.length === 0) {
           console.log('No processed activities found.');
           return;
         }
 
-        console.log('\nFound ' + snapshot.size + ' activities:');
+        console.log('\nFound ' + activities.length + ' activities:');
         console.log('--------------------------------------------------');
-        snapshot.forEach(doc => {
-          const data = doc.data();
+        activities.forEach(data => {
           // Raw Firestore data has snake_case
           const date = data.processed_at?.toDate?.()?.toISOString() || 'Unknown';
-          console.log(`[${data.source}] ${data.externalId || data.external_id} (Processed: ${date})`);
+          const extId = data.externalId || data.external_id;
+          console.log(`[${data.source}] ${extId} (Processed: ${date})`);
         });
         console.log('--------------------------------------------------\n');
 
@@ -39,15 +35,7 @@ export function addActivitiesCommands(program: Command) {
     .action(async (userId, source, activityId) => {
       try {
         const id = `${source}_${activityId}`;
-        const refStored = adminDb.collection('users').doc(userId).collection('raw_activities').doc(id);
-
-        const doc = await refStored.get();
-        if (!doc.exists) {
-          console.log(`Processed activity record ${id} not found for user ${userId}`);
-          return;
-        }
-
-        await refStored.delete();
+        await userService.deleteProcessedActivity(userId, id);
         console.log(`✅ Deleted processed activity record: ${id} `);
       } catch (error) {
         console.error('Failed to delete processed activity:', error);

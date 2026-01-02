@@ -1,19 +1,34 @@
-import * as admin from 'firebase-admin';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
-import { UserService } from '@fitglue/shared/dist/domain/services/user';
-import { ApiKeyService } from '@fitglue/shared/dist/domain/services/apikey';
-import { UserStore, ActivityStore, ApiKeyStore } from '@fitglue/shared/dist/storage/firestore';
-import { EnricherProviderType } from '@fitglue/shared/dist/types/pb/user';
+import {
+    UserService,
+    ApiKeyService,
+    ExecutionService,
+    UserStore,
+    ActivityStore,
+    ApiKeyStore,
+    ExecutionStore,
+    EnricherProviderType,
+    db
+} from '@fitglue/shared';
 
-import { adminDb as db } from './firebase';
+import * as admin from 'firebase-admin';
+
+// Initialize Firebase if not already initialized
+if (admin.apps.length === 0) {
+    admin.initializeApp({
+        credential: admin.credential.applicationDefault()
+    });
+}
 
 const userStore = new UserStore(db);
 const activityStore = new ActivityStore(db);
 const apiKeyStore = new ApiKeyStore(db);
+const executionStore = new ExecutionStore(db);
 
 const userService = new UserService(userStore, activityStore);
 const apiKeyService = new ApiKeyService(apiKeyStore);
+const executionService = new ExecutionService(executionStore);
 
 const program = new Command();
 
@@ -23,7 +38,7 @@ program
     .version('1.0.0');
 
 import { addActivitiesCommands } from './commands/activities';
-addActivitiesCommands(program);
+addActivitiesCommands(program, userService);
 
 import { randomUUID } from 'crypto';
 import * as crypto from 'crypto';
@@ -34,8 +49,8 @@ program.command('users:create-auth')
     .action(async (userId) => {
         try {
             // Verify user exists
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found in Firestore`);
                 process.exit(1);
             }
@@ -153,8 +168,8 @@ program.command('users:configure-hevy')
     .action(async (userId) => {
         try {
             // Verify user exists
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found`);
                 process.exit(1);
             }
@@ -388,7 +403,7 @@ program.command('users:delete')
                 return;
             }
 
-            await db.collection('users').doc(userId).delete();
+            await userService.deleteUser(userId);
             // Note: In a real app we might want to recursively delete subcollections or related data
             console.log(`User ${userId} deleted.`);
         } catch (error) {
@@ -433,8 +448,11 @@ const getAvailableEnricherChoices = (selectedProviderTypes: EnricherProviderType
 };
 
 // Helper to format user output
-const formatUserOutput = (doc: admin.firestore.DocumentSnapshot) => {
-    const data = doc.data();
+const formatUserOutput = (user: any) => {
+    // Adapter for legacy format where doc was passed
+    const data = user.data ? user.data() : user;
+    const id = user.id || data.userId || data.user_id;
+
     if (!data) return;
 
     const integrations = [];
@@ -442,7 +460,7 @@ const formatUserOutput = (doc: admin.firestore.DocumentSnapshot) => {
     if (data.integrations?.strava?.enabled) integrations.push('Strava');
     if (data.integrations?.fitbit?.enabled) integrations.push('Fitbit');
 
-    console.log(`ID: ${doc.id}`);
+    console.log(`ID: ${id}`);
     // Handle created_at (snake) or createdAt (legacy)
     const createdAt = data.created_at || data.createdAt;
     console.log(`   Created: ${createdAt?.toDate?.()?.toISOString() || 'Unknown'}`);
@@ -473,15 +491,15 @@ program.command('users:list')
     .action(async () => {
         try {
             console.log('Fetching users...');
-            const snapshot = await db.collection('users').get();
-            if (snapshot.empty) {
+            const users = await userService.listUsers();
+            if (users.length === 0) {
                 console.log('No users found.');
                 return;
             }
 
-            console.log('\nFound ' + snapshot.size + ' users:');
+            console.log('\nFound ' + users.length + ' users:');
             console.log('--------------------------------------------------');
-            snapshot.forEach(doc => formatUserOutput(doc));
+            users.forEach(user => formatUserOutput(user));
             console.log('');
         } catch (error) {
             console.error('Error listing users:', error);
@@ -494,15 +512,15 @@ program.command('users:get')
     .description('Get details of a specific user')
     .action(async (userId) => {
         try {
-            const doc = await db.collection('users').doc(userId).get();
-            if (!doc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found`);
                 process.exit(1);
             }
 
             console.log('\nUser Details:');
             console.log('--------------------------------------------------');
-            formatUserOutput(doc);
+            formatUserOutput(user);
             console.log('');
         } catch (error) {
             console.error('Error getting user:', error);
@@ -524,8 +542,8 @@ program.command('users:connect')
             }
 
             // Verify user exists
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found`);
                 process.exit(1);
             }
@@ -612,20 +630,20 @@ program.command('users:clean')
             }
 
             console.log('Fetching users to delete...');
-            const snapshot = await db.collection('users').get();
 
-            if (snapshot.empty) {
+            // Delegate deletion to service which handles batching
+            const deletedCount = await userService.deleteAllUsers();
+
+            if (deletedCount === 0) {
                 console.log('No users to delete.');
                 return;
             }
 
-            console.log(`Deleting ${snapshot.size} users...`);
-            const batch = db.batch();
-            snapshot.docs.forEach(doc => {
-                batch.delete(doc.ref);
-            });
+            console.log(`Deleted ${deletedCount} users.`);
+            console.log('All users deleted.');
 
-            await batch.commit();
+            // await batch.commit(); // Batch not used here anymore
+            console.log('All users deleted.');
             console.log('All users deleted.');
 
         } catch (error) {
@@ -640,8 +658,8 @@ program.command('users:add-pipeline')
     .action(async (userId) => {
         try {
             // Check user exists
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found`);
                 process.exit(1);
             }
@@ -726,12 +744,12 @@ program.command('users:remove-pipeline')
     .description('Remove a pipeline from a user')
     .action(async (userId) => {
         try {
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found`);
                 process.exit(1);
             }
-            const data = userDoc.data();
+            const data = user;
             const pipelines = data?.pipelines || [];
 
             if (pipelines.length === 0) {
@@ -776,12 +794,12 @@ program.command('users:replace-pipeline')
     .description('Replace/Reconfigure an existing pipeline')
     .action(async (userId) => {
         try {
-            const userDoc = await db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
+            const user = await userService.getUser(userId);
+            if (!user) {
                 console.error(`User ${userId} not found`);
                 process.exit(1);
             }
-            const data = userDoc.data();
+            const data = user;
             const pipelines = data?.pipelines || [];
 
             if (pipelines.length === 0) {
@@ -886,39 +904,31 @@ program
     .option('-l, --limit <number>', 'Number of records to show', '20')
     .action(async (options) => {
         try {
-            let query: admin.firestore.Query = db.collection('executions').orderBy('timestamp', 'desc');
-
-            if (options.service) {
-                query = query.where('service', '==', options.service);
-            }
-            if (options.status) {
-                query = query.where('status', '==', options.status);
-            }
-            if (options.user) {
-                query = query.where('user_id', '==', options.user);
-            }
-
             const limit = parseInt(options.limit, 10);
-            query = query.limit(limit);
 
             console.log(`Fetching up to ${limit} executions...`);
-            const snapshot = await query.get();
+            const executions = await executionService.listExecutions({
+                service: options.service,
+                status: options.status,
+                userId: options.user,
+                limit
+            });
 
-            if (snapshot.empty) {
+            if (executions.length === 0) {
                 console.log('No executions found matching criteria.');
                 return;
             }
 
-            console.log('\nFound ' + snapshot.size + ' executions:');
+            console.log('\nFound ' + executions.length + ' executions:');
             console.log('--------------------------------------------------');
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                const time = data.timestamp ? (data.timestamp as admin.firestore.Timestamp).toDate().toISOString() : 'N/A';
+            executions.forEach(item => {
+                const data = item.data;
+                const time = data.timestamp instanceof Date ? data.timestamp.toISOString() : 'Unknown';
                 const status = data.status || 'UNKNOWN';
                 const service = data.service || 'unknown';
-                const trigger = data.trigger_type || 'N/A';
+                const trigger = data.triggerType || 'N/A';
 
-                console.log(`${time} | ${doc.id} | ${service} | ${status} | ${trigger}`);
+                console.log(`${time} | ${item.id} | ${service} | ${status} | ${trigger}`);
             });
             console.log('--------------------------------------------------\n');
 
@@ -933,32 +943,32 @@ program
     .description('Get full details of a specific execution')
     .action(async (executionId) => {
         try {
-            const doc = await db.collection('executions').doc(executionId).get();
-            if (!doc.exists) {
-                console.error(`Execution ${executionId} not found.`);
+            const execution = await executionService.get(executionId);
+            if (!execution) {
+                console.log(`Execution ${executionId} not found.`);
                 process.exit(1);
             }
 
-            const data = doc.data()!;
+            const data = execution;
             console.log('Execution Details:');
-            console.log(`ID: ${doc.id}`);
+            console.log(`ID: ${executionId}`);
             console.log(`Service: ${data.service}`);
             console.log(`Status: ${data.status}`);
-            console.log(`Timestamp: ${data.timestamp ? (data.timestamp as admin.firestore.Timestamp).toDate().toISOString() : 'N/A'}`);
-            console.log(`User ID: ${data.user_id || 'N/A'}`);
-            console.log(`Trigger Type: ${data.trigger_type || 'N/A'}`);
+            console.log(`Timestamp: ${data.timestamp instanceof Date ? data.timestamp.toISOString() : 'N/A'}`);
+            console.log(`User ID: ${data.userId || 'N/A'}`);
+            console.log(`Trigger Type: ${data.triggerType || 'N/A'}`);
 
             if (data.errorMessage) {
                 console.log(`Error: ${data.errorMessage}`);
             }
 
-            if (data.inputs) {
+            if (data.inputsJson) {
                 console.log('Inputs:');
                 try {
                     // Try to pretty print JSON string
-                    console.log(JSON.stringify(JSON.parse(data.inputs), null, 2));
+                    console.log(JSON.stringify(JSON.parse(data.inputsJson), null, 2));
                 } catch {
-                    console.log(data.inputs);
+                    console.log(data.inputsJson);
                 }
             }
 
@@ -1011,31 +1021,7 @@ program
             }
 
             console.log('Deleting all executions...');
-
-            // Delete in batches using a query
-            // Firestore deletion of collections requires recursive delete or batching
-            // For simplicity/safety here without firebase-tools, we'll fetch and delete in batches of 500
-
-            let deletedCount = 0;
-            const batchSize = 500;
-
-            // eslint-disable-next-line no-constant-condition
-            while (true) {
-                const snapshot = await db.collection('executions').limit(batchSize).get();
-                if (snapshot.empty) {
-                    break;
-                }
-
-                const batch = db.batch();
-                snapshot.docs.forEach(doc => {
-                    batch.delete(doc.ref);
-                });
-
-                await batch.commit();
-                deletedCount += snapshot.size;
-                console.log(`Deleted ${deletedCount} records...`);
-            }
-
+            const deletedCount = await executionService.deleteAllExecutions();
             console.log(`Successfully deleted ${deletedCount} executions.`);
 
         } catch (error: any) {
@@ -1121,14 +1107,12 @@ program
     .action(async (executionId) => {
         try {
             console.log(`Fetching execution ${executionId}...`);
-            const doc = await db.collection('executions').doc(executionId).get();
-            if (!doc.exists) {
+            const data = await executionService.get(executionId);
+            if (!data) {
                 console.error(`Execution ${executionId} not found.`);
                 process.exit(1);
             }
-
-            const data = doc.data()!;
-            let fitFileUri = data.fit_file_uri;
+            let fitFileUri = null
 
             // If not found at top level, check within inputs or outputs
             if (!fitFileUri) {
@@ -1143,9 +1127,9 @@ program
                 }
 
                 // Check inputs if still not found
-                if (!fitFileUri && data.inputs) {
+                if (!fitFileUri && data.inputsJson) {
                     try {
-                        const inputs = JSON.parse(data.inputs);
+                        const inputs = JSON.parse(data.inputsJson);
                         fitFileUri = inputs.fit_file_uri || inputs.uri || inputs.fileUri;
                     } catch (e) {
                         // ignore
@@ -1279,13 +1263,11 @@ program
     .action(async (executionId, localPath) => {
         try {
             console.log(`Fetching execution ${executionId}...`);
-            const doc = await db.collection('executions').doc(executionId).get();
-            if (!doc.exists) {
+            const data = await executionService.get(executionId);
+            if (!data) {
                 console.error(`Execution ${executionId} not found.`);
                 process.exit(1);
             }
-
-            const data = doc.data()!;
             const uris = new Set<string>();
 
             // Recursive function to find gs:// URIs in objects/strings
@@ -1303,9 +1285,9 @@ program
             findUris(data);
 
             // Scan inputs/outputs specifically if they are JSON strings
-            if (data.inputs) {
+            if (data.inputsJson) {
                 try {
-                    findUris(JSON.parse(data.inputs));
+                    findUris(JSON.parse(data.inputsJson));
                 } catch { /* ignore */ }
             }
             if (data.outputsJson) { // consistent with previous code usage
@@ -1371,6 +1353,15 @@ program
             process.exit(1);
         }
     });
+
+// Helper to look up execution bucket via service
+const getExecutionData = async (executionId: string) => {
+    const execution = await executionService.get(executionId);
+    if (!execution) {
+        throw new Error(`Execution ${executionId} not found`);
+    }
+    return execution;
+};
 
 program.parse();
 

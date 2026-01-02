@@ -33,6 +33,12 @@ export class ApiKeyStrategy implements AuthStrategy {
       token = (req.query.key as string) || (req.query.api_key as string);
     }
 
+    if (token) {
+      // Log partial key for debugging (first 4 chars)
+      const maskedKey = token.substring(0, 4) + '...';
+      ctx.logger.debug(`[ApiKeyStrategy] Attempting auth with token starting with ${maskedKey}`);
+    }
+
     if (!token) {
       return null;
     }

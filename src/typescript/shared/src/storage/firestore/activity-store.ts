@@ -28,4 +28,23 @@ export class ActivityStore {
   async markProcessed(userId: string, activityId: string, data: import('../../types/pb/user').ProcessedActivityRecord): Promise<void> {
     await this.collection(userId).doc(activityId).set(data);
   }
+
+  /**
+   * List processed activities for a user.
+   */
+  async list(userId: string, limit: number = 20): Promise<import('../../types/pb/user').ProcessedActivityRecord[]> {
+    const snapshot = await this.collection(userId)
+      .orderBy('processed_at', 'desc')
+      .limit(limit)
+      .get();
+
+    return snapshot.docs.map(doc => doc.data());
+  }
+
+  /**
+   * Delete a processed activity record.
+   */
+  async delete(userId: string, activityId: string): Promise<void> {
+    await this.collection(userId).doc(activityId).delete();
+  }
 }

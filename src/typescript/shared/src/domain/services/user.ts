@@ -145,6 +145,26 @@ export class UserService {
         return this.get(userId);
     }
 
+    async listUsers(): Promise<UserRecord[]> {
+        return this.userStore.list();
+    }
+
+    async deleteUser(userId: string): Promise<void> {
+        return this.userStore.delete(userId);
+    }
+
+    async deleteAllUsers(): Promise<number> {
+        return this.userStore.deleteAll();
+    }
+
+    async listProcessedActivities(userId: string): Promise<any[]> {
+        return this.activityStore.list(userId);
+    }
+
+    async deleteProcessedActivity(userId: string, activityId: string): Promise<void> {
+        return this.activityStore.delete(userId, activityId);
+    }
+
     // Pipeline methods (legacy support)
     async addPipeline(userId: string, source: string, enrichers: any[], destinations: string[]): Promise<string> {
         const id = `pipe_${Date.now()}`;

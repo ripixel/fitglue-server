@@ -27,4 +27,12 @@ export class ExecutionService {
   async get(executionId: string): Promise<ExecutionRecord | null> {
     return this.executionStore.get(executionId);
   }
+
+  async listExecutions(filters: { service?: string, status?: string, userId?: string, limit?: number }): Promise<{ id: string, data: ExecutionRecord }[]> {
+    return this.executionStore.list(filters);
+  }
+
+  async deleteAllExecutions(): Promise<number> {
+    return this.executionStore.deleteAll();
+  }
 }

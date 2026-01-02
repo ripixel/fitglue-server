@@ -57,10 +57,41 @@ export class UserStore {
   }
 
   /**
+   * List all users.
+   */
+  async list(): Promise<UserRecord[]> {
+    const snapshot = await this.collection().get();
+    return snapshot.docs.map(doc => doc.data());
+  }
+
+  /**
+   * Delete a user by ID.
+   */
+  async delete(userId: string): Promise<void> {
+    await this.collection().doc(userId).delete();
+  }
+
+  /**
    * Update a user document (root level fields only).
    */
   async update(userId: string, data: Partial<UserRecord>): Promise<void> {
     await this.collection().doc(userId).update(data);
+  }
+
+  /**
+   * Delete all users.
+   */
+  async deleteAll(): Promise<number> {
+    const snapshot = await this.collection().get();
+    if (snapshot.empty) return 0;
+
+    const batch = this.db.batch();
+    snapshot.docs.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+    return snapshot.size;
   }
 
   /**

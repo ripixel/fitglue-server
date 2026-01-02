@@ -41,7 +41,7 @@ class SecretManagerHelper implements SecretsHelper {
 if (admin.apps.length === 0) {
   admin.initializeApp();
 }
-const db = admin.firestore();
+export const db = admin.firestore();
 
 // Initialize PubSub
 const pubsub = new PubSub();

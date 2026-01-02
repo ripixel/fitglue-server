@@ -4,20 +4,30 @@ export * from './infrastructure/crypto';
 export * from './framework/index';
 export * from './framework/auth';
 export * from './framework/auth-strategies';
+
+// Types
 export { ActivityPayload, ActivitySource } from './types/pb/activity';
 export { StandardizedActivity, Session, Lap, StrengthSet, MuscleGroup, Record } from './types/pb/standardized_activity';
 export { ExecutionRecord, ExecutionStatus } from './types/pb/execution';
 export { CloudEventType, CloudEventSource } from './types/pb/events';
 export * from './types/events-helper';
-export * from './execution/logger';
 export { ApiKeyRecord } from './types/pb/auth';
-export { UserRecord, UserIntegrations, HevyIntegration } from './types/pb/user';
+export { UserRecord, UserIntegrations, HevyIntegration, EnricherProviderType } from './types/pb/user';
+export { FitbitNotification } from './types/pb/fitbit';
+
+// Services
 export * from './domain/services/user';
+export * from './domain/services/execution';
+export * from './domain/services/apikey';
+
+// Integrations
 export * from './integrations/hevy/client';
 export * from './integrations/fitbit/client';
-export { FitbitNotification } from './types/pb/fitbit';
 export * from './infrastructure/oauth';
 
+// Infrastructure
 export * from './infrastructure/pubsub/cloud-event-publisher';
 export * as storage from './storage/firestore';
+export { UserStore, ActivityStore, ApiKeyStore, ExecutionStore, IntegrationIdentityStore } from './storage/firestore';
 export { mapTCXToStandardized } from './domain/file-parsers/tcx';
+export * from './execution/logger';
