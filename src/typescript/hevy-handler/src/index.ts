@@ -43,7 +43,7 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
 
     const userData = userDoc.data();
     // 4. Retrieve Hevy API Key for Active Fetch
-    const hevyApiKey = userData?.integrations?.hevy?.apiKey;
+    const hevyApiKey = userData?.integrations?.hevy?.apiKey || userData?.integrations?.hevy?.['api_key'];
 
     if (!hevyApiKey) {
         logger.error(`User ${userId} missing integrations.hevy.apiKey`);
