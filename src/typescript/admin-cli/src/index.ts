@@ -2,10 +2,18 @@ import * as admin from 'firebase-admin';
 import { Command } from 'commander';
 import inquirer from 'inquirer';
 import { UserService } from '@fitglue/shared/dist/domain/services/user';
+import { ApiKeyService } from '@fitglue/shared/dist/domain/services/apikey';
+import { UserStore, ActivityStore, ApiKeyStore } from '@fitglue/shared/dist/storage/firestore';
 import { EnricherProviderType } from '@fitglue/shared/dist/types/pb/user';
 
 import { adminDb as db } from './firebase';
-const userService = new UserService(db);
+
+const userStore = new UserStore(db);
+const activityStore = new ActivityStore(db);
+const apiKeyStore = new ApiKeyStore(db);
+
+const userService = new UserService(userStore, activityStore);
+const apiKeyService = new ApiKeyService(apiKeyStore);
 
 const program = new Command();
 
@@ -18,6 +26,7 @@ import { addActivitiesCommands } from './commands/activities';
 addActivitiesCommands(program);
 
 import { randomUUID } from 'crypto';
+import * as crypto from 'crypto';
 
 program.command('users:create-auth')
     .argument('<userId>', 'User ID to create Auth user for')
@@ -110,18 +119,23 @@ program.command('users:create')
             ]);
 
             if (answers.createIngressKey) {
-                const key = await userService.createIngressApiKey(userId, answers.label, answers.scopes);
-                console.log('\n==========================================');
-                console.log(`INGRESS API KEY (${answers.label}):`);
-                console.log(key);
-                console.log('==========================================\n');
-            }
+                // Generate key
+                const token = `fg_sk_${crypto.randomBytes(32).toString('hex')}`;
+                const hash = crypto.createHash('sha256').update(token).digest('hex');
 
-            if (answers.createIngressKey) {
-                const key = await userService.createIngressApiKey(userId, answers.label, answers.scopes);
+                await apiKeyService.create({
+                    id: randomUUID(), // ID of the key doc
+                    hash,
+                    label: answers.label,
+                    scopes: answers.scopes,
+                    userId,
+                    enabled: true,
+                    created_at: admin.firestore.Timestamp.now()
+                } as any);
+
                 console.log('\n==========================================');
                 console.log(`INGRESS API KEY (${answers.label}):`);
-                console.log(key);
+                console.log(token);
                 console.log('==========================================\n');
             }
 
@@ -800,7 +814,6 @@ program.command('users:replace-pipeline')
             ]);
 
             const enrichers = [];
-            const addMore = true;
             console.log('\n--- Configure Enrichers (Order Matters) ---');
             // eslint-disable-next-line no-constant-condition
             while (true) {

@@ -1,13 +1,17 @@
 import { createCloudFunction, createWebhookProcessor, PayloadUserStrategy } from '@fitglue/shared';
 import { FitbitConnector } from './connector';
 
-const connector = new FitbitConnector();
+
 
 export const fitbitWebhookHandler = createCloudFunction(
-  createWebhookProcessor(connector),
+  createWebhookProcessor(FitbitConnector),
   {
     auth: {
-      strategies: [new PayloadUserStrategy((payload, ctx) => connector.resolveUser!(payload, ctx))]
+      strategies: [new PayloadUserStrategy((payload, ctx) => {
+        // Instantiate connector with the authentication context to use resolveUser
+        const connector = new FitbitConnector(ctx);
+        return connector.resolveUser(payload, ctx);
+      })]
     }
   }
 );

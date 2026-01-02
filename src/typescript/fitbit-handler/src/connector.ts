@@ -1,4 +1,4 @@
-import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, CloudEventSource, ActivitySource, UserService, createFitbitClient, mapTCXToStandardized } from '@fitglue/shared';
+import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, CloudEventSource, ActivitySource, createFitbitClient, mapTCXToStandardized, FrameworkContext } from '@fitglue/shared';
 
 export interface FitbitConnectorConfig extends ConnectorConfig {
   fitbit_user_id: string;
@@ -11,7 +11,9 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
   readonly cloudEventSource = CloudEventSource.CLOUD_EVENT_SOURCE_FITBIT_WEBHOOK;
   readonly activitySource = ActivitySource.SOURCE_FITBIT;
 
-  private userService?: UserService;
+  constructor(context: FrameworkContext) {
+    super(context);
+  }
 
   /**
    * Fitbit webhooks provide a date, not an activity ID.
@@ -145,13 +147,11 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
       throw new Error("userId missing in connector config");
     }
 
-    // Initialize UserService if not already done
-    if (!this.userService) {
-      const firebaseAdmin = await import('firebase-admin');
-      this.userService = new UserService(firebaseAdmin.firestore());
-    }
 
-    const client = createFitbitClient(this.userService, userId);
+    // Use UserService from context
+    const userService = this.context.services.user;
+
+    const client = createFitbitClient(userService, userId);
     const date = activityId; // The "activityId" is actually a date for Fitbit
 
     // Fetch activity list for the date

@@ -51,6 +51,7 @@ describe('fitbitOAuthHandler', () => {
         warn: jest.fn(),
         error: jest.fn(),
       },
+      stores: {},
     };
 
     process.env.BASE_URL = 'https://dev.fitglue.tech';
@@ -86,7 +87,7 @@ describe('fitbitOAuthHandler', () => {
 
   it('should redirect to error page if state token is invalid', async () => {
     req.query = { code: 'auth-code', state: 'invalid-state' };
-    mockValidateOAuthState.mockResolvedValue(null);
+    mockValidateOAuthState.mockResolvedValue({ valid: false, userId: null });
 
     await (fitbitOAuthHandler as any)(req, res, ctx);
 
@@ -97,7 +98,7 @@ describe('fitbitOAuthHandler', () => {
 
   it('should successfully process OAuth callback and store tokens', async () => {
     req.query = { code: 'auth-code', state: 'valid-state' };
-    mockValidateOAuthState.mockResolvedValue('user-123');
+    mockValidateOAuthState.mockResolvedValue({ valid: true, userId: 'user-123' });
     mockGetSecret.mockImplementation((projectId: string, secretName: string) => {
       if (secretName === 'fitbit-client-id') return Promise.resolve('client-id');
       if (secretName === 'fitbit-client-secret') return Promise.resolve('client-secret');
@@ -127,7 +128,8 @@ describe('fitbitOAuthHandler', () => {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
         externalUserId: 'ABC123',
-      })
+      }),
+      {}
     );
     expect(ctx.logger.info).toHaveBeenCalledWith('Successfully connected Fitbit account', {
       userId: 'user-123',
@@ -138,7 +140,7 @@ describe('fitbitOAuthHandler', () => {
 
   it('should redirect to error page if token exchange fails', async () => {
     req.query = { code: 'auth-code', state: 'valid-state' };
-    mockValidateOAuthState.mockResolvedValue('user-123');
+    mockValidateOAuthState.mockResolvedValue({ valid: true, userId: 'user-123' });
     mockGetSecret.mockResolvedValue('secret');
 
     // Mock fetch to fail

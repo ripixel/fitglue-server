@@ -6,7 +6,7 @@ import { HevyConnector } from './connector';
 // Auth -> Extract ID -> Load Config -> Dedup -> Fetch/Map -> Publish -> Mark Processed.
 
 export const hevyWebhookHandler = createCloudFunction(
-    createWebhookProcessor(new HevyConnector()),
+    createWebhookProcessor(HevyConnector),
     {
         auth: {
             strategies: [new ApiKeyStrategy()],

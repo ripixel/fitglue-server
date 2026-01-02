@@ -6,8 +6,7 @@
     "admin-cli",
     "strava-oauth-handler",
     "fitbit-oauth-handler",
-    "fitbit-webhook-handler",
-    "fitbit-ingest",
+    "fitbit-handler",
     "auth-hooks",
     "waitlist-handler"
   ],

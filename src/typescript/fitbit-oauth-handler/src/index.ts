@@ -1,7 +1,7 @@
 import { createCloudFunction, FrameworkContext, validateOAuthState, storeOAuthTokens, getSecret } from '@fitglue/shared';
 
 const handler = async (req: any, res: any, ctx: FrameworkContext) => {
-  const { db, logger } = ctx;
+  const { stores, logger } = ctx;
 
   // Extract query parameters
   const { code, state, error } = req.query;
@@ -21,12 +21,13 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
   }
 
   // Validate state token (CSRF protection)
-  const userId = await validateOAuthState(state);
-  if (!userId) {
+  const validation = await validateOAuthState(state);
+  if (!validation.valid || !validation.userId) {
     logger.error('Invalid or expired state token');
     res.redirect(`${process.env.BASE_URL}/auth/error?reason=invalid_state`);
     return;
   }
+  const userId = validation.userId;
 
   logger.info('Processing Fitbit OAuth callback', { userId });
 
@@ -76,7 +77,7 @@ const handler = async (req: any, res: any, ctx: FrameworkContext) => {
       refreshToken: refresh_token,
       expiresAt,
       externalUserId: user_id,
-    });
+    }, stores); // Pass stores directly
 
     logger.info('Successfully connected Fitbit account', { userId, fitbitUserId: user_id });
 

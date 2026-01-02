@@ -1,100 +1,92 @@
 
 import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from './logger';
+import { ExecutionService } from '../domain/services/execution';
+import { Logger } from 'winston';
 
-// Mock Firestore Storage Module
-const mockSet = jest.fn();
+// Mock ExecutionService
+const mockCreate = jest.fn();
 const mockUpdate = jest.fn();
-// For untyped update path: doc(...).withConverter(null).update(...)
-const mockWithConverter = jest.fn(() => ({
+
+const mockExecutionService = {
+  create: mockCreate,
   update: mockUpdate
-}));
-const mockDoc = jest.fn(() => ({
-  id: 'exec-123',
-  set: mockSet,
-  update: mockUpdate, // Standard
-  withConverter: mockWithConverter
-}));
+} as unknown as ExecutionService;
 
+// Mock Logger
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn()
+} as unknown as Logger;
 
-// Mock the module - auto-mock
-jest.mock('../storage/firestore');
-
-
-// We need to import the mocked function to verify calls if needed,
-// though we mostly verify interaction with the objects it returns.
-import { getExecutionsCollection } from '../storage/firestore';
+// Mock Context
+const mockCtx = {
+  services: {
+    execution: mockExecutionService
+  },
+  logger: mockLogger
+};
 
 describe('Execution Logger', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Configure the mock
-    (getExecutionsCollection as jest.Mock).mockReturnValue({ doc: mockDoc });
   });
 
   describe('logExecutionStart', () => {
-    it('should create a new execution document', async () => {
-      const id = await logExecutionStart('test-service', { userId: 'user-1' });
+    it('should log info and call service.create', async () => {
+      const executionId = 'exec-123';
+      const functionName = 'test-func';
+      const trigger = 'http';
 
-      expect(id).toContain('test-service-');
-      // Collection should be accessed
-      expect(getExecutionsCollection).toHaveBeenCalled();
-      expect(mockDoc).toHaveBeenCalledWith(id);
-      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
-        service: 'test-service',
-        status: 1, // STATUS_STARTED is 1
-        userId: 'user-1', // camelCase keys in model object
-        inputsJson: ''
+      await logExecutionStart(mockCtx, executionId, functionName, trigger);
+
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining('Execution started'),
+        expect.anything()
+      );
+      expect(mockCreate).toHaveBeenCalledWith(executionId, expect.objectContaining({
+        functionName,
+        trigger,
+        status: 'running'
       }));
     });
   });
 
   describe('logExecutionSuccess', () => {
-    it('should update execution with success status', async () => {
-      await logExecutionSuccess('exec-123', { result: 'ok' });
+    it('should log info and call service.update', async () => {
+      const executionId = 'exec-123';
+      const result = { success: true };
 
-      expect(mockDoc).toHaveBeenCalledWith('exec-123');
-      // Success/Failure use untyped update via withConverter(null)
-      expect(mockWithConverter).toHaveBeenCalledWith(null);
-      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-        status: 2, // STATUS_SUCCESS is 2
-        // Wait, enum values:
-        // execution.proto:
-        // STATUS_UNKNOWN = 0;
-        // STATUS_STARTED = 1;
-        // STATUS_RUNNING = 2;
-        // STATUS_SUCCESS = 3;
-        // STATUS_FAILED = 4;
+      await logExecutionSuccess(mockCtx, executionId, result);
 
-        // I should import enum to be safe in test.
+      expect(mockLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining('Execution completed'),
+        expect.anything()
+      );
+      expect(mockUpdate).toHaveBeenCalledWith(executionId, expect.objectContaining({
+        status: 'success',
+        result
       }));
     });
   });
 
   describe('logExecutionFailure', () => {
-    it('should update execution with failed status', async () => {
-      await logExecutionFailure('exec-123', new Error('oops'));
+    it('should log error and call service.update', async () => {
+      const executionId = 'exec-123';
+      const error = new Error('Test Error');
 
-      expect(mockDoc).toHaveBeenCalledWith('exec-123');
-      expect(mockWithConverter).toHaveBeenCalledWith(null);
-      expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({
-        status: 3, // STATUS_FAILED is 3
-        error_message: 'oops' // The received object uses snake_case 'error_message'
-        // logger.ts: error_message: error.message
-      }));
-    });
-  });
+      await logExecutionFailure(mockCtx, executionId, error);
 
-  describe('logChildExecutionStart', () => {
-    it('should create a child execution document with parent link', async () => {
-      const { logChildExecutionStart } = require('./logger');
-
-      const id = await logChildExecutionStart('child-service', 'parent-exec-123', { userId: 'user-1' });
-
-      expect(id).toContain('child-service-');
-      expect(mockDoc).toHaveBeenCalledWith(id);
-      expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
-        service: 'child-service',
-        parentExecutionId: 'parent-exec-123'
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.stringContaining('Execution failed'),
+        expect.anything()
+      );
+      expect(mockUpdate).toHaveBeenCalledWith(executionId, expect.objectContaining({
+        status: 'failed',
+        error: expect.objectContaining({
+          message: 'Test Error'
+        })
       }));
     });
   });

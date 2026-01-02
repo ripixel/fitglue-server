@@ -48,9 +48,8 @@ export const waitlistHandler = async (req: functions.Request, res: functions.Res
     // --- Persistence ---
     // Use email as document ID to ensure uniqueness and simple lookups.
     // .create() will fail if the document already exists.
-    const { storage } = await import('@fitglue/shared');
 
-    await storage.getWaitlistCollection().doc(normalizedEmail).create({
+    await admin.firestore().collection('waitlist').doc(normalizedEmail).create({
       email: normalizedEmail,
       source: 'web',
       createdAt: admin.firestore.Timestamp.now().toDate(), // Converter expects Date

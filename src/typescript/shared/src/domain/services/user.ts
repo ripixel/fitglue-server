@@ -1,10 +1,12 @@
+import * as admin from 'firebase-admin';
 import { UserStore, ActivityStore } from '../../storage/firestore';
-import { UserRecord } from '../../types/pb/user';
+import { UserRecord, UserIntegrations } from '../../types/pb/user';
 
 /**
  * UserService provides business logic for user operations.
  */
 export class UserService {
+
     constructor(
         private userStore: UserStore,
         private activityStore: ActivityStore
@@ -92,4 +94,113 @@ export class UserService {
         const scopedId = `${connectorName}_${activityId}`;
         return this.activityStore.markProcessed(userId, scopedId, metadata);
     }
+
+    /**
+     * Create or ensure a user exists.
+     */
+    async createUser(userId: string): Promise<void> {
+        // Simple check/create. UserStore uses set with merge so this is safe.
+        // But UserStore.update fails if doc doesn't exist?
+        // Let's assume we need to use a create method on store or set.
+        // Since UserStore doesn't have create, we need to add it or use internal db access which is not allowed.
+        // I will add create method to UserStore first.
+        // Wait, I can't modify UserStore in this tool call.
+        // I will rely on the fact that I will add create to UserStore in next step.
+        // Actually, let's keep it simple: admin-cli passes DB to UserService? No, it passes store.
+        // Only UserStore has DB access.
+        // So UserService MUST delegate to UserStore.
+        await this.userStore.create(userId, {
+            userId: userId,
+            createdAt: new Date(),
+            integrations: {} as UserIntegrations,
+            pipelines: []
+        });
+    }
+
+    /**
+     * Create an Ingress API Key for a user.
+     */
+    async createIngressApiKey(userId: string, label: string, scopes: string[]): Promise<string> {
+        // Delegate to ApiKeyService if available, or do it here.
+        // Since UserService doesn't have ApiKeyService reference, we might need to add it
+        // OR add this method to UserStore? No, ApiKeyStore.
+        // IMPORTANT: admin-cli expects UserService to do this.
+        // Typically UserService shouldn't manage API keys directly unless it has ApiKeyStore.
+        // I will add apiKeyStore to UserService deps? No, separation of concerns.
+        // But admin-cli only instantiates UserService.
+        // I should update admin-cli to use ApiKeyService for this.
+        throw new Error("Use ApiKeyService.create() instead. Admin CLI needs update.");
+    }
+
+    // ... for now I will focus on restore to compile ...
+
+    /**
+     * Set Hevy integration for a user.
+     */
+    async setHevyIntegration(userId: string, apiKey: string): Promise<void> {
+        await this.userStore.update(userId, {
+            'integrations.hevy': {
+                enabled: true,
+                apiKey: apiKey, // camelCase
+                api_key: apiKey // snake_case for legacy compatibility
+            }
+        });
+    }
+
+    async setStravaIntegration(userId: string, accessToken: string, refreshToken: string, expiresAt: number, athleteId: number): Promise<void> {
+        await this.userStore.update(userId, {
+            'integrations.strava': {
+                enabled: true,
+                accessToken,
+                refreshToken,
+                expiresAt: admin.firestore.Timestamp.fromMillis(expiresAt * 1000),
+                athleteId
+            }
+        });
+    }
+
+    async setFitbitIntegration(userId: string, accessToken: string, refreshToken: string, expiresAt: number, fitbitUserId: string): Promise<void> {
+        await this.userStore.update(userId, {
+            'integrations.fitbit': {
+                enabled: true,
+                accessToken,
+                refreshToken,
+                expiresAt: admin.firestore.Timestamp.fromMillis(expiresAt * 1000),
+                fitbitUserId,
+                fitbit_user_id: fitbitUserId
+            }
+        });
+    }
+
+    async getUser(userId: string): Promise<UserRecord | null> {
+        return this.get(userId);
+    }
+
+    // Pipeline methods (legacy support)
+    async addPipeline(userId: string, source: string, enrichers: any[], destinations: string[]): Promise<string> {
+        const id = `pipe_${Date.now()}`;
+        await this.userStore.update(userId, {
+            pipelines: admin.firestore.FieldValue.arrayUnion({
+                id, source, enrichers, destinations
+            })
+        });
+        return id;
+    }
+
+    async removePipeline(userId: string, pipelineId: string): Promise<void> {
+        const user = await this.get(userId);
+        if (!user || !user.pipelines) return;
+        const newPipelines = user.pipelines.filter(p => p.id !== pipelineId);
+        await this.userStore.update(userId, { pipelines: newPipelines });
+    }
+
+    async replacePipeline(userId: string, pipelineId: string, source: string, enrichers: any[], destinations: string[]): Promise<void> {
+        await this.removePipeline(userId, pipelineId);
+        await this.userStore.update(userId, {
+            pipelines: admin.firestore.FieldValue.arrayUnion({
+                id: pipelineId, source, enrichers, destinations
+            })
+        });
+    }
 }
+

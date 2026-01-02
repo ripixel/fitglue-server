@@ -75,7 +75,7 @@ describe('createCloudFunction', () => {
     await cloudFunction(mockReq, mockRes);
 
     expect(handler).toHaveBeenCalled();
-    expect(mockRes.set).toHaveBeenCalledWith('x-execution-id', 'exec-123');
+    expect(mockRes.set).toHaveBeenCalledWith('x-execution-id', expect.stringMatching(/^unknown-function-\d+$/));
     // We can't easily check logExecutionSuccess called because of deep imports but we can check if handler was called
   });
 

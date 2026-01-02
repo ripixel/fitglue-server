@@ -62,4 +62,11 @@ export class UserStore {
   async update(userId: string, data: any): Promise<void> {
     await this.collection().doc(userId).update(data);
   }
+
+  /**
+   * Create or overwrite a user document.
+   */
+  async create(userId: string, data: Partial<UserRecord>): Promise<void> {
+    await this.collection().doc(userId).set(data as UserRecord, { merge: true });
+  }
 }

@@ -10,14 +10,23 @@ import { FrameworkContext } from './index';
  */
 export abstract class BaseConnector<TConfig extends ConnectorConfig = ConnectorConfig, TRawPayload = any>
   implements Connector<TConfig, TRawPayload> {
-  protected context?: FrameworkContext;
+  protected _context: FrameworkContext;
+
+  protected get context(): FrameworkContext {
+    if (!this._context) {
+      throw new Error(`Connector ${this.name}: FrameworkContext not set. Ensure context is passed in constructor.`);
+    }
+    return this._context;
+  }
 
   abstract readonly name: string;
   abstract readonly strategy: IngestStrategy;
   abstract readonly cloudEventSource: CloudEventSource;
   abstract readonly activitySource: ActivitySource;
 
-  constructor() { }
+  constructor(context: FrameworkContext) {
+    this._context = context;
+  }
 
   /**
    * Default validation: checks if 'enabled' is present.
@@ -52,11 +61,5 @@ export abstract class BaseConnector<TConfig extends ConnectorConfig = ConnectorC
     return undefined; // No custom verification by default
   }
 
-  /**
-   * Set the framework context for this connector instance.
-   * Called by the webhook processor to provide access to storage, logger, etc.
-   */
-  setContext(context: FrameworkContext): void {
-    this.context = context;
-  }
+
 }

@@ -8,15 +8,25 @@ import { getCloudEventSource, getCloudEventType } from '../types/events-helper';
 import { TOPICS } from '../config';
 
 /**
+ * ConnectorConstructor defines the static shape of a Connector class.
+ */
+export interface ConnectorConstructor<TConfig extends ConnectorConfig, TRaw> {
+  new(context: FrameworkContext): Connector<TConfig, TRaw>;
+}
+
+/**
  * createWebhookProcessor creates a standardized Cloud Function handler for webhooks.
  * It enforces the Extract -> Dedup -> Fetch -> Publish lifecycle.
  */
 export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
-  connector: Connector<TConfig, TRaw>
+  ConnectorClass: ConnectorConstructor<TConfig, TRaw>
 ) {
   return async (req: any, res: any, ctx: FrameworkContext) => {
     const { logger, userId } = ctx;
     const timestamp = new Date();
+
+    // 0. Instantiate Connector with Context
+    const connector = new ConnectorClass(ctx);
 
     // 1. Verify Authentication
     if (!userId) {
@@ -63,7 +73,13 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
     const fullConfig = { ...connectorConfig, userId } as unknown as TConfig;
 
     // 4. Validate Config
-    connector.validateConfig(fullConfig);
+    try {
+      connector.validateConfig(fullConfig);
+    } catch (err: any) {
+      logger.error(`Invalid configuration for user ${userId}`, { error: err.message });
+      res.status(200).send(`Configuration Error: ${err.message}`);
+      return { status: 'Failed', reason: 'Configuration Error' };
+    }
 
     // 5. Deduplication Check
     const alreadyProcessed = await ctx.services.user.hasProcessedActivity(userId, connector.name, externalId);

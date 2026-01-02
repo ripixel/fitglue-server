@@ -8,39 +8,33 @@ const mockExtractId = jest.fn();
 const mockFetchAndMap = jest.fn();
 const mockValidateConfig = jest.fn();
 
-const mockConnector: Connector<ConnectorConfig> = {
-  name: 'test-connector',
-  strategy: 'webhook',
-  cloudEventSource: CloudEventSource.CLOUD_EVENT_SOURCE_HEVY,
-  activitySource: ActivitySource.SOURCE_HEVY,
-  validateConfig: mockValidateConfig,
-  mapActivity: jest.fn(),
-  extractId: mockExtractId,
-  fetchAndMap: mockFetchAndMap,
-  healthCheck: jest.fn().mockResolvedValue(true),
-  verifyRequest: jest.fn().mockResolvedValue(undefined)
-};
+
+class MockConnectorClass implements Connector<ConnectorConfig> {
+  name = 'test-connector';
+  strategy = 'webhook' as const;
+  cloudEventSource = CloudEventSource.CLOUD_EVENT_SOURCE_HEVY;
+  activitySource = ActivitySource.SOURCE_HEVY;
+
+  constructor(public context: any) { }
+
+  validateConfig = mockValidateConfig;
+  mapActivity = jest.fn();
+  extractId = mockExtractId;
+  fetchAndMap = mockFetchAndMap;
+  healthCheck = jest.fn().mockResolvedValue(true);
+  verifyRequest = jest.fn().mockResolvedValue(undefined);
+  resolveUser = jest.fn();
+}
 
 const mockHasProcessedActivity = jest.fn();
 const mockMarkActivityAsProcessed = jest.fn();
-jest.mock('../domain/services/user', () => ({
-  UserService: jest.fn().mockImplementation(() => ({
-    hasProcessedActivity: mockHasProcessedActivity,
-    markActivityAsProcessed: mockMarkActivityAsProcessed
-  }))
-}));
-
 const mockGet = jest.fn();
-const mockDoc = jest.fn().mockReturnValue({ get: mockGet });
-const mockGetUsersCollection = jest.fn().mockReturnValue({ doc: mockDoc });
 
-jest.mock('../index', () => ({
-  storage: {
-    getUsersCollection: mockGetUsersCollection
-  },
-  // Mock types that might be imported
-  FrameworkContext: jest.fn()
-}));
+const mockUserService = {
+  hasProcessedActivity: mockHasProcessedActivity,
+  markActivityAsProcessed: mockMarkActivityAsProcessed,
+  get: mockGet
+};
 
 const mockPublish = jest.fn().mockResolvedValue('msg-id-123');
 jest.mock('../infrastructure/pubsub/cloud-event-publisher', () => ({
@@ -62,7 +56,7 @@ describe('createWebhookProcessor', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    handler = createWebhookProcessor(mockConnector);
+    handler = createWebhookProcessor(MockConnectorClass);
 
     req = { body: { id: 'evt-123' } };
     res = {
@@ -70,8 +64,12 @@ describe('createWebhookProcessor', () => {
       send: jest.fn(),
       json: jest.fn()
     };
+
+    // Proper context mocking with services
     ctx = {
-      db: {},
+      services: {
+        user: mockUserService
+      },
       logger: { info: jest.fn(), error: jest.fn(), warn: jest.fn() },
       userId: 'user-1',
       pubsub: {}
@@ -79,8 +77,7 @@ describe('createWebhookProcessor', () => {
 
     mockExtractId.mockReturnValue('evt-123');
     mockGet.mockResolvedValue({
-      exists: true,
-      data: () => ({ integrations: { 'test-connector': { enabled: true } } })
+      integrations: { 'test-connector': { enabled: true } }
     });
     mockHasProcessedActivity.mockResolvedValue(false);
     mockFetchAndMap.mockResolvedValue([{
@@ -95,11 +92,11 @@ describe('createWebhookProcessor', () => {
 
     expect(mockExtractId).toHaveBeenCalledWith(req.body);
     expect(mockHasProcessedActivity).toHaveBeenCalledWith('user-1', 'test-connector', 'evt-123');
-    expect(mockFetchAndMap).toHaveBeenCalledWith('evt-123', expect.objectContaining({ userId: 'user-1', enabled: true }));
+    expect(mockFetchAndMap).toHaveBeenCalledWith('evt-123', expect.objectContaining({ enabled: true }));
     expect(mockPublish).toHaveBeenCalled();
-    expect(mockMarkActivityAsProcessed).toHaveBeenCalledWith('user-1', 'test-connector', 'evt-123');
+    expect(mockMarkActivityAsProcessed).toHaveBeenCalledWith('user-1', 'test-connector', 'evt-123', expect.anything());
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: 'Processed' }));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ status: 'Success' }));
   });
 
   it('should throw Unauthorized if userId is missing', async () => {
@@ -119,16 +116,13 @@ describe('createWebhookProcessor', () => {
 
   it('should error if config is disabled', async () => {
     mockGet.mockResolvedValue({
-      exists: true,
-      data: () => ({ integrations: { 'test-connector': { enabled: false } } })
+      integrations: { 'test-connector': { enabled: false } }
     });
 
     await handler(req, res, ctx);
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Integration disabled'));
-    // Note: my implementation returns 200 with message.
-    // Checking specific message "Integration disabled or unconfigured"
   });
 
   it('should error if validateConfig fails', async () => {

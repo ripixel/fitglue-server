@@ -41,4 +41,16 @@ export class ApiKeyStore {
     }
     return doc.data() || null;
   }
+
+  /**
+   * Create an API key.
+   */
+  async create(record: ApiKeyRecord & { id?: string; hash?: string; enabled?: boolean }): Promise<void> {
+    const { id, ...data } = record;
+    if (id) {
+      await this.collection().doc(id).set(data as any);
+    } else {
+      await this.collection().add(data as any);
+    }
+  }
 }

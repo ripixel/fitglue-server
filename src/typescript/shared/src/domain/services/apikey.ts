@@ -34,4 +34,11 @@ export class ApiKeyService {
       scopes: apiKey.scopes || []
     };
   }
+
+  /**
+   * Create a new API key.
+   */
+  async create(record: ApiKeyRecord): Promise<void> {
+    return this.apiKeyStore.create(record);
+  }
 }

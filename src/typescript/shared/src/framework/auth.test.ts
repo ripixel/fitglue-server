@@ -1,25 +1,14 @@
+
 import * as crypto from 'crypto';
 import { ApiKeyStrategy } from './auth-strategies/api-key';
 import { FrameworkContext } from './index';
 
-// Mock dependencies
-const mockGet = jest.fn();
-const mockSet = jest.fn().mockResolvedValue({});
-const mockUpdate = jest.fn().mockResolvedValue({});
-const mockDoc = jest.fn((_) => ({
-  get: mockGet,
-  set: mockSet,
-  withConverter: jest.fn(() => ({
-    update: mockUpdate
-  }))
-}));
+// Mock Dependencies
+const mockValidate = jest.fn();
 
-// Mock Firestore Storage Module directly
-jest.mock('../storage/firestore', () => ({
-  getIngressApiKeysCollection: jest.fn(() => ({
-    doc: mockDoc // Returns mockDoc directly which has get/set
-  }))
-}));
+const mockApiKeyService = {
+  validate: mockValidate
+} as any;
 
 const mockLogger = {
   warn: jest.fn(),
@@ -29,12 +18,14 @@ const mockLogger = {
 } as any;
 
 const mockCtx: FrameworkContext = {
-  services: {} as any,
+  services: {
+    apiKey: mockApiKeyService
+  } as any,
   pubsub: {} as any,
   secrets: {} as any,
   logger: mockLogger,
   executionId: 'test-exec-id'
-};
+} as any;
 
 describe('ApiKeyStrategy', () => {
   let strategy: ApiKeyStrategy;
@@ -53,15 +44,12 @@ describe('ApiKeyStrategy', () => {
       }
     };
 
-    mockGet.mockResolvedValueOnce({
-      exists: true,
-      data: () => ({ userId: 'user1', scopes: ['read'] })
-    });
+    mockValidate.mockResolvedValueOnce({ valid: true, userId: 'user1', scopes: ['read'] });
 
     const result = await strategy.authenticate(req, mockCtx);
 
     expect(result).toEqual({ userId: 'user1', scopes: ['read'] });
-    expect(mockDoc).toHaveBeenCalledWith(testHash);
+    expect(mockValidate).toHaveBeenCalledWith(testHash);
   });
 
   it('should authenticate with Raw Authorization token (Hevy style)', async () => {
@@ -71,15 +59,12 @@ describe('ApiKeyStrategy', () => {
       }
     };
 
-    mockGet.mockResolvedValueOnce({
-      exists: true,
-      data: () => ({ userId: 'user1', scopes: ['read'] })
-    });
+    mockValidate.mockResolvedValueOnce({ valid: true, userId: 'user1', scopes: ['read'] });
 
     const result = await strategy.authenticate(req, mockCtx);
 
     expect(result).toEqual({ userId: 'user1', scopes: ['read'] });
-    expect(mockDoc).toHaveBeenCalledWith(testHash);
+    expect(mockValidate).toHaveBeenCalledWith(testHash);
   });
 
   it('should authenticate with X-Api-Key header', async () => {
@@ -89,10 +74,7 @@ describe('ApiKeyStrategy', () => {
       }
     };
 
-    mockGet.mockResolvedValueOnce({
-      exists: true,
-      data: () => ({ userId: 'user1', scopes: ['read'] })
-    });
+    mockValidate.mockResolvedValueOnce({ valid: true, userId: 'user1', scopes: ['read'] });
 
     const result = await strategy.authenticate(req, mockCtx);
     expect(result).toEqual({ userId: 'user1', scopes: ['read'] });
@@ -106,10 +88,7 @@ describe('ApiKeyStrategy', () => {
       }
     };
 
-    mockGet.mockResolvedValueOnce({
-      exists: true,
-      data: () => ({ userId: 'user1', scopes: ['read'] })
-    });
+    mockValidate.mockResolvedValueOnce({ valid: true, userId: 'user1', scopes: ['read'] });
 
     const result = await strategy.authenticate(req, mockCtx);
     expect(result).toEqual({ userId: 'user1', scopes: ['read'] });
@@ -123,22 +102,20 @@ describe('ApiKeyStrategy', () => {
 
     const result = await strategy.authenticate(req, mockCtx);
     expect(result).toBeNull();
-    expect(mockGet).not.toHaveBeenCalled();
+    expect(mockValidate).not.toHaveBeenCalled();
   });
 
-  it('should return null if key not found in DB', async () => {
+  it('should return null if key not found (validate returns invalid)', async () => {
     const req = {
       headers: {
         'authorization': `Bearer ${testKey}`
       }
     };
 
-    mockGet.mockResolvedValueOnce({
-      exists: false
-    });
+    mockValidate.mockResolvedValueOnce({ valid: false });
 
     const result = await strategy.authenticate(req, mockCtx);
     expect(result).toBeNull();
-    expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('Auth failed'), expect.any(Object));
+    expect(mockLogger.warn).toHaveBeenCalledWith(expect.stringContaining('API key not found'));
   });
 });

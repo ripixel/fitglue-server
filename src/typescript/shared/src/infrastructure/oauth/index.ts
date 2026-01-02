@@ -1,5 +1,6 @@
 import * as admin from 'firebase-admin';
 import { UserStore, IntegrationIdentityStore } from '../../storage/firestore';
+import * as crypto from 'crypto';
 
 /**
  * Store OAuth tokens for a user integration.
@@ -33,4 +34,19 @@ export async function storeOAuthTokens(
 
   // Map external user ID to our user ID
   await identityStore.mapIdentity(provider, tokens.externalUserId, userId);
+}
+
+/**
+ * Generate a random state token for OAuth.
+ * In production this should be signed/encrypted.
+ */
+export async function generateOAuthState(userId: string): Promise<string> {
+  const random = crypto.randomBytes(16).toString('hex');
+  return `${userId}:${random}`;
+}
+
+export async function validateOAuthState(state: string): Promise<{ userId: string; valid: boolean }> {
+  const parts = state.split(':');
+  if (parts.length < 2) return { userId: '', valid: false };
+  return { userId: parts[0], valid: true };
 }

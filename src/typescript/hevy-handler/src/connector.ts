@@ -1,4 +1,4 @@
-import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, Session, StrengthSet, MuscleGroup, CloudEventSource, ActivitySource, createHevyClient } from '@fitglue/shared';
+import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, Session, StrengthSet, MuscleGroup, CloudEventSource, ActivitySource, createHevyClient, FrameworkContext } from '@fitglue/shared';
 import type { components } from "@fitglue/shared/dist/integrations/hevy/schema";
 
 // Define Hevy-specific types
@@ -14,6 +14,10 @@ export class HevyConnector extends BaseConnector<HevyConnectorConfig, HevyWorkou
   readonly strategy: IngestStrategy = 'webhook';
   readonly cloudEventSource = CloudEventSource.CLOUD_EVENT_SOURCE_HEVY;
   readonly activitySource = ActivitySource.SOURCE_HEVY;
+
+  constructor(context: FrameworkContext) {
+    super(context);
+  }
 
   extractId(payload: any): string | null {
     // Return workoutId from payload (support various payload shapes)

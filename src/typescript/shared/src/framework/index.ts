@@ -4,6 +4,7 @@ import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from '../
 import { AuthStrategy } from './auth';
 export * from './connector';
 export * from './base-connector';
+export * from './webhook-processor';
 import { PubSub } from '@google-cloud/pubsub';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
 import { UserStore, ExecutionStore, ApiKeyStore, IntegrationIdentityStore, ActivityStore } from '../storage/firestore';
@@ -78,6 +79,13 @@ export interface FrameworkContext {
     apiKey: import('../domain/services/apikey').ApiKeyService;
     execution: import('../domain/services/execution').ExecutionService;
   };
+  stores: {
+    users: import('../storage/firestore').UserStore;
+    executions: import('../storage/firestore').ExecutionStore;
+    apiKeys: import('../storage/firestore').ApiKeyStore;
+    integrationIdentities: import('../storage/firestore').IntegrationIdentityStore;
+    activities: import('../storage/firestore').ActivityStore;
+  };
   pubsub: PubSub;
   secrets: SecretsHelper;
   logger: winston.Logger;
@@ -85,6 +93,9 @@ export interface FrameworkContext {
   userId?: string;
   authScopes?: string[];
 }
+// ...
+// Build the full context
+
 
 export type FrameworkHandler = (
   req: any,
@@ -241,6 +252,7 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
       // Prepare context for Auth Strategy
       const tempCtx: FrameworkContext = {
         services,
+        stores,
         pubsub,
         secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
         logger: preambleLogger,
@@ -292,6 +304,7 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
     // Build the full context
     const ctx: FrameworkContext = {
       services,
+      stores,
       pubsub,
       secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
       logger: contextLogger,
