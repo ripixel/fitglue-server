@@ -57,9 +57,7 @@ export abstract class BaseConnector<TConfig extends ConnectorConfig = ConnectorC
     return true; // Stateless connectors are assumed healthy
   }
 
-  async verifyRequest(req: any, res: any, context: any): Promise<{ handled: boolean; response?: any } | undefined> {
+  async verifyRequest(_req: any, _res: any, _context: any): Promise<{ handled: boolean; response?: any } | undefined> {
     return undefined; // No custom verification by default
   }
-
-
 }

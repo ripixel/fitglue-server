@@ -93,6 +93,8 @@ Pipelines are configured per-user via the Admin CLI. See [Enricher Testing Guide
 ### Infrastructure & Architecture
 - **[CI/CD Guide](docs/CICD.md)** - Deployment pipeline and infrastructure
 - **[Execution Logging](docs/EXECUTION_LOGGING.md)** - Framework architecture and patterns
+- **[Services & Stores](docs/SERVICES_AND_STORES.md)** - Architecture guide for business logic vs data access
+- **[Connector Framework](docs/CONNECTORS.md)** - Guide to implementing data source integrations
 - **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
 
 ### Specialized Guides

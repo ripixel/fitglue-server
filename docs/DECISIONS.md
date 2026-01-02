@@ -181,3 +181,60 @@ We will adopt a **Shared Project / Separate Repository** model.
     -   Simplifies IAM (Service Account A deploys Server, Service Account B deploys Web).
 -   **Cons**:
     -   Coordination required: Repo B cannot "rewrite" to a function that Repo A hasn't deployed yet.
+
+## 009 - Connector Stateless Architecture (2026-01-02)
+
+### Context
+Connectors were originally designed as singletons or reused instances where `setContext(ctx)` was called before processing. This introduced a critical race condition risk where concurrent requests could overwrite the context of a running connector, causing data leakage or authorization errors between users.
+
+### Decision
+We moved to a **Per-Request Instantiation** model for Connectors.
+
+1.  **Framework Change**: `createWebhookProcessor` now accepts a `ConnectorConstructor` (Class) instead of an instance.
+2.  **Lifecycle**: A new Connector instance is created for *every* incoming request.
+3.  **Context Injection**: `FrameworkContext` is passed strictly via the **constructor**. `setContext` has been removed.
+4.  **Immutability**: The `context` property on `BaseConnector` is `protected readonly`.
+
+### Consequences
+-   **Pros**: Thread-safe by design. Impossible to process a request with the wrong user context. Cleaner testing (no mock hoisting/resetting issues).
+-   **Cons**: Slight memory overhead for object creation per request (negligible in JSV8).
+
+## 010 - Strict Data Access Typing (2026-01-02)
+
+### Context
+Our Firestore interaction layer (`UserStore`, `ActivityStore`) utilized generic `update(id, data: any)` methods. As the data model complexity grew (nested integrations, pipelines), usage of "dot-notation" keys (e.g., `'integrations.hevy'`) led to widespread use of `any` in Service layers, bypassing TypeScript validation and risking runtime errors from schema mismatches.
+
+### Decision
+We enforced **Strict Type Safety** in the Data Access Layer.
+
+1.  **Partial<T> Enforcement**: The generic `update` method now strictly requires `Partial<RecordType>`, disallowing ad-hoc or nested keys.
+2.  **Specific Methods**: Complex updates are encapsulated in specific, strongly-typed methods on the Store class (e.g., `UserStore.setIntegration`, `UserStore.addPipeline`).
+3.  **Service Parity**: Services must delegate to these typed methods rather than constructing unrestricted update objects.
+
+### Consequences
+-   **Pros**: Compile-time validation of all DB writes. Refactoring safety. Self-documenting allowed operations.
+-   **Cons**: More boilerplate code in Store classes for every specific update pattern.
+
+## 011 - Service vs Store Responsibility (2026-01-02)
+
+### Context
+As the application scales, the boundary between business logic and data access must be improved. We observed Services explicitly constructing complex database-specific structures (like Firestore dot-notation keys) and Stores occasionally leaking implementation details or lacking strict enforcement.
+
+### Decision
+We formally separated responsibilities between **Services** and **Stores**:
+
+1.  **Stores (Data Access Layer)**:
+    *   **Sole Responsibility**: Type-safe CRUD operations and database-specific logic.
+    *   **Scope**: encapsulating Firestore implementations (e.g., `FieldValue.arrayUnion`, dot-notation paths).
+    *   **Rule**: Must not contain business logic (e.g., "Can this user perform this action?").
+    *   **Rule**: Must enforce strict input types (e.g., `Partial<T>` or specific arguments).
+
+2.  **Services (Domain Layer)**:
+    *   **Sole Responsibility**: Orchestrating business workflows and enforcing business rules.
+    *   **Scope**: Validating inputs, calling external APIs, and coordinating multiple Store operations.
+    *   **Rule**: Must **never** access the database driver directly (e.g., `admin.firestore()`).
+    *   **Rule**: Must delegate all persistence to proper Store methods.
+
+### Consequences
+*   **Pros**: Decouples business logic from database technology. Improves testability by allowing Services to run with mocked Stores.
+*   **Cons**: Requires a strict "pass-through" method in Stores for every distinct update operation required by Services.

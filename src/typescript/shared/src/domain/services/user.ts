@@ -102,16 +102,6 @@ export class UserService {
      * Create or ensure a user exists.
      */
     async createUser(userId: string): Promise<void> {
-        // Simple check/create. UserStore uses set with merge so this is safe.
-        // But UserStore.update fails if doc doesn't exist?
-        // Let's assume we need to use a create method on store or set.
-        // Since UserStore doesn't have create, we need to add it or use internal db access which is not allowed.
-        // I will add create method to UserStore first.
-        // Wait, I can't modify UserStore in this tool call.
-        // I will rely on the fact that I will add create to UserStore in next step.
-        // Actually, let's keep it simple: admin-cli passes DB to UserService? No, it passes store.
-        // Only UserStore has DB access.
-        // So UserService MUST delegate to UserStore.
         await this.userStore.create(userId, {
             userId: userId,
             createdAt: new Date(),
@@ -119,23 +109,6 @@ export class UserService {
             pipelines: []
         });
     }
-
-    /**
-     * Create an Ingress API Key for a user.
-     */
-    async createIngressApiKey(userId: string, label: string, scopes: string[]): Promise<string> {
-        // Delegate to ApiKeyService if available, or do it here.
-        // Since UserService doesn't have ApiKeyService reference, we might need to add it
-        // OR add this method to UserStore? No, ApiKeyStore.
-        // IMPORTANT: admin-cli expects UserService to do this.
-        // Typically UserService shouldn't manage API keys directly unless it has ApiKeyStore.
-        // I will add apiKeyStore to UserService deps? No, separation of concerns.
-        // But admin-cli only instantiates UserService.
-        // I should update admin-cli to use ApiKeyService for this.
-        throw new Error("Use ApiKeyService.create() instead. Admin CLI needs update.");
-    }
-
-    // ... for now I will focus on restore to compile ...
 
     /**
      * Set Hevy integration for a user.

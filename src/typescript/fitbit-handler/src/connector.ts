@@ -212,7 +212,7 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
   /**
    * Not used for Fitbit (we use fetchAndMap directly).
    */
-  async mapActivity(rawPayload: any, context?: any): Promise<StandardizedActivity> {
+  async mapActivity(_rawPayload: any, _context?: any): Promise<StandardizedActivity> {
     throw new Error('mapActivity not implemented for FitbitConnector - use fetchAndMap instead');
   }
 }

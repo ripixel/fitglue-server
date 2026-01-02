@@ -23,14 +23,16 @@ export async function storeOAuthTokens(
   const identityStore = stores?.integrationIdentities || new IntegrationIdentityStore(db);
 
   // Update user's integration tokens
-  await userStore.update(userId, {
-    [`integrations.${provider}`]: {
-      enabled: true,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      expiresAt: tokens.expiresAt
-    }
-  });
+  // Update user's integration tokens (using new typed method)
+  await userStore.setIntegration(userId, provider, {
+    enabled: true,
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken,
+    expiresAt: tokens.expiresAt,
+    // Add provider-specific ID fields
+    ...(provider === 'strava' ? { athleteId: Number(tokens.externalUserId) } : {}),
+    ...(provider === 'fitbit' ? { fitbitUserId: tokens.externalUserId } : {})
+  } as any); // Cast as any because setIntegration expects strict union checks that are hard to satisfy generically here without complex logic
 
   // Map external user ID to our user ID
   await identityStore.mapIdentity(provider, tokens.externalUserId, userId);
