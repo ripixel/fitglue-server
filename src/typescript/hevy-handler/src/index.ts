@@ -1,4 +1,5 @@
-import { createCloudFunction, createWebhookProcessor, HevyConnector, ApiKeyStrategy } from '@fitglue/shared';
+import { createCloudFunction, createWebhookProcessor, ApiKeyStrategy } from '@fitglue/shared';
+import { HevyConnector } from './connector';
 
 // The HevyConnector encapsulates specific logic (ID extraction, API interaction, Mapping).
 // The createWebhookProcessor encapsulation standardizes the flow:

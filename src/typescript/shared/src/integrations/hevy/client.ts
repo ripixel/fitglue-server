@@ -6,12 +6,12 @@ import type { paths, components } from "./schema";
 type OmitHeader<T, K extends string> = {
     [Path in keyof T]: {
         [Method in keyof T[Path]]: T[Path][Method] extends { parameters: { header: infer H } }
-            ? Omit<T[Path][Method], "parameters"> & {
-                  parameters: Omit<T[Path][Method]["parameters"], "header"> & {
-                      header?: Omit<H, K> & Partial<Pick<H, Extract<keyof H, K>>>;
-                  };
-              }
-            : T[Path][Method];
+        ? Omit<T[Path][Method], "parameters"> & {
+            parameters: Omit<T[Path][Method]["parameters"], "header"> & {
+                header?: Omit<H, K> & Partial<Pick<H, Extract<keyof H, K>>>;
+            };
+        }
+        : T[Path][Method];
     };
 };
 

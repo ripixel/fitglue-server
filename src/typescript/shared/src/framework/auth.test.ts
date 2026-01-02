@@ -24,10 +24,6 @@ jest.mock('../storage/firestore', () => ({
   }))
 }));
 
-const mockDb = {
-  collection: mockCollection
-} as any;
-
 const mockLogger = {
   warn: jest.fn(),
   error: jest.fn(),
@@ -36,11 +32,11 @@ const mockLogger = {
 } as any;
 
 const mockCtx: FrameworkContext = {
-  db: mockDb,
+  services: {} as any,
   pubsub: {} as any,
+  secrets: {} as any,
   logger: mockLogger,
-  secrets: { get: jest.fn() } as any,
-  executionId: 'test-exec'
+  executionId: 'test-exec-id'
 };
 
 describe('ApiKeyStrategy', () => {

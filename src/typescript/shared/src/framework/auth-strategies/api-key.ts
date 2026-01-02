@@ -1,10 +1,13 @@
 import * as crypto from 'crypto';
-import * as admin from 'firebase-admin';
 import { FrameworkContext } from '../index';
 import { AuthStrategy, AuthResult } from '../auth';
 
 export class ApiKeyStrategy implements AuthStrategy {
   name = 'api_key';
+
+  private hashApiKey(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
 
   async authenticate(req: any, ctx: FrameworkContext): Promise<AuthResult | null> {
     let token: string | undefined;
@@ -31,30 +34,26 @@ export class ApiKeyStrategy implements AuthStrategy {
     }
 
     if (!token) {
-      return null; // Not found in support locations
-    }
-
-    // High-entropy token (32 bytes), SHA-256 for fast O(1) lookup
-    const hash = crypto.createHash('sha256').update(token).digest('hex');
-
-    const { getIngressApiKeysCollection } = await import('../../storage/firestore');
-    const docSnapshot = await getIngressApiKeysCollection().doc(hash).get();
-
-    if (!docSnapshot.exists) {
-      ctx.logger.warn(`Auth failed: API Key hash not found`, { hashPrefix: hash.substring(0, 8) });
       return null;
     }
 
-    const record = docSnapshot.data()!;
+    const hash = this.hashApiKey(token);
 
-    // Update lastUsed (fire-and-forget)
-    getIngressApiKeysCollection().doc(hash).withConverter(null).update({
-      last_used_at: admin.firestore.Timestamp.now()
-    }).catch(err => ctx.logger.error('Failed to update lastUsed', { error: err }));
+    try {
+      const result = await ctx.services.apiKey.validate(hash);
 
-    return {
-      userId: record.userId,
-      scopes: record.scopes || []
-    };
+      if (!result.valid) {
+        ctx.logger.warn('API key not found or disabled');
+        return null;
+      }
+
+      return {
+        userId: result.userId!,
+        scopes: result.scopes || []
+      };
+    } catch (err: any) {
+      ctx.logger.error('Error fetching API key', { error: err.message });
+      return null;
+    }
   }
 }

@@ -16,7 +16,7 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
   connector: Connector<TConfig, TRaw>
 ) {
   return async (req: any, res: any, ctx: FrameworkContext) => {
-    const { db, logger, userId } = ctx;
+    const { logger, userId } = ctx;
     const timestamp = new Date();
 
     // 1. Verify Authentication
@@ -46,18 +46,14 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
     }
 
     // 3. User Resolution & Config Lookup
-    // We assume standard path: users/{userId} -> integrations -> {connector.name}
-    const { storage } = await import('../index');
-    const userDoc = await storage.getUsersCollection().doc(userId).get();
-
-    if (!userDoc.exists) {
+    const user = await ctx.services.user.get(userId);
+    if (!user) {
       logger.error(`User ${userId} not found`);
       res.status(500).send('User configuration error');
       throw new Error('User not found');
     }
 
-    const userData = userDoc.data();
-    const connectorConfig = userData?.integrations?.[connector.name as keyof typeof userData.integrations];
+    const connectorConfig = (user.integrations as any)?.[connector.name];
 
     if (!connectorConfig || !connectorConfig.enabled) {
       logger.warn(`User ${userId} has not enabled integration ${connector.name} or config missing`);
@@ -67,46 +63,37 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
 
     const fullConfig = { ...connectorConfig, userId } as unknown as TConfig;
 
-    // Validate Config
-    try {
-      connector.validateConfig(fullConfig);
-    } catch (e: any) {
-      logger.error(`[${connector.name}] Configuration validation failed`, { error: e.message });
-      res.status(200).send(`Configuration Error: ${e.message}`);
-      return { status: 'Failed', reason: 'Configuration Invalid' };
+    // 4. Validate Config
+    connector.validateConfig(fullConfig);
+
+    // 5. Deduplication Check
+    const alreadyProcessed = await ctx.services.user.hasProcessedActivity(userId, connector.name, externalId);
+    if (alreadyProcessed) {
+      logger.info(`Activity ${externalId} already processed for user ${userId}`);
+      res.status(200).send('Already processed');
+      return { status: 'Skipped', reason: 'Already processed' };
     }
 
-    // 4. Deduplication
-    const userService = new UserService(db);
-    const isProcessed = await userService.hasProcessedActivity(userId, connector.name, externalId);
-
-    if (isProcessed) {
-      logger.info(`[${connector.name}] Activity ${externalId} already processed, skipping`);
-      res.status(200).json({ status: 'Skipped', reason: 'Already processed' });
-      return { status: 'Skipped', reason: 'Already processed', externalId };
-    }
-
-    // 5. Active Fetch & Map
-    logger.info(`[${connector.name}] Fetching and mapping ${externalId}`);
-
-    let activities: StandardizedActivity[];
+    // 6. Fetch & Map Activities
+    let standardizedActivities: StandardizedActivity[];
     try {
-      activities = await connector.fetchAndMap(externalId, fullConfig);
+      standardizedActivities = await connector.fetchAndMap(externalId, fullConfig);
     } catch (err: any) {
-      logger.error(`[${connector.name}] Fetch/Map failed`, { error: err });
+      logger.error(`Failed to fetch/map activity ${externalId}`, { error: err.message });
+      res.status(500).send('Failed to process activity');
       throw err;
     }
 
-    logger.info(`[${connector.name}] Processing ${activities.length} activities`);
+    logger.info(`Processing ${standardizedActivities.length} activities`);
 
-    // 6. Publishing (loop for batch support)
+    // 7. Publishing (loop for batch support)
     const publishedIds: string[] = [];
 
-    for (const standardizedActivity of activities) {
+    for (const standardizedActivity of standardizedActivities) {
       const activityExternalId = standardizedActivity.externalId;
 
       // Check dedup for each activity in batch
-      const isActivityProcessed = await userService.hasProcessedActivity(userId, connector.name, activityExternalId);
+      const isActivityProcessed = await ctx.services.user.hasProcessedActivity(userId, connector.name, activityExternalId);
       if (isActivityProcessed) {
         logger.info(`[${connector.name}] Activity ${activityExternalId} already processed, skipping`);
         continue;
@@ -136,14 +123,17 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
 
       const messageId = await publisher.publish(messagePayload, activityExternalId);
 
-      // 7. Mark Processed
-      await userService.markActivityAsProcessed(userId, connector.name, activityExternalId);
+      // Mark activity as processed
+      await ctx.services.user.markActivityAsProcessed(userId, connector.name, standardizedActivity.externalId, {
+        processedAt: new Date(),
+        source: connector.activitySource
+      });
 
       publishedIds.push(activityExternalId);
       logger.info(`[${connector.name}] Published activity ${activityExternalId}`, { messageId });
     }
 
-    logger.info(`[${connector.name}] Successfully processed ${publishedIds.length}/${activities.length} activities for ${externalId}`);
+    logger.info(`[${connector.name}] Successfully processed ${publishedIds.length}/${standardizedActivities.length} activities for ${externalId}`);
     res.status(200).json({ status: 'Processed', publishedCount: publishedIds.length, publishedIds });
 
     return { status: 'Processed', externalId, publishedCount: publishedIds.length, publishedIds };

@@ -1,11 +1,4 @@
-import { BaseConnector } from '../../framework/base-connector';
-import { ConnectorConfig, IngestStrategy } from '../../framework/connector';
-import { StandardizedActivity } from '../../types/pb/standardized_activity';
-import { CloudEventSource } from '../../types/pb/events';
-import { ActivitySource } from '../../types/pb/activity';
-import { createFitbitClient } from './client';
-import { mapTCXToStandardized } from '../../domain/file-parsers/tcx';
-import { UserService } from '../../domain/services/user';
+import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, CloudEventSource, ActivitySource, UserService, createFitbitClient, mapTCXToStandardized } from '@fitglue/shared';
 
 export interface FitbitConnectorConfig extends ConnectorConfig {
   fitbit_user_id: string;
@@ -124,25 +117,20 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
    * Maps Fitbit's ownerId to our internal userId.
    */
   async resolveUser(payload: any, context: any): Promise<string | null> {
-    const { logger } = context;
+    const { logger, services } = context;
 
     if (!payload || !payload.ownerId) {
       logger.warn('Fitbit payload missing ownerId');
       return null;
     }
 
-    const { storage } = await import('../../index');
-    const usersSnapshot = await storage.getUsersCollection()
-      .where('integrations.fitbit.fitbit_user_id', '==', payload.ownerId)
-      .limit(1)
-      .get();
-
-    if (usersSnapshot.empty) {
+    const user = await services.user.findByFitbitId(payload.ownerId);
+    if (!user) {
       logger.warn(`No user found for Fitbit ID: ${payload.ownerId}`);
       return null;
     }
 
-    return usersSnapshot.docs[0].id;
+    return user.id;
   }
 
   /**

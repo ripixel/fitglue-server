@@ -1,4 +1,5 @@
-import { createCloudFunction, createWebhookProcessor, FitbitConnector, PayloadUserStrategy } from '@fitglue/shared';
+import { createCloudFunction, createWebhookProcessor, PayloadUserStrategy } from '@fitglue/shared';
+import { FitbitConnector } from './connector';
 
 const connector = new FitbitConnector();
 

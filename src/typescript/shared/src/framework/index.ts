@@ -4,10 +4,10 @@ import { logExecutionStart, logExecutionSuccess, logExecutionFailure } from '../
 import { AuthStrategy } from './auth';
 export * from './connector';
 export * from './base-connector';
-export * from './webhook-processor';
-
 import { PubSub } from '@google-cloud/pubsub';
 import { SecretManagerServiceClient } from '@google-cloud/secret-manager';
+import { UserStore, ExecutionStore, ApiKeyStore, IntegrationIdentityStore, ActivityStore } from '../storage/firestore';
+import { UserService, ActivityService, ApiKeyService, ExecutionService } from '../domain/services';
 
 // Initialize Secret Manager
 const secretClient = new SecretManagerServiceClient();
@@ -73,7 +73,12 @@ const logger = winston.createLogger({
 });
 
 export interface FrameworkContext {
-  db: admin.firestore.Firestore;
+  services: {
+    user: import('../domain/services/user').UserService;
+    activity: import('../domain/services/activity').ActivityService;
+    apiKey: import('../domain/services/apikey').ApiKeyService;
+    execution: import('../domain/services/execution').ExecutionService;
+  };
   pubsub: PubSub;
   secrets: SecretsHelper;
   logger: winston.Logger;
@@ -211,12 +216,30 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
     // --- AUTHENTICATION MIDDLEWARE ---
     // (Only run Auth for HTTP triggers usually, unless payload carries auth)
     let authScopes: string[] = [];
-    if (isHttp && options?.auth?.strategies && options.auth.strategies.length > 0) {
+    // Initialize stores once (singleton pattern)
+    const stores = {
+      users: new UserStore(db),
+      executions: new ExecutionStore(db),
+      apiKeys: new ApiKeyStore(db),
+      integrationIdentities: new IntegrationIdentityStore(db),
+      activities: new ActivityStore(db)
+    };
+
+    // Initialize services (singleton pattern) - services use stores
+    const services = {
+      user: new UserService(stores.users, stores.activities),
+      activity: new ActivityService(stores.activities),
+      apiKey: new ApiKeyService(stores.apiKeys),
+      execution: new ExecutionService(stores.executions)
+    };
+
+    // Auth Loop
+    if (options?.auth?.strategies) {
       let authenticated = false;
 
       // Prepare context for Auth Strategy
       const tempCtx: FrameworkContext = {
-        db,
+        services,
         pubsub,
         secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
         logger: preambleLogger,
@@ -275,8 +298,9 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
       ...(userId && { user_id: userId })
     });
 
+    // Build the full context
     const ctx: FrameworkContext = {
-      db,
+      services,
       pubsub,
       secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
       logger: contextLogger,

@@ -1,11 +1,5 @@
-import { BaseConnector } from '../../framework/base-connector';
-import { ConnectorConfig, IngestStrategy } from '../../framework/connector';
-import { StandardizedActivity, Session, StrengthSet, MuscleGroup } from '../../types/pb/standardized_activity';
-import { CloudEventSource } from '../../types/pb/events';
-import { ActivitySource } from '../../types/pb/activity';
-
-import { components } from './schema';
-import { createHevyClient } from './client';
+import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, Session, StrengthSet, MuscleGroup, CloudEventSource, ActivitySource, createHevyClient } from '@fitglue/shared';
+import type { components } from "@fitglue/shared/dist/integrations/hevy/schema";
 
 // Define Hevy-specific types
 type HevyWorkout = components["schemas"]["Workout"];
