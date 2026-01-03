@@ -118,40 +118,40 @@ export const executionConverter: FirestoreDataConverter<ExecutionRecord> = {
 
 // --- User Record Mapping Complex Logic ---
 
+export const mapHevyToFirestore = (i: NonNullable<UserIntegrations['hevy']>): any => ({
+  enabled: i.enabled,
+  api_key: i.apiKey,
+  user_id: i.userId,
+  created_at: i.createdAt,
+  last_used_at: i.lastUsedAt
+});
+
+export const mapFitbitToFirestore = (i: NonNullable<UserIntegrations['fitbit']>): any => ({
+  enabled: i.enabled,
+  access_token: i.accessToken,
+  refresh_token: i.refreshToken,
+  expires_at: i.expiresAt,
+  fitbit_user_id: i.fitbitUserId,
+  created_at: i.createdAt,
+  last_used_at: i.lastUsedAt
+});
+
+export const mapStravaToFirestore = (i: NonNullable<UserIntegrations['strava']>): any => ({
+  enabled: i.enabled,
+  access_token: i.accessToken,
+  refresh_token: i.refreshToken,
+  expires_at: i.expiresAt,
+  athlete_id: i.athleteId,
+  created_at: i.createdAt,
+  last_used_at: i.lastUsedAt
+});
+
 const mapUserIntegrationsToFirestore = (i?: UserIntegrations): any => {
   if (!i) return undefined;
   const out: any = {};
-  if (i.hevy) {
-    out.hevy = {
-      enabled: i.hevy.enabled,
-      api_key: i.hevy.apiKey,
-      user_id: i.hevy.userId,
-      created_at: i.hevy.createdAt,
-      last_used_at: i.hevy.lastUsedAt
-    };
-  }
-  if (i.fitbit) {
-    out.fitbit = {
-      enabled: i.fitbit.enabled,
-      access_token: i.fitbit.accessToken,
-      refresh_token: i.fitbit.refreshToken,
-      expires_at: i.fitbit.expiresAt,
-      fitbit_user_id: i.fitbit.fitbitUserId,
-      created_at: i.fitbit.createdAt,
-      last_used_at: i.fitbit.lastUsedAt
-    };
-  }
-  if (i.strava) {
-    out.strava = {
-      enabled: i.strava.enabled,
-      access_token: i.strava.accessToken,
-      refresh_token: i.strava.refreshToken,
-      expires_at: i.strava.expiresAt,
-      athlete_id: i.strava.athleteId,
-      created_at: i.strava.createdAt,
-      last_used_at: i.strava.lastUsedAt
-    };
-  }
+  if (i.hevy) out.hevy = mapHevyToFirestore(i.hevy);
+  if (i.fitbit) out.fitbit = mapFitbitToFirestore(i.fitbit);
+  if (i.strava) out.strava = mapStravaToFirestore(i.strava);
   return out;
 };
 
@@ -187,7 +187,8 @@ const mapUserIntegrationsFromFirestore = (data: any): UserIntegrations | undefin
 };
 
 // Pipelines Mapping
-const mapPipelineToFirestore = (p: PipelineConfig): any => ({
+// Pipelines Mapping
+export const mapPipelineToFirestore = (p: PipelineConfig): any => ({
   id: p.id,
   source: p.source,
   destinations: p.destinations,
@@ -197,7 +198,7 @@ const mapPipelineToFirestore = (p: PipelineConfig): any => ({
   }))
 });
 
-const mapPipelineFromFirestore = (p: any): PipelineConfig => ({
+export const mapPipelineFromFirestore = (p: any): PipelineConfig => ({
   id: p.id,
   source: p.source,
   destinations: p.destinations || [],
@@ -206,6 +207,25 @@ const mapPipelineFromFirestore = (p: any): PipelineConfig => ({
     inputs: e.inputs || {}
   }))
 });
+
+// Helper for partial execution updates
+export const mapExecutionPartialToFirestore = (data: Partial<ExecutionRecord>): any => {
+  const out: any = {};
+  if (data.executionId !== undefined) out.execution_id = data.executionId;
+  if (data.service !== undefined) out.service = data.service;
+  if (data.status !== undefined) out.status = data.status;
+  if (data.timestamp !== undefined) out.timestamp = data.timestamp;
+  if (data.userId !== undefined) out.user_id = data.userId;
+  if (data.testRunId !== undefined) out.test_run_id = data.testRunId;
+  if (data.triggerType !== undefined) out.trigger_type = data.triggerType;
+  if (data.startTime !== undefined) out.start_time = data.startTime;
+  if (data.endTime !== undefined) out.end_time = data.endTime;
+  if (data.errorMessage !== undefined) out.error_message = data.errorMessage;
+  if (data.inputsJson !== undefined) out.inputs_json = data.inputsJson;
+  if (data.outputsJson !== undefined) out.outputs_json = data.outputsJson;
+  if (data.parentExecutionId !== undefined) out.parent_execution_id = data.parentExecutionId;
+  return out;
+};
 
 export const userConverter: FirestoreDataConverter<UserRecord> = {
   toFirestore(model: UserRecord): FirebaseFirestore.DocumentData {

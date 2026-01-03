@@ -105,8 +105,19 @@ export class UserStore {
   ): Promise<void> {
     // Construct the dot-notation key for updating nested field
     const fieldPath = `integrations.${provider}`;
+    let firestoreData = data;
+
+    // Apply manual conversion for known providers to ensure snake_case
+    if (provider === 'fitbit') {
+      firestoreData = converters.mapFitbitToFirestore(data as any);
+    } else if (provider === 'strava') {
+      firestoreData = converters.mapStravaToFirestore(data as any);
+    } else if (provider === 'hevy') {
+      firestoreData = converters.mapHevyToFirestore(data as any);
+    }
+
     await this.collection().doc(userId).update({
-      [fieldPath]: data
+      [fieldPath]: firestoreData
     });
   }
 
@@ -114,8 +125,9 @@ export class UserStore {
    * Update pipelines for a user.
    */
   async updatePipelines(userId: string, pipelines: import('../../types/pb/user').PipelineConfig[]): Promise<void> {
+    const firestorePipelines = pipelines.map(converters.mapPipelineToFirestore);
     await this.collection().doc(userId).update({
-      pipelines: pipelines
+      pipelines: firestorePipelines
     });
   }
 
@@ -123,8 +135,9 @@ export class UserStore {
    * Add a pipeline to the user's list.
    */
   async addPipeline(userId: string, pipeline: import('../../types/pb/user').PipelineConfig): Promise<void> {
+    const firestorePipeline = converters.mapPipelineToFirestore(pipeline);
     await this.collection().doc(userId).update({
-      pipelines: admin.firestore.FieldValue.arrayUnion(pipeline)
+      pipelines: admin.firestore.FieldValue.arrayUnion(firestorePipeline)
     });
   }
 

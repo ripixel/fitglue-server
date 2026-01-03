@@ -26,7 +26,8 @@ export class ExecutionStore {
    * Update an execution record.
    */
   async update(executionId: string, data: Partial<ExecutionRecord>): Promise<void> {
-    await this.collection().doc(executionId).update(data);
+    const firestoreData = converters.mapExecutionPartialToFirestore(data);
+    await this.collection().doc(executionId).update(firestoreData);
   }
 
   /**
