@@ -959,37 +959,69 @@ program
             }
 
             const data = execution;
-            console.log('Execution Details:');
-            console.log(`ID: ${executionId}`);
-            console.log(`Service: ${data.service}`);
-            console.log(`Status: ${executionStatusToString(data.status)}`);
-            console.log(`Timestamp: ${data.timestamp instanceof Date ? data.timestamp.toISOString() : 'N/A'}`);
-            console.log(`User ID: ${data.userId || 'N/A'}`);
-            console.log(`Trigger Type: ${data.triggerType || 'N/A'}`);
+            console.log('\n==========================================');
+            console.log('EXECUTION DETAILS');
+            console.log('==========================================');
+            console.log(`ID:            ${executionId}`);
+            console.log(`Service:       ${data.service}`);
+            console.log(`Status:        ${executionStatusToString(data.status)}`);
+            console.log(`Trigger:       ${data.triggerType || 'N/A'}`);
+            console.log(`User ID:       ${data.userId || 'N/A'}`);
+            console.log(`Test Run ID:   ${data.testRunId || 'N/A'}`);
+            console.log('------------------------------------------');
+            console.log(`Timestamp:     ${data.timestamp instanceof Date ? data.timestamp.toISOString() : 'N/A'}`);
+            console.log(`Start Time:    ${data.startTime instanceof Date ? data.startTime.toISOString() : 'N/A'}`);
+            console.log(`End Time:      ${data.endTime instanceof Date ? data.endTime.toISOString() : 'N/A'}`);
 
             if (data.errorMessage) {
-                console.log(`Error: ${data.errorMessage}`);
+                console.log('------------------------------------------');
+                console.log(`ERROR:         ${data.errorMessage}`);
             }
 
+            console.log('------------------------------------------');
+
             if (data.inputsJson) {
-                console.log('Inputs:');
+                console.log('\n[INPUTS]');
                 try {
-                    // Try to pretty print JSON string
-                    console.log(JSON.stringify(JSON.parse(data.inputsJson), null, 2));
+                    const parsed = JSON.parse(data.inputsJson);
+                    console.dir(parsed, { depth: null, colors: true });
                 } catch {
                     console.log(data.inputsJson);
                 }
+            } else {
+                console.log('\n[INPUTS] (None)');
             }
 
             if (data.outputsJson) {
-                console.log('Outputs:');
+                console.log('\n[OUTPUTS]');
                 try {
-                    // Try to pretty print JSON string
-                    console.log(JSON.stringify(JSON.parse(data.outputsJson), null, 2));
+                    const parsed = JSON.parse(data.outputsJson);
+                    console.dir(parsed, { depth: null, colors: true });
                 } catch {
                     console.log(data.outputsJson);
                 }
             }
+
+            // Raw metadata dump if needed
+            if (Object.keys(data).some(k => !['executionId', 'service', 'status', 'timestamp', 'userId', 'triggerType', 'startTime', 'endTime', 'errorMessage', 'inputsJson', 'outputsJson', 'testRunId'].includes(k))) {
+                console.log('\n[OTHER METADATA]');
+                const other: any = { ...data };
+                delete other.executionId;
+                delete other.service;
+                delete other.status;
+                delete other.timestamp;
+                delete other.userId;
+                delete other.triggerType;
+                delete other.startTime;
+                delete other.endTime;
+                delete other.errorMessage;
+                delete other.inputsJson;
+                delete other.outputsJson;
+                delete other.testRunId;
+                console.dir(other, { depth: null, colors: true });
+            }
+
+            console.log('==========================================\n');
 
         } catch (error: any) {
             console.error('Error getting execution:', error.message);

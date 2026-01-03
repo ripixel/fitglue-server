@@ -109,8 +109,8 @@ export const executionConverter: FirestoreDataConverter<ExecutionRecord> = {
       startTime: toDate(data.start_time),
       endTime: toDate(data.end_time),
       errorMessage: data.error_message,
-      inputsJson: data.inputs_json,
-      outputsJson: data.outputs_json,
+      inputsJson: data.inputs_json || data.inputsJson,
+      outputsJson: data.outputs_json || data.outputsJson,
       parentExecutionId: data.parent_execution_id
     };
   }
