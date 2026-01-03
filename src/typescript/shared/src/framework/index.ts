@@ -267,7 +267,7 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
     };
 
     // Auth Loop
-    if (options?.auth?.strategies) {
+    if (options?.auth?.strategies && options.auth.strategies.length > 0) {
       let authenticated = false;
 
       // Prepare minimal context for Auth Strategy
