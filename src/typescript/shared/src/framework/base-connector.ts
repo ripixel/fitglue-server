@@ -37,6 +37,13 @@ export abstract class BaseConnector<TConfig extends ConnectorConfig = ConnectorC
     if (config.enabled === undefined) {
       throw new Error(`Connector ${this.name}: 'enabled' flag is missing`);
     }
+    this.context.logger.info(`Connector ${this.name}: validated config`, {
+      config,
+      name: this.name,
+      strategy: this.strategy,
+      cloudEventSource: this.cloudEventSource,
+      activitySource: this.activitySource,
+    });
   }
 
   /**

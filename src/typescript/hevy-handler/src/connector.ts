@@ -17,15 +17,17 @@ export class HevyConnector extends BaseConnector<HevyConnectorConfig, HevyWorkou
 
   constructor(context: FrameworkContext) {
     super(context);
+    context.logger.debug(`HevyConnector: initialized`);
   }
 
-  extractId(payload: any): string | null {
+  extractId(body: any): string | null {
     // Return workoutId from payload (support various payload shapes)
-    if (!payload) return null;
-    return payload.workout_id || payload.workoutId || payload.id || payload.payload?.workoutId || null;
+    if (!body) return null;
+    return body.payload?.workoutId || null;
   }
 
   async fetchAndMap(activityId: string, config: HevyConnectorConfig): Promise<StandardizedActivity[]> {
+    this.context.logger.debug(`HevyConnector: fetching and mapping workout ${activityId}`, { config });
     const client = createHevyClient({ apiKey: config.apiKey });
     const { data: fullWorkout, error, response } = await client.GET("/v1/workouts/{workoutId}", {
       params: { path: { workoutId: activityId } }
@@ -65,28 +67,6 @@ export class HevyConnector extends BaseConnector<HevyConnectorConfig, HevyWorkou
       }
     });
 
-    // Reuse existing mapping logic via internal call
-    // Note: in a real scenario we might refactor mapActivity to NOT require context if fetchAndMap is the main entry,
-    // but BaseConnector requires mapActivity signature.
-    // We pass userId as "unknown" here if we don't have it in config?
-    // Wait, StandardizedActivity requires userId.
-    // The ConnectorConfig likely doesn't have userId.
-    // But fetchAndMap is called BY the handler, which knows the userId.
-    // I should pass userId in the config or separately?
-    // ConnectorConfig is interface { secrets, enabled }. It doesn't strictly encompass userId.
-    // However, the Connector is instantiated or used in the context of a User.
-    // For now, I'll assume we can't easily get userId here unless passed.
-    // The previous implementation of mapActivity required `context.userId`.
-
-    // IMPORTANT: StandardizedActivity NEEDS userId.
-    // fetchAndMap signature is (activityId, config).
-    // I should cast config or rely on context?
-    // Let's assume the caller injects userId into config or we overload the config type.
-    // Or we extract userId from the config if we add it to ConnectorConfig (it's user-scoped config).
-    // Actually, `HevyConnectorConfig` comes from User settings. I can allow arbitrary properties.
-    // I will access `(config as any).userId` if available, or throw.
-    // Or better, update fetchAndMap signature in Base class? No, keep it simple.
-
     // I'll assume config has userId for now, provided by the caller who loads the config.
     const userId = (config as any).userId;
     if (!userId) {
@@ -102,6 +82,7 @@ export class HevyConnector extends BaseConnector<HevyConnectorConfig, HevyWorkou
    * Expects `context` to contain `templateMap` (Record<string, HevyExerciseTemplate>).
    */
   async mapActivity(workout: HevyWorkout, context?: { userId: string, templateMap: Record<string, HevyExerciseTemplate> }): Promise<StandardizedActivity> {
+    this.context.logger.debug(`HevyConnector: mapping workout ${workout.id}, ${workout.title || 'Unknown Title'}`, { workout });
     if (!context?.userId) throw new Error("HevyMapping requires userId in context");
     const templateMap = context.templateMap || {};
     const userId = context.userId;
