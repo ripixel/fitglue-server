@@ -11,7 +11,7 @@ export async function logExecutionPending(
   functionName: string,
   trigger: string
 ): Promise<void> {
-  ctx.logger.info(`[${functionName}] Execution pending`, { executionId, trigger });
+  ctx.logger.info(`Execution pending`, { executionId, trigger });
 
   await ctx.services.execution.create(executionId, {
     executionId,
@@ -32,7 +32,7 @@ export async function logExecutionStart(
   trigger: string,
   originalPayload?: any
 ): Promise<void> {
-  ctx.logger.info(`[${functionName}] Execution started`, { executionId, trigger });
+  ctx.logger.info(`Execution started`, { executionId, trigger });
 
   // Update existing record to running
   await ctx.services.execution.update(executionId, {

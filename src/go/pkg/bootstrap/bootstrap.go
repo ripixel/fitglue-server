@@ -65,10 +65,47 @@ func GetSlogHandlerOptions(level slog.Level) *slog.HandlerOptions {
 	}
 }
 
+// ComponentHandler wraps a slog.Handler to prepend [component] to the message
+type ComponentHandler struct {
+	slog.Handler
+}
+
+// Handle implements slog.Handler
+func (h *ComponentHandler) Handle(ctx context.Context, r slog.Record) error {
+	var component string
+
+	// Iterate to find component attribute
+	r.Attrs(func(a slog.Attr) bool {
+		if a.Key == "component" {
+			component = a.Value.String()
+			return false // stop
+		}
+		return true
+	})
+
+	if component != "" {
+		newMsg := fmt.Sprintf("[%s] %s", component, r.Message)
+		// Create a new record with modified message
+		newRecord := slog.NewRecord(r.Time, r.Level, newMsg, r.PC)
+
+		// Copy attributes, excluding "component" to match TS behavior
+		r.Attrs(func(a slog.Attr) bool {
+			if a.Key != "component" {
+				newRecord.AddAttrs(a)
+			}
+			return true
+		})
+		r = newRecord
+	}
+
+	return h.Handler.Handle(ctx, r)
+}
+
 // InitLogger configures structured logging with Cloud Logging compatible keys
 func InitLogger() {
 	opts := GetSlogHandlerOptions(slog.LevelInfo)
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, opts))
+	handler := slog.NewJSONHandler(os.Stdout, opts)
+	logger := slog.New(&ComponentHandler{Handler: handler})
 	slog.SetDefault(logger)
 }
 
@@ -88,7 +125,8 @@ func NewLogger(serviceName string, isDev bool) *slog.Logger {
 	}
 
 	opts := GetSlogHandlerOptions(level)
-	return slog.New(slog.NewJSONHandler(os.Stdout, opts)).With("service", serviceName)
+	handler := slog.NewJSONHandler(os.Stdout, opts)
+	return slog.New(&ComponentHandler{Handler: handler}).With("service", serviceName)
 }
 
 // NewService initializes all standard dependencies

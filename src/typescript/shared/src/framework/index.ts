@@ -62,7 +62,7 @@ const logger = winston.createLogger({
             timestamp: info.timestamp,
             ...info,
             severity: info.level.toUpperCase(),
-            message: info.message
+            message: info.component ? `[${info.component}] ${info.message}` : info.message
           };
           // Remove default keys to avoid duplication/conflict
           delete gcpInfo.level;
@@ -211,7 +211,7 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
     const preambleLogger = logger.child({
       executionId,
       ...(userId && { user_id: userId }),
-      service: serviceName
+      component: 'framework'
     });
 
     // DEBUG: Log incoming request details
@@ -314,20 +314,17 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
     }
     // --- END AUTH ---
 
-    // Create context with enriched logger (if user ID changed)
-    const contextLogger = logger.child({
-      executionId,
-      ...(authenticatedUserId && { user_id: authenticatedUserId }),
-      service: serviceName
-    });
-
     // Build the full context
     const ctx: FrameworkContext = {
       services,
       stores,
       pubsub,
       secrets: new SecretManagerHelper(process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT || ''),
-      logger: contextLogger,
+      logger: logger.child({
+        executionId,
+        ...(authenticatedUserId && { user_id: authenticatedUserId }),
+        component: 'context'
+      }),
       executionId,
       userId: authenticatedUserId,
       authScopes
@@ -351,11 +348,11 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
       // Log execution success
       await logExecutionSuccess(ctx, executionId, result || {});
 
-      contextLogger.info('Function completed successfully');
+      preambleLogger.info('Function completed successfully');
 
     } catch (err: any) {
       // Log execution failure
-      ctx.logger.error('Function failed', { error: err.message, stack: err.stack });
+      preambleLogger.error('Function failed', { error: err.message, stack: err.stack });
 
       await logExecutionFailure(ctx, executionId, err);
 

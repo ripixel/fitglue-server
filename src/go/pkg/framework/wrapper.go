@@ -90,13 +90,16 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 		}
 
 		// Setup Logger
-		logger := bootstrap.NewLogger(serviceName, false)
+		baseLogger := bootstrap.NewLogger(serviceName, false)
 		if testRunID != "" {
-			logger = logger.With("test_run_id", testRunID)
+			baseLogger = baseLogger.With("test_run_id", testRunID)
 		}
 		if userID != "" {
-			logger = logger.With("user_id", userID)
+			baseLogger = baseLogger.With("user_id", userID)
 		}
+
+		// Framework Logger (Preamble)
+		logger := baseLogger.With("component", "framework")
 
 		// If pending log failed earlier, log it now
 		if err != nil {
@@ -104,6 +107,7 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 		} else {
 			logger.Info("Execution pending logged", "execution_id", execID)
 			logger = logger.With("execution_id", execID)
+			// Re-apply component after adding ID to ensure it stays (though With keeps it)
 		}
 
 		// Extract inputs for logging
@@ -124,12 +128,13 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 		if err := execution.LogStart(ctx, svc.DB, execID, inputs, startOpts); err != nil {
 			logger.Warn("Failed to log execution start", "error", err)
 		}
+		// Log start with context tag as it denotes start of business logic? No, start of function execution is framework.
 		logger.Info("Function started")
 
-		// Create framework context
+		// Create framework context with Context Logger
 		fwCtx := &FrameworkContext{
 			Service:     svc,
-			Logger:      logger,
+			Logger:      baseLogger.With("execution_id", execID).With("component", "context"),
 			ExecutionID: execID,
 		}
 
