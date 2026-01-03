@@ -1,5 +1,4 @@
 
-import { z } from "zod";
 import * as admin from 'firebase-admin';
 import { adminDb as db } from "../firebase";
 import { UserService } from '@fitglue/shared/dist/domain/services/user';
