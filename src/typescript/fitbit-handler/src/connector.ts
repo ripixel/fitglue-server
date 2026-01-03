@@ -11,7 +11,6 @@ interface FitbitNotification {
 type FitbitBody = FitbitNotification[];
 
 export interface FitbitConnectorConfig extends ConnectorConfig {
-  fitbit_user_id: string;
   // OAuth tokens are managed by UserService via createFitbitClient
 }
 
@@ -48,13 +47,9 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
 
   /**
    * Validates Fitbit configuration.
-   * Requires fitbit_user_id to be present.
    */
   validateConfig(config: FitbitConnectorConfig): void {
     super.validateConfig(config);
-    if (!config.fitbit_user_id) {
-      throw new Error(`Connector ${this.name}: 'fitbit_user_id' is missing`);
-    }
   }
 
   /**
