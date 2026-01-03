@@ -15,6 +15,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
@@ -62,8 +63,17 @@ func UploadToStrava(ctx context.Context, e event.Event) error {
 func uploadHandler(httpClient *http.Client) framework.HandlerFunc {
 	return func(ctx context.Context, e event.Event, fwCtx *framework.FrameworkContext) (interface{}, error) {
 		var eventPayload pb.EnrichedActivityEvent
-		if err := e.DataAs(&eventPayload); err != nil {
-			return nil, fmt.Errorf("event.DataAs(EnrichedActivityEvent): %v", err)
+
+		// Use protojson to unmarshal the event data to handle enum strings correctly
+		// Standard json.Unmarshal (used by DataAs) fails on enum strings for int32 fields
+		unmarshaler := protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+			AllowPartial:   true,
+		}
+		if err := unmarshaler.Unmarshal(e.Data(), &eventPayload); err != nil {
+			// Fallback to DataAs if protojson fails (e.g. if data is not JSON object but simple string?)
+			// But for our use case, it should be JSON.
+			return nil, fmt.Errorf("protojson.Unmarshal: %w", err)
 		}
 
 		fwCtx.Logger.Info("Starting upload", "activity_id", eventPayload.ActivityId, "pipeline_id", eventPayload.PipelineId)
