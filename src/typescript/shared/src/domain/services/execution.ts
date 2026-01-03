@@ -33,6 +33,10 @@ export class ExecutionService {
     return this.executionStore.list(filters);
   }
 
+  watchExecutions(filters: { service?: string, status?: string, userId?: string, limit?: number }, onNext: (executions: { id: string, data: ExecutionRecord }[]) => void, onError?: (error: Error) => void): () => void {
+    return this.executionStore.watch(filters, onNext, onError);
+  }
+
   async deleteAllExecutions(): Promise<number> {
     return this.executionStore.deleteAll();
   }

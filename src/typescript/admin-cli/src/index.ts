@@ -948,6 +948,74 @@ program
     });
 
 program
+    .command('executions:list-watch')
+    .description('Watch recent executions with real-time updates')
+    .option('-s, --service <service>', 'Filter by service name')
+    .option('-st, --status <status>', 'Filter by status (STATUS_STARTED, STATUS_SUCCESS, STATUS_FAILED)')
+    .option('-u, --user <userId>', 'Filter by user ID')
+    .option('-l, --limit <number>', 'Number of records to show', '20')
+    .action(async (options) => {
+        try {
+            const limit = parseInt(options.limit, 10);
+
+            console.log(`Watching up to ${limit} executions...`);
+            console.log('Press Ctrl+C to stop.\n');
+
+            const unsubscribe = executionService.watchExecutions({
+                service: options.service,
+                status: options.status,
+                userId: options.user,
+                limit
+            }, (executions) => {
+                // Clear screen and move cursor to top-left
+                process.stdout.write('\x1b[2J\x1b[0;0H');
+
+                console.log(`Watching Executions (Limit: ${limit}) | Service: ${options.service || 'All'} | Status: ${options.status || 'All'}`);
+                console.log(`Last updated: ${new Date().toLocaleTimeString()}`);
+                console.log('Press Ctrl+C to stop.\n');
+
+                if (executions.length === 0) {
+                    console.log('No executions found matching criteria.');
+                    return;
+                }
+
+                console.log('------------------------------------------------------------------------------------------------------');
+                console.log('Timestamp               | ID                                   | Service         | Status  | Trigger');
+                console.log('------------------------------------------------------------------------------------------------------');
+                executions.forEach(item => {
+                    const data = item.data;
+                    const time = data.timestamp instanceof Date ? data.timestamp.toISOString() :
+                        (data.timestamp as any)?.toDate ? (data.timestamp as any).toDate().toISOString() : 'Unknown';
+                    const status = executionStatusToString(data.status);
+                    const service = (data.service || 'unknown').padEnd(15);
+                    const trigger = (data.triggerType || 'N/A').padEnd(7);
+
+                    // Simple padding and truncated output for table-like look
+                    const id = item.id.padEnd(36);
+                    const statusStr = status.padEnd(7);
+
+                    console.log(`${time.slice(0, 23)} | ${id} | ${service} | ${statusStr} | ${trigger}`);
+                });
+                console.log('------------------------------------------------------------------------------------------------------\n');
+            }, (error) => {
+                console.error('Watch error:', error.message);
+                process.exit(1);
+            });
+
+            // Keep the process alive. Inquirer or other tools might interfere, but simple action will wait for signals.
+            process.on('SIGINT', () => {
+                unsubscribe();
+                console.log('\nStopped watching.');
+                process.exit(0);
+            });
+
+        } catch (error: any) {
+            console.error('Error starting watch:', error.message);
+            process.exit(1);
+        }
+    });
+
+program
     .command('executions:get <executionId>')
     .description('Get full details of a specific execution')
     .action(async (executionId) => {

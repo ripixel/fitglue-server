@@ -66,6 +66,38 @@ export class ExecutionStore {
   }
 
   /**
+   * Watch executions with real-time updates.
+   */
+  watch(filters: { service?: string, status?: string, userId?: string, limit?: number }, onNext: (executions: { id: string, data: ExecutionRecord }[]) => void, onError?: (error: Error) => void): () => void {
+    let query: admin.firestore.Query = this.collection().orderBy('timestamp', 'desc');
+
+    if (filters.service) {
+      query = query.where('service', '==', filters.service);
+    }
+    if (filters.status) {
+      query = query.where('status', '==', filters.status);
+    }
+    if (filters.userId) {
+      query = query.where('user_id', '==', filters.userId);
+    }
+
+    if (filters.limit) {
+      query = query.limit(filters.limit);
+    }
+
+    return query.onSnapshot(snapshot => {
+      const executions = snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() as ExecutionRecord }));
+      onNext(executions);
+    }, error => {
+      if (onError) {
+        onError(error);
+      } else {
+        console.error('Error watching executions:', error);
+      }
+    });
+  }
+
+  /**
    * Delete all executions (batched).
    */
   async deleteAll(): Promise<number> {
