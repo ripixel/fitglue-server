@@ -17,6 +17,14 @@ func getString(m map[string]interface{}, key string) string {
 	return ""
 }
 
+// Helper to convert string to pointer, returns nil for empty strings
+func stringPtrOrNil(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 // Helper to safely get bool from map
 func getBool(m map[string]interface{}, key string) bool {
 	if v, ok := m[key]; ok {
@@ -234,15 +242,15 @@ func FirestoreToExecution(m map[string]interface{}) *pb.ExecutionRecord {
 		ExecutionId:       getString(m, "execution_id"),
 		Service:           getString(m, "service"),
 		Timestamp:         getTime(m, "timestamp"),
-		UserId:            getString(m, "user_id"),
-		TestRunId:         getString(m, "test_run_id"),
-		TriggerType:       getString(m, "trigger_type"),
+		TriggerType:       getString(m, "trigger_type"), // Required field, not a pointer
+		UserId:            stringPtrOrNil(getString(m, "user_id")),
+		TestRunId:         stringPtrOrNil(getString(m, "test_run_id")),
 		StartTime:         getTime(m, "start_time"),
 		EndTime:           getTime(m, "end_time"),
-		ErrorMessage:      getString(m, "error_message"),
-		InputsJson:        getString(m, "inputs_json"),
-		OutputsJson:       getString(m, "outputs_json"),
-		ParentExecutionId: getString(m, "parent_execution_id"),
+		ErrorMessage:      stringPtrOrNil(getString(m, "error_message")),
+		InputsJson:        stringPtrOrNil(getString(m, "inputs_json")),
+		OutputsJson:       stringPtrOrNil(getString(m, "outputs_json")),
+		ParentExecutionId: stringPtrOrNil(getString(m, "parent_execution_id")),
 	}
 
 	if v, ok := m["status"]; ok {

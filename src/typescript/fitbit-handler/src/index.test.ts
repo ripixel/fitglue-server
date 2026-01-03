@@ -7,7 +7,7 @@ jest.mock('@fitglue/shared', () => {
   return {
     ...originalModule,
     createCloudFunction: jest.fn().mockImplementation((handler) => handler),
-    createWebhookProcessor: jest.fn().mockReturnValue((req: any, res: any, ctx: any) => Promise.resolve()),
+    createWebhookProcessor: jest.fn().mockReturnValue((_req: any, _res: any, _ctx: any) => Promise.resolve()),
   };
 });
 

@@ -24,6 +24,14 @@ type ExecutionOptions struct {
 	Inputs      interface{}
 }
 
+// stringPtr returns a pointer to the given string
+func stringPtr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
 // LogPending creates an execution record with PENDING status and captured inputs
 func LogPending(ctx context.Context, db Database, service string, opts ExecutionOptions) (string, error) {
 	execID := fmt.Sprintf("%s-%d", service, time.Now().UnixNano())
@@ -36,8 +44,8 @@ func LogPending(ctx context.Context, db Database, service string, opts Execution
 		Status:      pb.ExecutionStatus_STATUS_PENDING,
 		Timestamp:   now,
 		StartTime:   now,
-		UserId:      opts.UserID,
-		TestRunId:   opts.TestRunID,
+		UserId:      stringPtr(opts.UserID),
+		TestRunId:   stringPtr(opts.TestRunID),
 		TriggerType: opts.TriggerType,
 	}
 
@@ -45,7 +53,7 @@ func LogPending(ctx context.Context, db Database, service string, opts Execution
 	if opts.Inputs != nil {
 		inputsJSON, err := json.Marshal(opts.Inputs)
 		if err == nil {
-			record.InputsJson = string(inputsJSON)
+			record.InputsJson = stringPtr(string(inputsJSON))
 		}
 	}
 
@@ -105,17 +113,17 @@ func LogChildExecutionStart(ctx context.Context, db Database, service string, pa
 		Status:            pb.ExecutionStatus_STATUS_STARTED,
 		Timestamp:         now,
 		StartTime:         now,
-		UserId:            opts.UserID,
-		TestRunId:         opts.TestRunID,
+		UserId:            stringPtr(opts.UserID),
+		TestRunId:         stringPtr(opts.TestRunID),
 		TriggerType:       opts.TriggerType,
-		ParentExecutionId: parentExecutionID,
+		ParentExecutionId: stringPtr(parentExecutionID),
 	}
 
 	// Encode inputs as JSON if provided
 	if opts.Inputs != nil {
 		inputsJSON, err := json.Marshal(opts.Inputs)
 		if err == nil {
-			record.InputsJson = string(inputsJSON)
+			record.InputsJson = stringPtr(string(inputsJSON))
 		}
 	}
 

@@ -42,7 +42,7 @@ func TestLogPending(t *testing.T) {
 				t.Errorf("Expected STATUS_PENDING, got %v", record.Status)
 			}
 			// Inputs should be empty/default as we don't pass them in wrapper
-			if record.InputsJson != "" {
+			if record.InputsJson != nil && *record.InputsJson != "" {
 				t.Errorf("Expected empty inputs JSON, got %v", record.InputsJson)
 			}
 			return nil
@@ -157,10 +157,10 @@ func TestLogChildExecutionStart(t *testing.T) {
 			if record.Service != "child-service" {
 				t.Errorf("Expected child-service, got %v", record.Service)
 			}
-			if record.ParentExecutionId != "parent-exec-123" {
-				t.Errorf("Expected parent_execution_id parent-exec-123, got %v", record.ParentExecutionId)
+			if record.ParentExecutionId == nil || *record.ParentExecutionId != "parent-exec-123" {
+				t.Errorf("Expected ParentExecutionId 'parent-exec-123', got %v", record.ParentExecutionId)
 			}
-			if record.UserId != "user-1" {
+			if record.UserId == nil || *record.UserId != "user-1" {
 				t.Errorf("Expected user-1, got %v", record.UserId)
 			}
 			return nil

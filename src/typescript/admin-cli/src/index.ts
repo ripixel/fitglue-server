@@ -1419,15 +1419,6 @@ program
         }
     });
 
-// Helper to look up execution bucket via service
-const getExecutionData = async (executionId: string) => {
-    const execution = await executionService.get(executionId);
-    if (!execution) {
-        throw new Error(`Execution ${executionId} not found`);
-    }
-    return execution;
-};
-
 program.parse();
 
 async function promptForEnricherConfig(providerType: EnricherProviderType): Promise<{ [key: string]: string }> {
