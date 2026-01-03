@@ -3,6 +3,7 @@ import { ExecutionStore, db } from '@fitglue/shared';
 import { execSync } from 'child_process';
 import axios from 'axios';
 import * as readline from 'readline';
+import inquirer from 'inquirer';
 
 const executionStore = new ExecutionStore(db);
 
@@ -24,14 +25,14 @@ async function confirm(message: string): Promise<boolean> {
 // Map services to webhook URLs by environment
 const SERVICE_TO_WEBHOOK: Record<string, Record<string, string>> = {
   'hevy-webhook-handler': {
-    'dev': 'https://us-central1-fitglue-dev.cloudfunctions.net/hevy-webhook-handler',
-    'test': 'https://us-central1-fitglue-test.cloudfunctions.net/hevy-webhook-handler',
-    'prod': 'https://us-central1-fitglue-prod.cloudfunctions.net/hevy-webhook-handler',
+    'dev': 'https://dev.fitglue.tech/hooks/hevy',
+    'test': 'https://test.fitglue.tech/hooks/hevy',
+    'prod': 'https://fitglue.tech/hooks/hevy',
   },
   'fitbit-handler': {
-    'dev': 'https://us-central1-fitglue-dev.cloudfunctions.net/fitbit-handler',
-    'test': 'https://us-central1-fitglue-test.cloudfunctions.net/fitbit-handler',
-    'prod': 'https://us-central1-fitglue-prod.cloudfunctions.net/fitbit-handler',
+    'dev': 'https://dev.fitglue.tech/hooks/fitbit',
+    'test': 'https://test.fitglue.tech/hooks/fitbit',
+    'prod': 'https://fitglue.tech/hooks/fitbit',
   },
 };
 
@@ -78,9 +79,9 @@ export function registerReplayCommands(program: Command) {
         process.exit(1);
       }
 
-      // Seek to 1 second before execution
+      // Seek to 60 seconds before execution to account for cold starts/queueing
       const seekTime = new Date(execution.timestamp!);
-      seekTime.setSeconds(seekTime.getSeconds() - 1);
+      seekTime.setSeconds(seekTime.getSeconds() - 60);
 
       console.log(`\n📋 Replay Details:`);
       console.log(`   Execution ID: ${executionId}`);
@@ -146,7 +147,35 @@ export function registerReplayCommands(program: Command) {
       console.log(`   Status: ${execution.status}`);
       console.log(`   Payload preview: ${JSON.stringify(payload).substring(0, 100)}...`);
 
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+
       if (!options.yes) {
+        console.log('\n--- Custom Headers ---');
+        let addingHeaders = true;
+        while (addingHeaders) {
+          const { add } = await inquirer.prompt([{
+            type: 'confirm',
+            name: 'add',
+            message: 'Add a custom header?',
+            default: false
+          }]);
+
+          if (!add) {
+            addingHeaders = false;
+            break;
+          }
+
+          const input = await inquirer.prompt([
+            { type: 'input', name: 'key', message: 'Header Name:' },
+            { type: 'input', name: 'value', message: 'Header Value:' }
+          ]);
+
+          if (input.key && input.value) {
+            headers[input.key] = input.value;
+            console.log(`Added header: ${input.key} = ${input.value}`);
+          }
+        }
+
         const proceed = await confirm('\n🔄 Proceed with replay?');
         if (!proceed) {
           console.log('Cancelled.');
@@ -157,7 +186,7 @@ export function registerReplayCommands(program: Command) {
       try {
         console.log('\nSending request...');
         const response = await axios.post(url, payload, {
-          headers: { 'Content-Type': 'application/json' },
+          headers: headers,
           validateStatus: () => true,
         });
 
