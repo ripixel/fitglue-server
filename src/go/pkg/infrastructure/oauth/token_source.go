@@ -161,8 +161,11 @@ func (s *FirestoreTokenSource) refreshToken(ctx context.Context, refreshToken st
 	}
 
 	data := url.Values{}
-	data.Set("client_id", clientID)
-	data.Set("client_secret", clientSecret)
+	// Strava requires client_id/secret in body. Fitbit uses Basic Auth header (see below).
+	if s.provider != "fitbit" {
+		data.Set("client_id", clientID)
+		data.Set("client_secret", clientSecret)
+	}
 	data.Set("grant_type", "refresh_token")
 	data.Set("refresh_token", refreshToken)
 
