@@ -17,6 +17,8 @@ export class ExecutionStore {
 
   /**
    * Create a new execution record.
+   * Note: Converter now omits undefined values, so partial data works fine.
+   * We don't use merge:true because create() should only be called once per execution.
    */
   async create(executionId: string, data: Partial<ExecutionRecord>): Promise<void> {
     await this.collection().doc(executionId).set(data as ExecutionRecord);

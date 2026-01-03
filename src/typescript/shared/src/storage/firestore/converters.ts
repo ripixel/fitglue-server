@@ -17,13 +17,13 @@ const toDate = (val: any): Date | undefined => {
 
 export const waitlistConverter: FirestoreDataConverter<WaitlistEntry> = {
   toFirestore(model: WaitlistEntry): FirebaseFirestore.DocumentData {
-    return {
-      email: model.email,
-      source: model.source,
-      created_at: model.createdAt,
-      user_agent: model.userAgent,
-      ip: model.ip
-    };
+    const data: FirebaseFirestore.DocumentData = {};
+    if (model.email !== undefined) data.email = model.email;
+    if (model.source !== undefined) data.source = model.source;
+    if (model.createdAt !== undefined) data.created_at = model.createdAt;
+    if (model.userAgent !== undefined) data.user_agent = model.userAgent;
+    if (model.ip !== undefined) data.ip = model.ip;
+    return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): WaitlistEntry {
     const data = snapshot.data();
@@ -39,13 +39,13 @@ export const waitlistConverter: FirestoreDataConverter<WaitlistEntry> = {
 
 export const apiKeyConverter: FirestoreDataConverter<ApiKeyRecord> = {
   toFirestore(model: ApiKeyRecord): FirebaseFirestore.DocumentData {
-    return {
-      user_id: model.userId,
-      label: model.label,
-      scopes: model.scopes,
-      created_at: model.createdAt,
-      last_used_at: model.lastUsedAt
-    };
+    const data: FirebaseFirestore.DocumentData = {};
+    if (model.userId !== undefined) data.user_id = model.userId;
+    if (model.label !== undefined) data.label = model.label;
+    if (model.scopes !== undefined) data.scopes = model.scopes;
+    if (model.createdAt !== undefined) data.created_at = model.createdAt;
+    if (model.lastUsedAt !== undefined) data.last_used_at = model.lastUsedAt;
+    return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): ApiKeyRecord {
     const data = snapshot.data();
@@ -61,10 +61,10 @@ export const apiKeyConverter: FirestoreDataConverter<ApiKeyRecord> = {
 
 export const integrationIdentityConverter: FirestoreDataConverter<IntegrationIdentity> = {
   toFirestore(model: IntegrationIdentity): FirebaseFirestore.DocumentData {
-    return {
-      user_id: model.userId,
-      created_at: model.createdAt
-    };
+    const data: FirebaseFirestore.DocumentData = {};
+    if (model.userId !== undefined) data.user_id = model.userId;
+    if (model.createdAt !== undefined) data.created_at = model.createdAt;
+    return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): IntegrationIdentity {
     const data = snapshot.data();
@@ -77,21 +77,24 @@ export const integrationIdentityConverter: FirestoreDataConverter<IntegrationIde
 
 export const executionConverter: FirestoreDataConverter<ExecutionRecord> = {
   toFirestore(model: ExecutionRecord): FirebaseFirestore.DocumentData {
-    return {
-      execution_id: model.executionId,
-      service: model.service,
-      status: model.status,
-      timestamp: model.timestamp,
-      user_id: model.userId,
-      test_run_id: model.testRunId,
-      trigger_type: model.triggerType,
-      start_time: model.startTime,
-      end_time: model.endTime,
-      error_message: model.errorMessage,
-      inputs_json: model.inputsJson,
-      outputs_json: model.outputsJson,
-      parent_execution_id: model.parentExecutionId
-    };
+    const data: FirebaseFirestore.DocumentData = {};
+
+    // Only include fields that are actually defined
+    if (model.executionId !== undefined) data.execution_id = model.executionId;
+    if (model.service !== undefined) data.service = model.service;
+    if (model.status !== undefined) data.status = model.status;
+    if (model.timestamp !== undefined) data.timestamp = model.timestamp;
+    if (model.userId !== undefined) data.user_id = model.userId;
+    if (model.testRunId !== undefined) data.test_run_id = model.testRunId;
+    if (model.triggerType !== undefined) data.trigger_type = model.triggerType;
+    if (model.startTime !== undefined) data.start_time = model.startTime;
+    if (model.endTime !== undefined) data.end_time = model.endTime;
+    if (model.errorMessage !== undefined) data.error_message = model.errorMessage;
+    if (model.inputsJson !== undefined) data.inputs_json = model.inputsJson;
+    if (model.outputsJson !== undefined) data.outputs_json = model.outputsJson;
+    if (model.parentExecutionId !== undefined) data.parent_execution_id = model.parentExecutionId;
+
+    return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): ExecutionRecord {
     const data = snapshot.data();
@@ -194,12 +197,12 @@ const mapPipelineFromFirestore = (p: any): PipelineConfig => ({
 
 export const userConverter: FirestoreDataConverter<UserRecord> = {
   toFirestore(model: UserRecord): FirebaseFirestore.DocumentData {
-    return {
-      user_id: model.userId,
-      created_at: model.createdAt,
-      integrations: mapUserIntegrationsToFirestore(model.integrations),
-      pipelines: model.pipelines?.map(mapPipelineToFirestore)
-    };
+    const data: FirebaseFirestore.DocumentData = {};
+    if (model.userId !== undefined) data.user_id = model.userId;
+    if (model.createdAt !== undefined) data.created_at = model.createdAt;
+    if (model.integrations !== undefined) data.integrations = mapUserIntegrationsToFirestore(model.integrations);
+    if (model.pipelines !== undefined) data.pipelines = model.pipelines?.map(mapPipelineToFirestore);
+    return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): UserRecord {
     const data = snapshot.data();
@@ -214,11 +217,11 @@ export const userConverter: FirestoreDataConverter<UserRecord> = {
 
 export const processedActivityConverter: FirestoreDataConverter<ProcessedActivityRecord> = {
   toFirestore(model: ProcessedActivityRecord): FirebaseFirestore.DocumentData {
-    return {
-      source: model.source,
-      external_id: model.externalId,
-      processed_at: model.processedAt
-    };
+    const data: FirebaseFirestore.DocumentData = {};
+    if (model.source !== undefined) data.source = model.source;
+    if (model.externalId !== undefined) data.external_id = model.externalId;
+    if (model.processedAt !== undefined) data.processed_at = model.processedAt;
+    return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): ProcessedActivityRecord {
     const data = snapshot.data();

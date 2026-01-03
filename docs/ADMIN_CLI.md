@@ -101,6 +101,41 @@ Get full details for a specific execution, including input/output payloads (if l
 ./fitglue-admin executions:get <executionId>
 ```
 
+### `executions:create <executionId>`
+
+**Testing Command:** Create a test execution record with minimal data (useful for debugging execution logging).
+
+**Options:**
+- `-s, --service <service>`: Service name (default: `test-service`)
+- `-t, --trigger <trigger>`: Trigger type (default: `http`)
+- `-u, --user <userId>`: User ID (optional)
+
+```bash
+# Create minimal execution (like logExecutionPending)
+./fitglue-admin executions:create test-exec-001 --service my-service --trigger pubsub
+
+# With user ID
+./fitglue-admin executions:create test-exec-002 --user user-123
+```
+
+### `executions:update <executionId>`
+
+**Testing Command:** Update an existing execution record (useful for testing partial updates).
+
+**Options:**
+- `--status <status>`: Status code (0-4, default: 2 = SUCCESS)
+- `--error <message>`: Error message (sets status to FAILED)
+- `--inputs <json>`: Inputs JSON string
+- `--outputs <json>`: Outputs JSON string
+
+```bash
+# Mark as successful with output
+./fitglue-admin executions:update test-exec-001 --status 2 --outputs '{"result":"success"}'
+
+# Mark as failed
+./fitglue-admin executions:update test-exec-001 --error "Something went wrong"
+```
+
 ### `executions:clean`
 
 <span style="color:red">**DANGER ZONE**</span>

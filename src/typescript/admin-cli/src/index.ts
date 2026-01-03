@@ -989,6 +989,71 @@ program
     });
 
 program
+    .command('executions:create <executionId>')
+    .description('Create a test execution record')
+    .option('-s, --service <service>', 'Service name', 'test-service')
+    .option('-t, --trigger <trigger>', 'Trigger type', 'http')
+    .option('-u, --user <userId>', 'User ID')
+    .action(async (executionId, options) => {
+        try {
+            console.log(`Creating execution ${executionId}...`);
+
+            // Match logExecutionPending exactly
+            await executionService.create(executionId, {
+                executionId,
+                service: options.service,
+                triggerType: options.trigger,
+                timestamp: new Date(),
+                status: 4 // STATUS_PENDING
+            });
+
+            console.log('Execution created successfully.');
+        } catch (error: any) {
+            console.error('Error creating execution:', error.message);
+            console.error('Stack:', error.stack);
+            process.exit(1);
+        }
+    });
+
+program
+    .command('executions:update <executionId>')
+    .description('Update an execution record')
+    .option('--status <status>', 'Status (0-4)', '2')
+    .option('--error <message>', 'Error message')
+    .option('--inputs <json>', 'Inputs JSON')
+    .option('--outputs <json>', 'Outputs JSON')
+    .action(async (executionId, options) => {
+        try {
+            console.log(`Updating execution ${executionId}...`);
+
+            const updateData: any = {
+                status: parseInt(options.status, 10)
+            };
+
+            if (options.error) {
+                updateData.errorMessage = options.error;
+                updateData.endTime = new Date();
+            }
+
+            if (options.inputs) {
+                updateData.inputsJson = options.inputs;
+            }
+
+            if (options.outputs) {
+                updateData.outputsJson = options.outputs;
+            }
+
+            await executionService.update(executionId, updateData);
+
+            console.log('Execution updated successfully.');
+        } catch (error: any) {
+            console.error('Error updating execution:', error.message);
+            console.error('Stack:', error.stack);
+            process.exit(1);
+        }
+    });
+
+program
     .command('executions:clean')
     .description('Delete ALL execution logs from the database')
     .action(async () => {

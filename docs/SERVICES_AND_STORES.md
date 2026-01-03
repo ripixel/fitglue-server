@@ -85,3 +85,50 @@ async connectStrava(userId: string, token: string): Promise<void> {
 
 *   If it involves `FieldValue`, `collection()`, or `where()`, it belongs in a **Store**.
 *   If it involves `if (user.enabled)`, `throw new Error()`, or `api.fetch()`, it belongs in a **Service**.
+
+## Firestore Converters
+
+Converters translate between TypeScript objects (camelCase) and Firestore documents (snake_case). They must handle partial data gracefully.
+
+### Critical Pattern: Omit Undefined Values
+
+**Problem:** Firestore rejects `undefined` values by default. When creating with partial data, converters must omit undefined fields.
+
+**Solution:**
+```typescript
+// ✅ Good: Only writes defined fields
+toFirestore(model: ExecutionRecord): FirebaseFirestore.DocumentData {
+  const data: FirebaseFirestore.DocumentData = {};
+  if (model.executionId !== undefined) data.execution_id = model.executionId;
+  if (model.service !== undefined) data.service = model.service;
+  // ... only include fields that exist
+  return data;
+}
+
+// ❌ Bad: Writes undefined, causes errors
+toFirestore(model: ExecutionRecord): FirebaseFirestore.DocumentData {
+  return {
+    execution_id: model.executionId,  // undefined if not set!
+    service: model.service,
+    // ...
+  };
+}
+```
+
+### Why Not Use `ignoreUndefinedProperties`?
+
+- It's a global Firestore setting that masks bugs
+- Firestore's default (rejecting undefined) catches typos and missing data
+- Proper converters should handle partial data without global settings
+
+### Store Create vs Update
+
+**`create()`**: Use `.set()` **without** `{merge: true}`
+- Creates new document
+- Fails if document exists (prevents accidental overwrites)
+- Converter omits undefined fields
+
+**`update()`**: Use `.update()`
+- Updates existing document
+- Only modifies specified fields
+- Fails if document doesn't exist
