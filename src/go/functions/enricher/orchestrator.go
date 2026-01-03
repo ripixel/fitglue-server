@@ -137,7 +137,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				providerExecs[idx].DurationMs = duration
 
 				if err != nil {
-					slog.Error("Enricher failed", "name", p.Name(), "error", err, "duration_ms", duration, "execution_id", execID)
+					slog.Error(fmt.Sprintf("Provider failed: %v", p.Name()), "name", p.Name(), "error", err, "duration_ms", duration, "execution_id", execID)
 					errs[idx] = err
 					providerExecs[idx].Status = "FAILED"
 					providerExecs[idx].Error = err.Error()
@@ -147,7 +147,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				providerExecs[idx].Status = "SUCCESS"
 				providerExecs[idx].Metadata = res.Metadata
 				results[idx] = res
-				slog.Info("Enricher completed", "name", p.Name(), "duration_ms", duration, "execution_id", execID)
+				slog.Info(fmt.Sprintf("Provider completed: %v", p.Name()), "name", p.Name(), "duration_ms", duration, "execution_id", execID)
 			}(i, provider, cfg.Inputs)
 		}
 		wg.Wait()

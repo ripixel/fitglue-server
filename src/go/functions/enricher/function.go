@@ -124,7 +124,9 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 					"error":  err.Error(),
 				}, err
 			} else {
-				fwCtx.Logger.Info("Activity data lagging, offloading to lag queue", "error", err)
+				// Preserve the original error before it gets shadowed
+				originalErr := err
+				fwCtx.Logger.Info("Activity data lagging, offloading to lag queue", "error", originalErr)
 
 				// Publish to Lag Topic with "origin=lag-queue" to break infinite loop on next consumption
 				// Create CloudEvent
@@ -143,7 +145,7 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 
 				return map[string]interface{}{
 					"status": "STATUS_LAGGED",
-					"reason": err.Error(),
+					"reason": originalErr.Error(),
 				}, nil // ACK original message since we've successfully moved it to the delay queue
 			}
 		}

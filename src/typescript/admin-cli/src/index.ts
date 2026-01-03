@@ -9,7 +9,9 @@ import {
     ApiKeyStore,
     ExecutionStore,
     EnricherProviderType,
-    db
+    db,
+    createFitbitClient,
+    ExecutionStatus
 } from '@fitglue/shared';
 
 import * as admin from 'firebase-admin';
@@ -309,8 +311,6 @@ program.command('users:update')
             process.exit(1);
         }
     });
-
-import { createFitbitClient } from '@fitglue/shared/dist/integrations/fitbit/client';
 
 program.command('fitbit:subscribe')
     .argument('[userId]', 'FitGlue User ID')
@@ -892,6 +892,18 @@ program.command('users:replace-pipeline')
 
 // --- Execution Inspection Commands ---
 
+// Helper to convert ExecutionStatus enum to readable string
+function executionStatusToString(status: number | undefined): string {
+    switch (status) {
+        case ExecutionStatus.STATUS_PENDING: return 'PENDING';
+        case ExecutionStatus.STATUS_STARTED: return 'STARTED';
+        case ExecutionStatus.STATUS_SUCCESS: return 'SUCCESS';
+        case ExecutionStatus.STATUS_FAILED: return 'FAILED';
+        case ExecutionStatus.STATUS_UNKNOWN: return 'UNKNOWN';
+        default: return `UNKNOWN(${status})`;
+    }
+}
+
 program
     .command('executions:list')
     .description('List recent executions')
@@ -921,7 +933,7 @@ program
             executions.forEach(item => {
                 const data = item.data;
                 const time = data.timestamp instanceof Date ? data.timestamp.toISOString() : 'Unknown';
-                const status = data.status || 'UNKNOWN';
+                const status = executionStatusToString(data.status);
                 const service = data.service || 'unknown';
                 const trigger = data.triggerType || 'N/A';
 
@@ -950,7 +962,7 @@ program
             console.log('Execution Details:');
             console.log(`ID: ${executionId}`);
             console.log(`Service: ${data.service}`);
-            console.log(`Status: ${data.status}`);
+            console.log(`Status: ${executionStatusToString(data.status)}`);
             console.log(`Timestamp: ${data.timestamp instanceof Date ? data.timestamp.toISOString() : 'N/A'}`);
             console.log(`User ID: ${data.userId || 'N/A'}`);
             console.log(`Trigger Type: ${data.triggerType || 'N/A'}`);
