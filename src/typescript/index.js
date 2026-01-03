@@ -19,13 +19,8 @@ exports.fitbitOAuthHandler = (req, res) => {
 };
 
 exports.fitbitWebhookHandler = (req, res) => {
-  const fitbit = require('./fitbit-webhook-handler/build/index');
+  const fitbit = require('./fitbit-handler/build/index');
   return fitbit.fitbitWebhookHandler(req, res);
-};
-
-exports.fitbitIngest = (req, res) => {
-  const fitbit = require('./fitbit-ingest/build/index');
-  return fitbit.fitbitIngest(req, res);
 };
 
 exports.authOnCreate = (event) => {
