@@ -113,4 +113,42 @@ func TestAutoIncrement_Enrich(t *testing.T) {
 			t.Errorf("Expected persisted count 6, got %d", setCounter.Count)
 		}
 	})
+
+	t.Run("Respects initial value", func(t *testing.T) {
+		var setCounter *pb.Counter
+		mockDB := &mocks.MockDatabase{
+			GetCounterFunc: func(ctx context.Context, userId, id string) (*pb.Counter, error) {
+				return nil, nil // Not found
+			},
+			SetCounterFunc: func(ctx context.Context, userId string, counter *pb.Counter) error {
+				setCounter = counter
+				return nil
+			},
+		}
+
+		provider := &AutoIncrementProvider{}
+		provider.SetService(&bootstrap.Service{DB: mockDB})
+
+		activity := &pb.StandardizedActivity{Name: "Parkrun"}
+		user := &pb.UserRecord{UserId: "u1"}
+		inputs := map[string]string{
+			"counter_key":   "parkrun",
+			"initial_value": "100",
+		}
+
+		res, err := provider.Enrich(ctx, activity, user, inputs, false)
+		if err != nil {
+			t.Fatalf("Unexpected error: %v", err)
+		}
+
+		// Verify result - Should be #100
+		if res.NameSuffix != " (#100)" {
+			t.Errorf("Expected suffix ' (#100)', got '%s'", res.NameSuffix)
+		}
+
+		// Verify DB persistence - Should be stored as 100
+		if setCounter.Count != 100 {
+			t.Errorf("Expected persisted count 100, got %d", setCounter.Count)
+		}
+	})
 }

@@ -1906,11 +1906,18 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
                 name: 'filter',
                 message: 'Title Filter (required, substring match):',
                 validate: (input) => input.length > 0 || 'Required'
+            },
+            {
+                type: 'input',
+                name: 'initialValue',
+                message: 'Starting Number (optional, default 1):',
+                validate: (input) => !input || !isNaN(parseInt(input)) || 'Must be a number'
             }
         ]);
         inputs = {
             counter_key: incrementConfig.key,
-            title_contains: incrementConfig.filter
+            title_contains: incrementConfig.filter,
+            initial_value: incrementConfig.initialValue
         };
     } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT) {
         const userConfig = await inquirer.prompt([

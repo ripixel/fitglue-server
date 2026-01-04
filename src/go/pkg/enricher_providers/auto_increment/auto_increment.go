@@ -70,9 +70,19 @@ func (p *AutoIncrementProvider) Enrich(ctx context.Context, activity *pb.Standar
 
 	if counter == nil {
 		// Not found - initialize
+		var currentCount int64 = 0
+		if initialValStr, ok := inputs["initial_value"]; ok && initialValStr != "" {
+			var initialVal int64
+			if _, err := fmt.Sscanf(initialValStr, "%d", &initialVal); err == nil {
+				// We want the *next* increment to result in `initialVal`.
+				// So we start at `initialVal - 1`.
+				currentCount = initialVal - 1
+			}
+		}
+
 		counter = &pb.Counter{
 			Id:    key,
-			Count: 0,
+			Count: currentCount,
 		}
 	}
 
