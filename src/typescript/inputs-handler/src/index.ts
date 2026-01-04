@@ -1,4 +1,4 @@
-import { createCloudFunction, db, InputStore, InputService, FrameworkContext, CloudEventPublisher, getCloudEventType, CloudEventType, getCloudEventSource, CloudEventSource, ActivityPayload } from '@fitglue/shared';
+import { createCloudFunction, db, InputStore, InputService, FrameworkContext, CloudEventPublisher, getCloudEventType, CloudEventType, getCloudEventSource, CloudEventSource, ActivityPayload, FirebaseAuthStrategy } from '@fitglue/shared';
 
 // PubSub topic name logic via env var
 const TOPIC = process.env.PUBSUB_TOPIC || 'activity-updates';
@@ -110,11 +110,7 @@ export const handler = async (req: any, res: any, ctx: FrameworkContext) => {
 export const inputsHandler = createCloudFunction(handler, {
   auth: {
     strategies: [
-      // We need to instantiate a strategy.
-      // Since we don't have a concrete AuthStrategy exported cleanly or configured easily here,
-      // we might relying on manual auth or implicit auth if we don't grab one.
-      // BUT, user asked to use createCloudFunction + auth strategy.
-      // Let's check imports.
+      new FirebaseAuthStrategy()
     ]
   }
 });
