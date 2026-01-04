@@ -8,8 +8,8 @@ import (
 
 // EnrichmentResult represents the outcome of an enrichment provider.
 type EnrichmentResult struct {
-	// Metadata overrides (if empty, original is kept)
-	ActivityType string
+	// Metadata overrides (if empty/unspecified, original is kept)
+	ActivityType pb.ActivityType
 	Description  string
 
 	Name       string

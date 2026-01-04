@@ -5,7 +5,7 @@
 // source: activity.proto
 
 /* eslint-disable */
-import type { StandardizedActivity } from "./standardized_activity";
+import type { ActivityType, StandardizedActivity } from "./standardized_activity";
 
 export const protobufPackage = "fitglue";
 
@@ -38,10 +38,7 @@ export interface ActivityPayload_MetadataEntry {
   value: string;
 }
 
-/**
- * EnrichedActivityEvent is the message format for topic-enriched-activity.
- * EnrichedActivityEvent is the message format for topic-enriched-activity.
- */
+/** EnrichedActivityEvent is the message format for topic-enriched-activity. */
 export interface EnrichedActivityEvent {
   /** Identity */
   userId: string;
@@ -49,7 +46,7 @@ export interface EnrichedActivityEvent {
   activityId: string;
   source: ActivitySource;
   /** Core Metadata (Extracted for easy downstream access) */
-  activityType: string;
+  activityType: ActivityType;
   /** The final description (original or generated) */
   description: string;
   /** Activity Title */

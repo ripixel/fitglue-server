@@ -228,50 +228,65 @@ func GenerateFitFile(activity *pb.StandardizedActivity) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func mapSport(activityType string) (typedef.Sport, typedef.SubSport) {
+func mapSport(activityType pb.ActivityType) (typedef.Sport, typedef.SubSport) {
 	switch activityType {
 	// Running
-	case "Run", "RUNNING", "VirtualRun", "TrailRun":
+	case pb.ActivityType_ACTIVITY_TYPE_RUN, pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_RUN, pb.ActivityType_ACTIVITY_TYPE_TRAIL_RUN:
 		return typedef.SportRunning, typedef.SubSportGeneric
 
 	// Cycling
-	case "Ride", "CYCLING", "VirtualRide", "GravelRide", "MountainBikeRide", "EMountainBikeRide", "EBikeRide", "Velomobile", "Handcycle":
+	case pb.ActivityType_ACTIVITY_TYPE_RIDE, pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_RIDE,
+		pb.ActivityType_ACTIVITY_TYPE_GRAVEL_RIDE, pb.ActivityType_ACTIVITY_TYPE_MOUNTAIN_BIKE_RIDE,
+		pb.ActivityType_ACTIVITY_TYPE_EMOUNTAIN_BIKE_RIDE, pb.ActivityType_ACTIVITY_TYPE_EBIKE_RIDE,
+		pb.ActivityType_ACTIVITY_TYPE_VELOMOBILE, pb.ActivityType_ACTIVITY_TYPE_HANDCYCLE:
 		return typedef.SportCycling, typedef.SubSportGeneric
 
 	// Swimming
-	case "Swim", "SWIMMING":
+	case pb.ActivityType_ACTIVITY_TYPE_SWIM:
 		return typedef.SportSwimming, typedef.SubSportLapSwimming
 
 	// Walking/Hiking
-	case "Walk", "WALKING":
+	case pb.ActivityType_ACTIVITY_TYPE_WALK:
 		return typedef.SportWalking, typedef.SubSportGeneric
-	case "Hike", "HIKING", "Snowshoe":
+	case pb.ActivityType_ACTIVITY_TYPE_HIKE, pb.ActivityType_ACTIVITY_TYPE_SNOWSHOE:
 		return typedef.SportHiking, typedef.SubSportGeneric
 
 	// Training / Gym
-	case "WeightTraining", "WEIGHT_TRAINING":
+	case pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING:
 		return typedef.SportTraining, typedef.SubSportStrengthTraining
-	case "Workout", "WORKOUT", "Crossfit", "Elliptical", "StairStepper", "Pilates":
+	case pb.ActivityType_ACTIVITY_TYPE_WORKOUT, pb.ActivityType_ACTIVITY_TYPE_CROSSFIT,
+		pb.ActivityType_ACTIVITY_TYPE_ELLIPTICAL, pb.ActivityType_ACTIVITY_TYPE_STAIR_STEPPER,
+		pb.ActivityType_ACTIVITY_TYPE_PILATES:
 		return typedef.SportTraining, typedef.SubSportGeneric
-	case "Yoga", "YOGA":
+	case pb.ActivityType_ACTIVITY_TYPE_YOGA:
 		return typedef.SportTraining, typedef.SubSportYoga
-	case "HighIntensityIntervalTraining", "HIIT":
+	case pb.ActivityType_ACTIVITY_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING:
 		return typedef.SportTraining, typedef.SubSportHiit
 
 	// Water Sports
-	case "Rowing", "VirtualRow", "Canoeing", "Kayaking", "StandUpPaddling", "Surfing", "Windsurf", "Kitesurf", "Sail":
-		return typedef.SportRowing, typedef.SubSportGeneric // Using Rowing as generic fallback for water paddle sports or generic
+	case pb.ActivityType_ACTIVITY_TYPE_ROWING, pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_ROW,
+		pb.ActivityType_ACTIVITY_TYPE_CANOEING, pb.ActivityType_ACTIVITY_TYPE_KAYAKING,
+		pb.ActivityType_ACTIVITY_TYPE_STAND_UP_PADDLING, pb.ActivityType_ACTIVITY_TYPE_SURFING,
+		pb.ActivityType_ACTIVITY_TYPE_WINDSURF, pb.ActivityType_ACTIVITY_TYPE_KITESURF,
+		pb.ActivityType_ACTIVITY_TYPE_SAIL:
+		return typedef.SportRowing, typedef.SubSportGeneric
 
 	// Winter Sports
-	case "AlpineSki", "BackcountrySki", "NordicSki", "RollerSki", "Snowboard", "IceSkate":
-		return typedef.SportGeneric, typedef.SubSportGeneric // Mapping to generic for now as specific sports might need more precise mapping
+	case pb.ActivityType_ACTIVITY_TYPE_ALPINE_SKI, pb.ActivityType_ACTIVITY_TYPE_BACKCOUNTRY_SKI,
+		pb.ActivityType_ACTIVITY_TYPE_NORDIC_SKI, pb.ActivityType_ACTIVITY_TYPE_ROLLER_SKI,
+		pb.ActivityType_ACTIVITY_TYPE_SNOWBOARD, pb.ActivityType_ACTIVITY_TYPE_ICE_SKATE:
+		return typedef.SportGeneric, typedef.SubSportGeneric
 
 	// Team / Racket Sports
-	case "Soccer", "Golf", "Tennis", "Squash", "Racquetball", "Badminton", "TableTennis", "Pickleball":
+	case pb.ActivityType_ACTIVITY_TYPE_SOCCER, pb.ActivityType_ACTIVITY_TYPE_GOLF,
+		pb.ActivityType_ACTIVITY_TYPE_TENNIS, pb.ActivityType_ACTIVITY_TYPE_SQUASH,
+		pb.ActivityType_ACTIVITY_TYPE_RACQUETBALL, pb.ActivityType_ACTIVITY_TYPE_BADMINTON,
+		pb.ActivityType_ACTIVITY_TYPE_TABLE_TENNIS, pb.ActivityType_ACTIVITY_TYPE_PICKLEBALL:
 		return typedef.SportGeneric, typedef.SubSportGeneric
 
 	// Other
-	case "RockClimbing", "Skateboard", "Wheelchair":
+	case pb.ActivityType_ACTIVITY_TYPE_ROCK_CLIMBING, pb.ActivityType_ACTIVITY_TYPE_SKATEBOARD,
+		pb.ActivityType_ACTIVITY_TYPE_WHEELCHAIR, pb.ActivityType_ACTIVITY_TYPE_INLINE_SKATE:
 		return typedef.SportGeneric, typedef.SubSportGeneric
 
 	default:

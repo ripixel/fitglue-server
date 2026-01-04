@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ripixel/fitglue-server/src/go/pkg/domain/activity"
 	"github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
@@ -31,19 +32,20 @@ func (p *ConditionMatcherProvider) ProviderType() pb.EnricherProviderType {
 	return pb.EnricherProviderType_ENRICHER_PROVIDER_CONDITION_MATCHER
 }
 
-func (p *ConditionMatcherProvider) Enrich(ctx context.Context, activity *pb.StandardizedActivity, user *pb.UserRecord, inputs map[string]string, doNotRetry bool) (*enricher_providers.EnrichmentResult, error) {
+func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.StandardizedActivity, user *pb.UserRecord, inputs map[string]string, doNotRetry bool) (*enricher_providers.EnrichmentResult, error) {
 	// 1. Check Conditions (AND logic for all provided inputs)
 
 	// A. Activity Type
 	if val, ok := inputs["activity_type"]; ok && val != "" {
-		// Case-insensitive check
-		if !strings.EqualFold(activity.Type, val) {
+		// Parse input string to ActivityType enum (accepts "RUNNING", "Run", etc.)
+		expectedType := activity.ParseActivityTypeFromString(val)
+		if expectedType != pb.ActivityType_ACTIVITY_TYPE_UNSPECIFIED && act.Type != expectedType {
 			return nil, nil
 		}
 	}
 
 	// B. Days of Week (e.g. "Mon,Tue")
-	startTime := activity.StartTime.AsTime()
+	startTime := act.StartTime.AsTime()
 	if val, ok := inputs["days"]; ok && val != "" {
 		currentDay := startTime.Weekday().String()[:3] // "Mon"
 		match := false
@@ -70,7 +72,7 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, activity *pb.Stan
 	// Let's stick to the Parkrun logic: Estimate offset from Longitude.
 
 	localTime := startTime
-	lat, long, hasLoc := getStartLocation(activity)
+	lat, long, hasLoc := getStartLocation(act)
 
 	if hasLoc {
 		offset := long / 15.0

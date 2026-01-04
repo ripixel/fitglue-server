@@ -11,7 +11,8 @@ import {
     EnricherProviderType,
     db,
     createFitbitClient,
-    ExecutionStatus
+    ExecutionStatus,
+    ActivityType
 } from '@fitglue/shared';
 
 import * as admin from 'firebase-admin';
@@ -456,6 +457,25 @@ const getAvailableEnricherChoices = (selectedProviderTypes: EnricherProviderType
     ];
 
     return allChoices.filter(choice => !selectedProviderTypes.includes(choice.value));
+};
+
+// Helper to format ActivityType enum string to human-readable format
+const formatActivityType = (type: string | number | undefined): string => {
+    if (type === undefined || type === null) return 'N/A';
+
+    // If number, try to resolve to enum string key
+    if (typeof type === 'number') {
+        const resolved = ActivityType[type];
+        if (resolved) {
+            type = resolved;
+        }
+    }
+
+    const typeStr = String(type);
+    if (typeStr.startsWith('ACTIVITY_TYPE_')) {
+        return typeStr.replace('ACTIVITY_TYPE_', '').split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+    return typeStr;
 };
 
 // Helper to format user output
@@ -1123,6 +1143,15 @@ function printExecutionDetails(executionId: string, data: any) {
         console.log('\n[INPUTS]');
         try {
             const parsed = JSON.parse(data.inputsJson);
+
+            // Format Activity Type in Inputs
+            if (parsed.activity_type) {
+                parsed.activity_type = formatActivityType(parsed.activity_type);
+            }
+            if (parsed.result?.activity_type) {
+                parsed.result.activity_type = formatActivityType(parsed.result.activity_type);
+            }
+
             console.dir(parsed, { depth: null, colors: true });
         } catch {
             console.log(data.inputsJson);
@@ -1135,6 +1164,15 @@ function printExecutionDetails(executionId: string, data: any) {
         console.log('\n[OUTPUTS]');
         try {
             const parsed = JSON.parse(data.outputsJson);
+
+            // Format Activity Type in Outputs
+            if (parsed.activity_type) {
+                parsed.activity_type = formatActivityType(parsed.activity_type);
+            }
+            if (parsed.result?.activity_type) {
+                parsed.result.activity_type = formatActivityType(parsed.result.activity_type);
+            }
+
             console.dir(parsed, { depth: null, colors: true });
         } catch {
             console.log(data.outputsJson);
@@ -1710,6 +1748,16 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
         const rules = [];
         let addRule = true;
         console.log('\n--- Configure Type Mapper Rules ---');
+
+        // Build choice list from ActivityType enum, filtering out non-strings or internal keys
+        const activityTypeChoices = Object.keys(ActivityType)
+            .filter(k => isNaN(Number(k))) // Filter out reverse mapping (numbers)
+            .map(k => ({
+                name: formatActivityType(k), // Use our helper for nice names
+                value: ActivityType[k as keyof typeof ActivityType] // Enum value (number) or string if needed
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
         while (addRule) {
             const ruleAnswers = await inquirer.prompt([
                 {
@@ -1722,17 +1770,7 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
                     type: 'list',
                     name: 'targetType',
                     message: 'Target Activity Type:',
-                    choices: [
-                        'AlpineSki', 'BackcountrySki', 'Badminton', 'Canoeing', 'Crossfit', 'EBikeRide',
-                        'Elliptical', 'EMountainBikeRide', 'Golf', 'GravelRide', 'Handcycle',
-                        'HighIntensityIntervalTraining', 'Hike', 'IceSkate', 'InlineSkate', 'Kayaking',
-                        'Kitesurf', 'MountainBikeRide', 'NordicSki', 'Pickleball', 'Pilates', 'Racquetball',
-                        'Ride', 'RockClimbing', 'RollerSki', 'Rowing', 'Run', 'Sail', 'Skateboard',
-                        'Snowboard', 'Snowshoe', 'Soccer', 'Squash', 'StairStepper', 'StandUpPaddling',
-                        'Surfing', 'Swim', 'TableTennis', 'Tennis', 'TrailRun', 'Velomobile', 'VirtualRide',
-                        'VirtualRow', 'VirtualRun', 'Walk', 'WeightTraining', 'Wheelchair', 'Windsurf',
-                        'Workout', 'Yoga'
-                    ]
+                    choices: activityTypeChoices
                 },
                 {
                     type: 'confirm',
@@ -1744,54 +1782,59 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
 
             rules.push({
                 substring: ruleAnswers.substring,
-                target_type: ruleAnswers.targetType
+                // We need to store the *string* representation (e.g. "ACTIVITY_TYPE_RUN")
+                // because type_mapper.go expects that or friendly name.
+                // ActivityType[number] returns the string key.
+                target_type: typeof ruleAnswers.targetType === 'number' ? ActivityType[ruleAnswers.targetType] : ruleAnswers.targetType
             });
-
             addRule = ruleAnswers.addAnother;
         }
-        inputs = { rules: JSON.stringify(rules) };
-    } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_PARKRUN) {
-        const parkrunConfig = await inquirer.prompt([
-            {
-                type: 'confirm',
-                name: 'enableTitling',
-                message: 'Enable Activity Titling (e.g. "Bushy Park Parkrun")?',
-                default: true
-            },
-            {
-                type: 'input',
-                name: 'tags',
-                message: 'Tags to add (comma-separated):',
-                default: 'Race'
-            }
-        ]);
         inputs = {
-            enable_titling: parkrunConfig.enableTitling.toString(),
-            tags: parkrunConfig.tags
+            rules: JSON.stringify(rules)
         };
     } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER) {
-        const conditionConfig = await inquirer.prompt([
+        // Reuse choice list logic
+        const activityTypeChoices = Object.keys(ActivityType)
+            .filter(k => isNaN(Number(k)))
+            .map(k => ({
+                name: formatActivityType(k),
+                value: ActivityType[k as keyof typeof ActivityType]
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        const cmConfig = await inquirer.prompt([
             {
-                type: 'input',
+                type: 'list',
                 name: 'activityType',
-                message: 'Activity Type (optional, e.g. "Run"):',
+                message: 'Activity Type Condition:',
+                choices: [{ name: '(Any)', value: '' }, ...activityTypeChoices],
+                default: ''
             },
             {
-                type: 'input',
+                type: 'checkbox',
                 name: 'days',
-                message: 'Days (optional, comma-separated e.g. "Mon,Sat"):',
+                message: 'Days of Week:',
+                choices: [
+                    { name: 'Monday', value: '1' },
+                    { name: 'Tuesday', value: '2' },
+                    { name: 'Wednesday', value: '3' },
+                    { name: 'Thursday', value: '4' },
+                    { name: 'Friday', value: '5' },
+                    { name: 'Saturday', value: '6' },
+                    { name: 'Sunday', value: '0' }
+                ]
             },
             {
                 type: 'input',
-                name: 'timeStart',
-                message: 'Start Time (optional, HH:MM):',
-                validate: (input) => !input || /^\d{2}:\d{2}$/.test(input) || 'Invalid format'
+                name: 'startTime',
+                message: 'Start Time (HH:MM):',
+                validate: (val) => !val || /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(val) || 'Invalid time format'
             },
             {
                 type: 'input',
-                name: 'timeEnd',
-                message: 'End Time (optional, HH:MM):',
-                validate: (input) => !input || /^\d{2}:\d{2}$/.test(input) || 'Invalid format'
+                name: 'endTime',
+                message: 'End Time (HH:MM):',
+                validate: (val) => !val || /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(val) || 'Invalid time format'
             },
             {
                 type: 'input',
@@ -1817,20 +1860,39 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
             }
         ]);
 
-        inputs = {
-            activity_type: conditionConfig.activityType,
-            days: conditionConfig.days,
-            time_start: conditionConfig.timeStart,
-            time_end: conditionConfig.timeEnd,
-            title_template: conditionConfig.titleTemplate,
-            description_template: conditionConfig.descTemplate
-        };
-        if (conditionConfig.locationCoords) {
-            const parts = conditionConfig.locationCoords.split(',');
+        inputs = {};
+        if (cmConfig.activityType) inputs.activity_type = typeof cmConfig.activityType === 'number' ? ActivityType[cmConfig.activityType] : cmConfig.activityType;
+        if (cmConfig.days.length > 0) inputs.days_of_week = cmConfig.days.join(',');
+        if (cmConfig.startTime) inputs.start_time = cmConfig.startTime;
+        if (cmConfig.endTime) inputs.end_time = cmConfig.endTime;
+        if (cmConfig.locationCoords) {
+            const parts = cmConfig.locationCoords.split(',');
             inputs.location_lat = parts[0].trim();
-            inputs.location_long = parts[1].trim();
-            inputs.radius_m = conditionConfig.radius || '200';
+            inputs.location_lng = parts[1].trim();
+            inputs.location_radius = cmConfig.radius || '200';
         }
+        if (cmConfig.titleTemplate) inputs.title_template = cmConfig.titleTemplate;
+        if (cmConfig.descTemplate) inputs.description_template = cmConfig.descTemplate;
+    } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_PARKRUN) {
+        const parkrunConfig = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'enableTitling',
+                message: 'Enable Activity Titling (e.g. "Bushy Park Parkrun")?',
+                default: true
+            },
+            {
+                type: 'input',
+                name: 'tags',
+                message: 'Tags to add (comma-separated):',
+                default: 'Race'
+            }
+        ]);
+        inputs = {
+            enable_titling: parkrunConfig.enableTitling.toString(),
+            tags: parkrunConfig.tags
+        };
+
     } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT) {
         const incrementConfig = await inquirer.prompt([
             {

@@ -7,6 +7,7 @@
 package pb
 
 import (
+	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	timestamp "github.com/golang/protobuf/ptypes/timestamp"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -21,6 +22,202 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+// ActivityType enum based on Strava's accepted activity types.
+// Use the strava_name extension to get the exact Strava API string.
+// Stored as string in Firestore for readability.
+type ActivityType int32
+
+const (
+	ActivityType_ACTIVITY_TYPE_UNSPECIFIED                      ActivityType = 0
+	ActivityType_ACTIVITY_TYPE_ALPINE_SKI                       ActivityType = 1
+	ActivityType_ACTIVITY_TYPE_BACKCOUNTRY_SKI                  ActivityType = 2
+	ActivityType_ACTIVITY_TYPE_BADMINTON                        ActivityType = 3
+	ActivityType_ACTIVITY_TYPE_CANOEING                         ActivityType = 4
+	ActivityType_ACTIVITY_TYPE_CROSSFIT                         ActivityType = 5
+	ActivityType_ACTIVITY_TYPE_EBIKE_RIDE                       ActivityType = 6
+	ActivityType_ACTIVITY_TYPE_ELLIPTICAL                       ActivityType = 7
+	ActivityType_ACTIVITY_TYPE_EMOUNTAIN_BIKE_RIDE              ActivityType = 8
+	ActivityType_ACTIVITY_TYPE_GOLF                             ActivityType = 9
+	ActivityType_ACTIVITY_TYPE_GRAVEL_RIDE                      ActivityType = 10
+	ActivityType_ACTIVITY_TYPE_HANDCYCLE                        ActivityType = 11
+	ActivityType_ACTIVITY_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING ActivityType = 12
+	ActivityType_ACTIVITY_TYPE_HIKE                             ActivityType = 13
+	ActivityType_ACTIVITY_TYPE_ICE_SKATE                        ActivityType = 14
+	ActivityType_ACTIVITY_TYPE_INLINE_SKATE                     ActivityType = 15
+	ActivityType_ACTIVITY_TYPE_KAYAKING                         ActivityType = 16
+	ActivityType_ACTIVITY_TYPE_KITESURF                         ActivityType = 17
+	ActivityType_ACTIVITY_TYPE_MOUNTAIN_BIKE_RIDE               ActivityType = 18
+	ActivityType_ACTIVITY_TYPE_NORDIC_SKI                       ActivityType = 19
+	ActivityType_ACTIVITY_TYPE_PICKLEBALL                       ActivityType = 20
+	ActivityType_ACTIVITY_TYPE_PILATES                          ActivityType = 21
+	ActivityType_ACTIVITY_TYPE_RACQUETBALL                      ActivityType = 22
+	ActivityType_ACTIVITY_TYPE_RIDE                             ActivityType = 23
+	ActivityType_ACTIVITY_TYPE_ROCK_CLIMBING                    ActivityType = 24
+	ActivityType_ACTIVITY_TYPE_ROLLER_SKI                       ActivityType = 25
+	ActivityType_ACTIVITY_TYPE_ROWING                           ActivityType = 26
+	ActivityType_ACTIVITY_TYPE_RUN                              ActivityType = 27
+	ActivityType_ACTIVITY_TYPE_SAIL                             ActivityType = 28
+	ActivityType_ACTIVITY_TYPE_SKATEBOARD                       ActivityType = 29
+	ActivityType_ACTIVITY_TYPE_SNOWBOARD                        ActivityType = 30
+	ActivityType_ACTIVITY_TYPE_SNOWSHOE                         ActivityType = 31
+	ActivityType_ACTIVITY_TYPE_SOCCER                           ActivityType = 32
+	ActivityType_ACTIVITY_TYPE_SQUASH                           ActivityType = 33
+	ActivityType_ACTIVITY_TYPE_STAIR_STEPPER                    ActivityType = 34
+	ActivityType_ACTIVITY_TYPE_STAND_UP_PADDLING                ActivityType = 35
+	ActivityType_ACTIVITY_TYPE_SURFING                          ActivityType = 36
+	ActivityType_ACTIVITY_TYPE_SWIM                             ActivityType = 37
+	ActivityType_ACTIVITY_TYPE_TABLE_TENNIS                     ActivityType = 38
+	ActivityType_ACTIVITY_TYPE_TENNIS                           ActivityType = 39
+	ActivityType_ACTIVITY_TYPE_TRAIL_RUN                        ActivityType = 40
+	ActivityType_ACTIVITY_TYPE_VELOMOBILE                       ActivityType = 41
+	ActivityType_ACTIVITY_TYPE_VIRTUAL_RIDE                     ActivityType = 42
+	ActivityType_ACTIVITY_TYPE_VIRTUAL_ROW                      ActivityType = 43
+	ActivityType_ACTIVITY_TYPE_VIRTUAL_RUN                      ActivityType = 44
+	ActivityType_ACTIVITY_TYPE_WALK                             ActivityType = 45
+	ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING                  ActivityType = 46
+	ActivityType_ACTIVITY_TYPE_WHEELCHAIR                       ActivityType = 47
+	ActivityType_ACTIVITY_TYPE_WINDSURF                         ActivityType = 48
+	ActivityType_ACTIVITY_TYPE_WORKOUT                          ActivityType = 49
+	ActivityType_ACTIVITY_TYPE_YOGA                             ActivityType = 50
+)
+
+// Enum value maps for ActivityType.
+var (
+	ActivityType_name = map[int32]string{
+		0:  "ACTIVITY_TYPE_UNSPECIFIED",
+		1:  "ACTIVITY_TYPE_ALPINE_SKI",
+		2:  "ACTIVITY_TYPE_BACKCOUNTRY_SKI",
+		3:  "ACTIVITY_TYPE_BADMINTON",
+		4:  "ACTIVITY_TYPE_CANOEING",
+		5:  "ACTIVITY_TYPE_CROSSFIT",
+		6:  "ACTIVITY_TYPE_EBIKE_RIDE",
+		7:  "ACTIVITY_TYPE_ELLIPTICAL",
+		8:  "ACTIVITY_TYPE_EMOUNTAIN_BIKE_RIDE",
+		9:  "ACTIVITY_TYPE_GOLF",
+		10: "ACTIVITY_TYPE_GRAVEL_RIDE",
+		11: "ACTIVITY_TYPE_HANDCYCLE",
+		12: "ACTIVITY_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING",
+		13: "ACTIVITY_TYPE_HIKE",
+		14: "ACTIVITY_TYPE_ICE_SKATE",
+		15: "ACTIVITY_TYPE_INLINE_SKATE",
+		16: "ACTIVITY_TYPE_KAYAKING",
+		17: "ACTIVITY_TYPE_KITESURF",
+		18: "ACTIVITY_TYPE_MOUNTAIN_BIKE_RIDE",
+		19: "ACTIVITY_TYPE_NORDIC_SKI",
+		20: "ACTIVITY_TYPE_PICKLEBALL",
+		21: "ACTIVITY_TYPE_PILATES",
+		22: "ACTIVITY_TYPE_RACQUETBALL",
+		23: "ACTIVITY_TYPE_RIDE",
+		24: "ACTIVITY_TYPE_ROCK_CLIMBING",
+		25: "ACTIVITY_TYPE_ROLLER_SKI",
+		26: "ACTIVITY_TYPE_ROWING",
+		27: "ACTIVITY_TYPE_RUN",
+		28: "ACTIVITY_TYPE_SAIL",
+		29: "ACTIVITY_TYPE_SKATEBOARD",
+		30: "ACTIVITY_TYPE_SNOWBOARD",
+		31: "ACTIVITY_TYPE_SNOWSHOE",
+		32: "ACTIVITY_TYPE_SOCCER",
+		33: "ACTIVITY_TYPE_SQUASH",
+		34: "ACTIVITY_TYPE_STAIR_STEPPER",
+		35: "ACTIVITY_TYPE_STAND_UP_PADDLING",
+		36: "ACTIVITY_TYPE_SURFING",
+		37: "ACTIVITY_TYPE_SWIM",
+		38: "ACTIVITY_TYPE_TABLE_TENNIS",
+		39: "ACTIVITY_TYPE_TENNIS",
+		40: "ACTIVITY_TYPE_TRAIL_RUN",
+		41: "ACTIVITY_TYPE_VELOMOBILE",
+		42: "ACTIVITY_TYPE_VIRTUAL_RIDE",
+		43: "ACTIVITY_TYPE_VIRTUAL_ROW",
+		44: "ACTIVITY_TYPE_VIRTUAL_RUN",
+		45: "ACTIVITY_TYPE_WALK",
+		46: "ACTIVITY_TYPE_WEIGHT_TRAINING",
+		47: "ACTIVITY_TYPE_WHEELCHAIR",
+		48: "ACTIVITY_TYPE_WINDSURF",
+		49: "ACTIVITY_TYPE_WORKOUT",
+		50: "ACTIVITY_TYPE_YOGA",
+	}
+	ActivityType_value = map[string]int32{
+		"ACTIVITY_TYPE_UNSPECIFIED":                      0,
+		"ACTIVITY_TYPE_ALPINE_SKI":                       1,
+		"ACTIVITY_TYPE_BACKCOUNTRY_SKI":                  2,
+		"ACTIVITY_TYPE_BADMINTON":                        3,
+		"ACTIVITY_TYPE_CANOEING":                         4,
+		"ACTIVITY_TYPE_CROSSFIT":                         5,
+		"ACTIVITY_TYPE_EBIKE_RIDE":                       6,
+		"ACTIVITY_TYPE_ELLIPTICAL":                       7,
+		"ACTIVITY_TYPE_EMOUNTAIN_BIKE_RIDE":              8,
+		"ACTIVITY_TYPE_GOLF":                             9,
+		"ACTIVITY_TYPE_GRAVEL_RIDE":                      10,
+		"ACTIVITY_TYPE_HANDCYCLE":                        11,
+		"ACTIVITY_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING": 12,
+		"ACTIVITY_TYPE_HIKE":                             13,
+		"ACTIVITY_TYPE_ICE_SKATE":                        14,
+		"ACTIVITY_TYPE_INLINE_SKATE":                     15,
+		"ACTIVITY_TYPE_KAYAKING":                         16,
+		"ACTIVITY_TYPE_KITESURF":                         17,
+		"ACTIVITY_TYPE_MOUNTAIN_BIKE_RIDE":               18,
+		"ACTIVITY_TYPE_NORDIC_SKI":                       19,
+		"ACTIVITY_TYPE_PICKLEBALL":                       20,
+		"ACTIVITY_TYPE_PILATES":                          21,
+		"ACTIVITY_TYPE_RACQUETBALL":                      22,
+		"ACTIVITY_TYPE_RIDE":                             23,
+		"ACTIVITY_TYPE_ROCK_CLIMBING":                    24,
+		"ACTIVITY_TYPE_ROLLER_SKI":                       25,
+		"ACTIVITY_TYPE_ROWING":                           26,
+		"ACTIVITY_TYPE_RUN":                              27,
+		"ACTIVITY_TYPE_SAIL":                             28,
+		"ACTIVITY_TYPE_SKATEBOARD":                       29,
+		"ACTIVITY_TYPE_SNOWBOARD":                        30,
+		"ACTIVITY_TYPE_SNOWSHOE":                         31,
+		"ACTIVITY_TYPE_SOCCER":                           32,
+		"ACTIVITY_TYPE_SQUASH":                           33,
+		"ACTIVITY_TYPE_STAIR_STEPPER":                    34,
+		"ACTIVITY_TYPE_STAND_UP_PADDLING":                35,
+		"ACTIVITY_TYPE_SURFING":                          36,
+		"ACTIVITY_TYPE_SWIM":                             37,
+		"ACTIVITY_TYPE_TABLE_TENNIS":                     38,
+		"ACTIVITY_TYPE_TENNIS":                           39,
+		"ACTIVITY_TYPE_TRAIL_RUN":                        40,
+		"ACTIVITY_TYPE_VELOMOBILE":                       41,
+		"ACTIVITY_TYPE_VIRTUAL_RIDE":                     42,
+		"ACTIVITY_TYPE_VIRTUAL_ROW":                      43,
+		"ACTIVITY_TYPE_VIRTUAL_RUN":                      44,
+		"ACTIVITY_TYPE_WALK":                             45,
+		"ACTIVITY_TYPE_WEIGHT_TRAINING":                  46,
+		"ACTIVITY_TYPE_WHEELCHAIR":                       47,
+		"ACTIVITY_TYPE_WINDSURF":                         48,
+		"ACTIVITY_TYPE_WORKOUT":                          49,
+		"ACTIVITY_TYPE_YOGA":                             50,
+	}
+)
+
+func (x ActivityType) Enum() *ActivityType {
+	p := new(ActivityType)
+	*p = x
+	return p
+}
+
+func (x ActivityType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ActivityType) Descriptor() protoreflect.EnumDescriptor {
+	return file_standardized_activity_proto_enumTypes[0].Descriptor()
+}
+
+func (ActivityType) Type() protoreflect.EnumType {
+	return &file_standardized_activity_proto_enumTypes[0]
+}
+
+func (x ActivityType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ActivityType.Descriptor instead.
+func (ActivityType) EnumDescriptor() ([]byte, []int) {
+	return file_standardized_activity_proto_rawDescGZIP(), []int{0}
+}
 
 type MuscleGroup int32
 
@@ -109,11 +306,11 @@ func (x MuscleGroup) String() string {
 }
 
 func (MuscleGroup) Descriptor() protoreflect.EnumDescriptor {
-	return file_standardized_activity_proto_enumTypes[0].Descriptor()
+	return file_standardized_activity_proto_enumTypes[1].Descriptor()
 }
 
 func (MuscleGroup) Type() protoreflect.EnumType {
-	return &file_standardized_activity_proto_enumTypes[0]
+	return &file_standardized_activity_proto_enumTypes[1]
 }
 
 func (x MuscleGroup) Number() protoreflect.EnumNumber {
@@ -122,7 +319,7 @@ func (x MuscleGroup) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use MuscleGroup.Descriptor instead.
 func (MuscleGroup) EnumDescriptor() ([]byte, []int) {
-	return file_standardized_activity_proto_rawDescGZIP(), []int{0}
+	return file_standardized_activity_proto_rawDescGZIP(), []int{1}
 }
 
 // StandardizedActivity represents a normalized fitness activity.
@@ -138,8 +335,8 @@ type StandardizedActivity struct {
 	UserId     string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	// High-level summary
 	StartTime *timestamp.Timestamp `protobuf:"bytes,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	Name      string               `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"` // e.g. "Morning Run"
-	Type      string               `protobuf:"bytes,6,opt,name=type,proto3" json:"type,omitempty"` // e.g. "RUNNING", "CYCLING", "WEIGHT_TRAINING"
+	Name      string               `protobuf:"bytes,5,opt,name=name,proto3" json:"name,omitempty"`                            // e.g. "Morning Run"
+	Type      ActivityType         `protobuf:"varint,6,opt,name=type,proto3,enum=fitglue.ActivityType" json:"type,omitempty"` // Strava-compatible activity type
 	// Hierarchy
 	Sessions []*Session `protobuf:"bytes,7,rep,name=sessions,proto3" json:"sessions,omitempty"`
 	// Rich metadata (preserved from source)
@@ -215,11 +412,11 @@ func (x *StandardizedActivity) GetName() string {
 	return ""
 }
 
-func (x *StandardizedActivity) GetType() string {
+func (x *StandardizedActivity) GetType() ActivityType {
 	if x != nil {
 		return x.Type
 	}
-	return ""
+	return ActivityType_ACTIVITY_TYPE_UNSPECIFIED
 }
 
 func (x *StandardizedActivity) GetSessions() []*Session {
@@ -628,11 +825,28 @@ func (x *StrengthSet) GetSetType() string {
 	return ""
 }
 
+var file_standardized_activity_proto_extTypes = []protoimpl.ExtensionInfo{
+	{
+		ExtendedType:  (*descriptor.EnumValueOptions)(nil),
+		ExtensionType: (*string)(nil),
+		Field:         50010,
+		Name:          "fitglue.strava_name",
+		Tag:           "bytes,50010,opt,name=strava_name",
+		Filename:      "standardized_activity.proto",
+	},
+}
+
+// Extension fields to descriptor.EnumValueOptions.
+var (
+	// optional string strava_name = 50010;
+	E_StravaName = &file_standardized_activity_proto_extTypes[0]
+)
+
 var File_standardized_activity_proto protoreflect.FileDescriptor
 
 const file_standardized_activity_proto_rawDesc = "" +
 	"\n" +
-	"\x1bstandardized_activity.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc5\x02\n" +
+	"\x1bstandardized_activity.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\x1a google/protobuf/descriptor.proto\"\xdc\x02\n" +
 	"\x14StandardizedActivity\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\tR\x06source\x12\x1f\n" +
 	"\vexternal_id\x18\x02 \x01(\tR\n" +
@@ -640,8 +854,8 @@ const file_standardized_activity_proto_rawDesc = "" +
 	"\auser_id\x18\x03 \x01(\tR\x06userId\x129\n" +
 	"\n" +
 	"start_time\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x12\x12\n" +
-	"\x04name\x18\x05 \x01(\tR\x04name\x12\x12\n" +
-	"\x04type\x18\x06 \x01(\tR\x04type\x12,\n" +
+	"\x04name\x18\x05 \x01(\tR\x04name\x12)\n" +
+	"\x04type\x18\x06 \x01(\x0e2\x15.fitglue.ActivityTypeR\x04type\x12,\n" +
 	"\bsessions\x18\a \x03(\v2\x10.fitglue.SessionR\bsessions\x12 \n" +
 	"\vdescription\x18\b \x01(\tR\vdescription\x12\x12\n" +
 	"\x04tags\x18\t \x03(\tR\x04tags\x12\x14\n" +
@@ -684,7 +898,72 @@ const file_standardized_activity_proto_rawDesc = "" +
 	"\x17secondary_muscle_groups\x18\t \x03(\x0e2\x14.fitglue.MuscleGroupR\x15secondaryMuscleGroups\x12'\n" +
 	"\x0fdistance_meters\x18\n" +
 	" \x01(\x01R\x0edistanceMeters\x12\x19\n" +
-	"\bset_type\x18\v \x01(\tR\asetType*\xbb\x04\n" +
+	"\bset_type\x18\v \x01(\tR\asetType*\xea\x11\n" +
+	"\fActivityType\x12\x1d\n" +
+	"\x19ACTIVITY_TYPE_UNSPECIFIED\x10\x00\x12+\n" +
+	"\x18ACTIVITY_TYPE_ALPINE_SKI\x10\x01\x1a\rҵ\x18\tAlpineSki\x125\n" +
+	"\x1dACTIVITY_TYPE_BACKCOUNTRY_SKI\x10\x02\x1a\x12ҵ\x18\x0eBackcountrySki\x12*\n" +
+	"\x17ACTIVITY_TYPE_BADMINTON\x10\x03\x1a\rҵ\x18\tBadminton\x12(\n" +
+	"\x16ACTIVITY_TYPE_CANOEING\x10\x04\x1a\fҵ\x18\bCanoeing\x12(\n" +
+	"\x16ACTIVITY_TYPE_CROSSFIT\x10\x05\x1a\fҵ\x18\bCrossfit\x12+\n" +
+	"\x18ACTIVITY_TYPE_EBIKE_RIDE\x10\x06\x1a\rҵ\x18\tEBikeRide\x12,\n" +
+	"\x18ACTIVITY_TYPE_ELLIPTICAL\x10\a\x1a\x0eҵ\x18\n" +
+	"Elliptical\x12<\n" +
+	"!ACTIVITY_TYPE_EMOUNTAIN_BIKE_RIDE\x10\b\x1a\x15ҵ\x18\x11EMountainBikeRide\x12 \n" +
+	"\x12ACTIVITY_TYPE_GOLF\x10\t\x1a\bҵ\x18\x04Golf\x12-\n" +
+	"\x19ACTIVITY_TYPE_GRAVEL_RIDE\x10\n" +
+	"\x1a\x0eҵ\x18\n" +
+	"GravelRide\x12*\n" +
+	"\x17ACTIVITY_TYPE_HANDCYCLE\x10\v\x1a\rҵ\x18\tHandcycle\x12U\n" +
+	".ACTIVITY_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING\x10\f\x1a!ҵ\x18\x1dHighIntensityIntervalTraining\x12 \n" +
+	"\x12ACTIVITY_TYPE_HIKE\x10\r\x1a\bҵ\x18\x04Hike\x12)\n" +
+	"\x17ACTIVITY_TYPE_ICE_SKATE\x10\x0e\x1a\fҵ\x18\bIceSkate\x12/\n" +
+	"\x1aACTIVITY_TYPE_INLINE_SKATE\x10\x0f\x1a\x0fҵ\x18\vInlineSkate\x12(\n" +
+	"\x16ACTIVITY_TYPE_KAYAKING\x10\x10\x1a\fҵ\x18\bKayaking\x12(\n" +
+	"\x16ACTIVITY_TYPE_KITESURF\x10\x11\x1a\fҵ\x18\bKitesurf\x12:\n" +
+	" ACTIVITY_TYPE_MOUNTAIN_BIKE_RIDE\x10\x12\x1a\x14ҵ\x18\x10MountainBikeRide\x12+\n" +
+	"\x18ACTIVITY_TYPE_NORDIC_SKI\x10\x13\x1a\rҵ\x18\tNordicSki\x12,\n" +
+	"\x18ACTIVITY_TYPE_PICKLEBALL\x10\x14\x1a\x0eҵ\x18\n" +
+	"Pickleball\x12&\n" +
+	"\x15ACTIVITY_TYPE_PILATES\x10\x15\x1a\vҵ\x18\aPilates\x12.\n" +
+	"\x19ACTIVITY_TYPE_RACQUETBALL\x10\x16\x1a\x0fҵ\x18\vRacquetball\x12 \n" +
+	"\x12ACTIVITY_TYPE_RIDE\x10\x17\x1a\bҵ\x18\x04Ride\x121\n" +
+	"\x1bACTIVITY_TYPE_ROCK_CLIMBING\x10\x18\x1a\x10ҵ\x18\fRockClimbing\x12+\n" +
+	"\x18ACTIVITY_TYPE_ROLLER_SKI\x10\x19\x1a\rҵ\x18\tRollerSki\x12$\n" +
+	"\x14ACTIVITY_TYPE_ROWING\x10\x1a\x1a\n" +
+	"ҵ\x18\x06Rowing\x12\x1e\n" +
+	"\x11ACTIVITY_TYPE_RUN\x10\x1b\x1a\aҵ\x18\x03Run\x12 \n" +
+	"\x12ACTIVITY_TYPE_SAIL\x10\x1c\x1a\bҵ\x18\x04Sail\x12,\n" +
+	"\x18ACTIVITY_TYPE_SKATEBOARD\x10\x1d\x1a\x0eҵ\x18\n" +
+	"Skateboard\x12*\n" +
+	"\x17ACTIVITY_TYPE_SNOWBOARD\x10\x1e\x1a\rҵ\x18\tSnowboard\x12(\n" +
+	"\x16ACTIVITY_TYPE_SNOWSHOE\x10\x1f\x1a\fҵ\x18\bSnowshoe\x12$\n" +
+	"\x14ACTIVITY_TYPE_SOCCER\x10 \x1a\n" +
+	"ҵ\x18\x06Soccer\x12$\n" +
+	"\x14ACTIVITY_TYPE_SQUASH\x10!\x1a\n" +
+	"ҵ\x18\x06Squash\x121\n" +
+	"\x1bACTIVITY_TYPE_STAIR_STEPPER\x10\"\x1a\x10ҵ\x18\fStairStepper\x128\n" +
+	"\x1fACTIVITY_TYPE_STAND_UP_PADDLING\x10#\x1a\x13ҵ\x18\x0fStandUpPaddling\x12&\n" +
+	"\x15ACTIVITY_TYPE_SURFING\x10$\x1a\vҵ\x18\aSurfing\x12 \n" +
+	"\x12ACTIVITY_TYPE_SWIM\x10%\x1a\bҵ\x18\x04Swim\x12/\n" +
+	"\x1aACTIVITY_TYPE_TABLE_TENNIS\x10&\x1a\x0fҵ\x18\vTableTennis\x12$\n" +
+	"\x14ACTIVITY_TYPE_TENNIS\x10'\x1a\n" +
+	"ҵ\x18\x06Tennis\x12)\n" +
+	"\x17ACTIVITY_TYPE_TRAIL_RUN\x10(\x1a\fҵ\x18\bTrailRun\x12,\n" +
+	"\x18ACTIVITY_TYPE_VELOMOBILE\x10)\x1a\x0eҵ\x18\n" +
+	"Velomobile\x12/\n" +
+	"\x1aACTIVITY_TYPE_VIRTUAL_RIDE\x10*\x1a\x0fҵ\x18\vVirtualRide\x12-\n" +
+	"\x19ACTIVITY_TYPE_VIRTUAL_ROW\x10+\x1a\x0eҵ\x18\n" +
+	"VirtualRow\x12-\n" +
+	"\x19ACTIVITY_TYPE_VIRTUAL_RUN\x10,\x1a\x0eҵ\x18\n" +
+	"VirtualRun\x12 \n" +
+	"\x12ACTIVITY_TYPE_WALK\x10-\x1a\bҵ\x18\x04Walk\x125\n" +
+	"\x1dACTIVITY_TYPE_WEIGHT_TRAINING\x10.\x1a\x12ҵ\x18\x0eWeightTraining\x12,\n" +
+	"\x18ACTIVITY_TYPE_WHEELCHAIR\x10/\x1a\x0eҵ\x18\n" +
+	"Wheelchair\x12(\n" +
+	"\x16ACTIVITY_TYPE_WINDSURF\x100\x1a\fҵ\x18\bWindsurf\x12&\n" +
+	"\x15ACTIVITY_TYPE_WORKOUT\x101\x1a\vҵ\x18\aWorkout\x12 \n" +
+	"\x12ACTIVITY_TYPE_YOGA\x102\x1a\bҵ\x18\x04Yoga*\xbb\x04\n" +
 	"\vMuscleGroup\x12\x1c\n" +
 	"\x18MUSCLE_GROUP_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17MUSCLE_GROUP_ABDOMINALS\x10\x01\x12\x1a\n" +
@@ -707,7 +986,9 @@ const file_standardized_activity_proto_rawDesc = "" +
 	"\x13MUSCLE_GROUP_CARDIO\x10\x11\x12\x15\n" +
 	"\x11MUSCLE_GROUP_NECK\x10\x12\x12\x1a\n" +
 	"\x16MUSCLE_GROUP_FULL_BODY\x10\x13\x12\x16\n" +
-	"\x12MUSCLE_GROUP_OTHER\x10\x14B\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
+	"\x12MUSCLE_GROUP_OTHER\x10\x14:D\n" +
+	"\vstrava_name\x12!.google.protobuf.EnumValueOptions\x18چ\x03 \x01(\tR\n" +
+	"stravaNameB\x17Z\x15fitglue/pkg/shared/pbb\x06proto3"
 
 var (
 	file_standardized_activity_proto_rawDescOnce sync.Once
@@ -721,34 +1002,38 @@ func file_standardized_activity_proto_rawDescGZIP() []byte {
 	return file_standardized_activity_proto_rawDescData
 }
 
-var file_standardized_activity_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_standardized_activity_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_standardized_activity_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_standardized_activity_proto_goTypes = []any{
-	(MuscleGroup)(0),             // 0: fitglue.MuscleGroup
-	(*StandardizedActivity)(nil), // 1: fitglue.StandardizedActivity
-	(*Session)(nil),              // 2: fitglue.Session
-	(*Lap)(nil),                  // 3: fitglue.Lap
-	(*Record)(nil),               // 4: fitglue.Record
-	(*StrengthSet)(nil),          // 5: fitglue.StrengthSet
-	(*timestamp.Timestamp)(nil),  // 6: google.protobuf.Timestamp
+	(ActivityType)(0),                   // 0: fitglue.ActivityType
+	(MuscleGroup)(0),                    // 1: fitglue.MuscleGroup
+	(*StandardizedActivity)(nil),        // 2: fitglue.StandardizedActivity
+	(*Session)(nil),                     // 3: fitglue.Session
+	(*Lap)(nil),                         // 4: fitglue.Lap
+	(*Record)(nil),                      // 5: fitglue.Record
+	(*StrengthSet)(nil),                 // 6: fitglue.StrengthSet
+	(*timestamp.Timestamp)(nil),         // 7: google.protobuf.Timestamp
+	(*descriptor.EnumValueOptions)(nil), // 8: google.protobuf.EnumValueOptions
 }
 var file_standardized_activity_proto_depIdxs = []int32{
-	6,  // 0: fitglue.StandardizedActivity.start_time:type_name -> google.protobuf.Timestamp
-	2,  // 1: fitglue.StandardizedActivity.sessions:type_name -> fitglue.Session
-	6,  // 2: fitglue.Session.start_time:type_name -> google.protobuf.Timestamp
-	3,  // 3: fitglue.Session.laps:type_name -> fitglue.Lap
-	5,  // 4: fitglue.Session.strength_sets:type_name -> fitglue.StrengthSet
-	6,  // 5: fitglue.Lap.start_time:type_name -> google.protobuf.Timestamp
-	4,  // 6: fitglue.Lap.records:type_name -> fitglue.Record
-	6,  // 7: fitglue.Record.timestamp:type_name -> google.protobuf.Timestamp
-	6,  // 8: fitglue.StrengthSet.start_time:type_name -> google.protobuf.Timestamp
-	0,  // 9: fitglue.StrengthSet.primary_muscle_group:type_name -> fitglue.MuscleGroup
-	0,  // 10: fitglue.StrengthSet.secondary_muscle_groups:type_name -> fitglue.MuscleGroup
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	7,  // 0: fitglue.StandardizedActivity.start_time:type_name -> google.protobuf.Timestamp
+	0,  // 1: fitglue.StandardizedActivity.type:type_name -> fitglue.ActivityType
+	3,  // 2: fitglue.StandardizedActivity.sessions:type_name -> fitglue.Session
+	7,  // 3: fitglue.Session.start_time:type_name -> google.protobuf.Timestamp
+	4,  // 4: fitglue.Session.laps:type_name -> fitglue.Lap
+	6,  // 5: fitglue.Session.strength_sets:type_name -> fitglue.StrengthSet
+	7,  // 6: fitglue.Lap.start_time:type_name -> google.protobuf.Timestamp
+	5,  // 7: fitglue.Lap.records:type_name -> fitglue.Record
+	7,  // 8: fitglue.Record.timestamp:type_name -> google.protobuf.Timestamp
+	7,  // 9: fitglue.StrengthSet.start_time:type_name -> google.protobuf.Timestamp
+	1,  // 10: fitglue.StrengthSet.primary_muscle_group:type_name -> fitglue.MuscleGroup
+	1,  // 11: fitglue.StrengthSet.secondary_muscle_groups:type_name -> fitglue.MuscleGroup
+	8,  // 12: fitglue.strava_name:extendee -> google.protobuf.EnumValueOptions
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	12, // [12:13] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_standardized_activity_proto_init() }
@@ -761,15 +1046,16 @@ func file_standardized_activity_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_standardized_activity_proto_rawDesc), len(file_standardized_activity_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   5,
-			NumExtensions: 0,
+			NumExtensions: 1,
 			NumServices:   0,
 		},
 		GoTypes:           file_standardized_activity_proto_goTypes,
 		DependencyIndexes: file_standardized_activity_proto_depIdxs,
 		EnumInfos:         file_standardized_activity_proto_enumTypes,
 		MessageInfos:      file_standardized_activity_proto_msgTypes,
+		ExtensionInfos:    file_standardized_activity_proto_extTypes,
 	}.Build()
 	File_standardized_activity_proto = out.File
 	file_standardized_activity_proto_goTypes = nil

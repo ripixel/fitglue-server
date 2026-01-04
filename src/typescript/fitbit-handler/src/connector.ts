@@ -1,4 +1,4 @@
-import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, CloudEventSource, ActivitySource, createFitbitClient, mapTCXToStandardized, FrameworkContext } from '@fitglue/shared';
+import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, CloudEventSource, ActivitySource, createFitbitClient, mapTCXToStandardized, FrameworkContext, ActivityType } from '@fitglue/shared';
 
 interface FitbitNotification {
   collectionType: string;
@@ -12,6 +12,58 @@ type FitbitBody = FitbitNotification[];
 
 export interface FitbitConnectorConfig extends ConnectorConfig {
   // OAuth tokens are managed by UserService via createFitbitClient
+}
+
+/**
+ * Map Fitbit activityParentName to ActivityType enum.
+ * Fitbit has 500+ activity types, but we map common ones to Strava-compatible types.
+ */
+function mapFitbitActivityType(activityParentName: string | undefined): ActivityType {
+  const name = (activityParentName || '').toLowerCase().trim();
+
+  // Running variations
+  if (name.includes('run') || name === 'treadmill') {
+    return ActivityType.ACTIVITY_TYPE_RUN;
+  }
+  // Walking
+  if (name.includes('walk')) {
+    return ActivityType.ACTIVITY_TYPE_WALK;
+  }
+  // Cycling variations
+  if (name.includes('bike') || name.includes('cycling') || name.includes('biking')) {
+    return ActivityType.ACTIVITY_TYPE_RIDE;
+  }
+  // Swimming
+  if (name.includes('swim')) {
+    return ActivityType.ACTIVITY_TYPE_SWIM;
+  }
+  // Weight Training
+  if (name.includes('weight') || name === 'weights') {
+    return ActivityType.ACTIVITY_TYPE_WEIGHT_TRAINING;
+  }
+  // Yoga
+  if (name.includes('yoga')) {
+    return ActivityType.ACTIVITY_TYPE_YOGA;
+  }
+  // Hiking
+  if (name.includes('hike') || name.includes('hiking')) {
+    return ActivityType.ACTIVITY_TYPE_HIKE;
+  }
+  // Elliptical
+  if (name.includes('elliptical')) {
+    return ActivityType.ACTIVITY_TYPE_ELLIPTICAL;
+  }
+  // Rowing
+  if (name.includes('row')) {
+    return ActivityType.ACTIVITY_TYPE_ROWING;
+  }
+  // Crossfit
+  if (name.includes('crossfit')) {
+    return ActivityType.ACTIVITY_TYPE_CROSSFIT;
+  }
+
+  // Default fallback
+  return ActivityType.ACTIVITY_TYPE_WORKOUT;
 }
 
 export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
@@ -220,6 +272,8 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
       // Map TCX to StandardizedActivity
       try {
         const standardized = mapTCXToStandardized(tcxData as string, act, userId, 'FITBIT');
+        // Override type with Fitbit's activityParentName (TCX Sport attribute is unreliable)
+        standardized.type = mapFitbitActivityType(act.activityParentName);
         standardizedActivities.push(standardized);
       } catch (mapErr) {
         console.error(`Failed to map activity ${logIdStr}:`, mapErr);

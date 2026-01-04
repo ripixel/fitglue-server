@@ -244,7 +244,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 			Source:             payload.Source,
 			ActivityId:         uuid.NewString(),
 			ActivityData:       payload.StandardizedActivity,
-			ActivityType:       "WEIGHT_TRAINING",
+			ActivityType:       pb.ActivityType_ACTIVITY_TYPE_WORKOUT,
 			Name:               "Workout",
 			AppliedEnrichments: []string{},
 			EnrichmentMetadata: make(map[string]string),
@@ -306,7 +306,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 					finalEvent.Description += trimmed
 				}
 			}
-			if res.ActivityType != "" {
+			if res.ActivityType != pb.ActivityType_ACTIVITY_TYPE_UNSPECIFIED {
 				finalEvent.ActivityType = res.ActivityType
 			}
 			if len(res.Tags) > 0 {

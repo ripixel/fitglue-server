@@ -16,7 +16,7 @@ func TestGenerateFitFile(t *testing.T) {
 	startTime := timestamppb.New(time.Now())
 	activity := &pb.StandardizedActivity{
 		StartTime: startTime,
-		Type:      "WEIGHT_TRAINING",
+		Type:      pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
 		Sessions: []*pb.Session{
 			{
 				StartTime:        startTime,

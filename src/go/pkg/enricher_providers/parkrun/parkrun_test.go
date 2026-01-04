@@ -16,7 +16,7 @@ func TestParkrunProvider_Enrich(t *testing.T) {
 	createActivity := func(timeStr string, lat, long float64) *pb.StandardizedActivity {
 		tParsed, _ := time.Parse(time.RFC3339, timeStr)
 		return &pb.StandardizedActivity{
-			Type:      "Run",
+			Type:      pb.ActivityType_ACTIVITY_TYPE_RUN,
 			StartTime: timestamppb.New(tParsed),
 			Sessions: []*pb.Session{
 				{

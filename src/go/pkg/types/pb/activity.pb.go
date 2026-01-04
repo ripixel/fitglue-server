@@ -161,7 +161,6 @@ func (x *ActivityPayload) GetStandardizedActivity() *StandardizedActivity {
 }
 
 // EnrichedActivityEvent is the message format for topic-enriched-activity.
-// EnrichedActivityEvent is the message format for topic-enriched-activity.
 type EnrichedActivityEvent struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Identity
@@ -169,9 +168,9 @@ type EnrichedActivityEvent struct {
 	ActivityId string         `protobuf:"bytes,2,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"` // Unique ID for the processed activity
 	Source     ActivitySource `protobuf:"varint,3,opt,name=source,proto3,enum=fitglue.ActivitySource" json:"source,omitempty"`
 	// Core Metadata (Extracted for easy downstream access)
-	ActivityType string `protobuf:"bytes,4,opt,name=activity_type,json=activityType,proto3" json:"activity_type,omitempty"` // e.g. WEIGHT_TRAINING
-	Description  string `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`                       // The final description (original or generated)
-	Name         string `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`                                     // Activity Title
+	ActivityType ActivityType `protobuf:"varint,4,opt,name=activity_type,json=activityType,proto3,enum=fitglue.ActivityType" json:"activity_type,omitempty"`
+	Description  string       `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"` // The final description (original or generated)
+	Name         string       `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`               // Activity Title
 	// Full Data
 	ActivityData *StandardizedActivity `protobuf:"bytes,7,opt,name=activity_data,json=activityData,proto3" json:"activity_data,omitempty"`
 	// Generated Artifacts
@@ -238,11 +237,11 @@ func (x *EnrichedActivityEvent) GetSource() ActivitySource {
 	return ActivitySource_SOURCE_UNKNOWN
 }
 
-func (x *EnrichedActivityEvent) GetActivityType() string {
+func (x *EnrichedActivityEvent) GetActivityType() ActivityType {
 	if x != nil {
 		return x.ActivityType
 	}
-	return ""
+	return ActivityType_ACTIVITY_TYPE_UNSPECIFIED
 }
 
 func (x *EnrichedActivityEvent) GetDescription() string {
@@ -322,13 +321,13 @@ const file_activity_proto_rawDesc = "" +
 	"\x15standardized_activity\x18\x06 \x01(\v2\x1d.fitglue.StandardizedActivityR\x14standardizedActivity\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xfd\x04\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x94\x05\n" +
 	"\x15EnrichedActivityEvent\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1f\n" +
 	"\vactivity_id\x18\x02 \x01(\tR\n" +
 	"activityId\x12/\n" +
-	"\x06source\x18\x03 \x01(\x0e2\x17.fitglue.ActivitySourceR\x06source\x12#\n" +
-	"\ractivity_type\x18\x04 \x01(\tR\factivityType\x12 \n" +
+	"\x06source\x18\x03 \x01(\x0e2\x17.fitglue.ActivitySourceR\x06source\x12:\n" +
+	"\ractivity_type\x18\x04 \x01(\x0e2\x15.fitglue.ActivityTypeR\factivityType\x12 \n" +
 	"\vdescription\x18\x05 \x01(\tR\vdescription\x12\x12\n" +
 	"\x04name\x18\x06 \x01(\tR\x04name\x12B\n" +
 	"\ractivity_data\x18\a \x01(\v2\x1d.fitglue.StandardizedActivityR\factivityData\x12 \n" +
@@ -372,6 +371,7 @@ var file_activity_proto_goTypes = []any{
 	nil,                           // 4: fitglue.EnrichedActivityEvent.EnrichmentMetadataEntry
 	(*timestamp.Timestamp)(nil),   // 5: google.protobuf.Timestamp
 	(*StandardizedActivity)(nil),  // 6: fitglue.StandardizedActivity
+	(ActivityType)(0),             // 7: fitglue.ActivityType
 }
 var file_activity_proto_depIdxs = []int32{
 	0, // 0: fitglue.ActivityPayload.source:type_name -> fitglue.ActivitySource
@@ -379,13 +379,14 @@ var file_activity_proto_depIdxs = []int32{
 	3, // 2: fitglue.ActivityPayload.metadata:type_name -> fitglue.ActivityPayload.MetadataEntry
 	6, // 3: fitglue.ActivityPayload.standardized_activity:type_name -> fitglue.StandardizedActivity
 	0, // 4: fitglue.EnrichedActivityEvent.source:type_name -> fitglue.ActivitySource
-	6, // 5: fitglue.EnrichedActivityEvent.activity_data:type_name -> fitglue.StandardizedActivity
-	4, // 6: fitglue.EnrichedActivityEvent.enrichment_metadata:type_name -> fitglue.EnrichedActivityEvent.EnrichmentMetadataEntry
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	7, // 5: fitglue.EnrichedActivityEvent.activity_type:type_name -> fitglue.ActivityType
+	6, // 6: fitglue.EnrichedActivityEvent.activity_data:type_name -> fitglue.StandardizedActivity
+	4, // 7: fitglue.EnrichedActivityEvent.enrichment_metadata:type_name -> fitglue.EnrichedActivityEvent.EnrichmentMetadataEntry
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_activity_proto_init() }

@@ -16,7 +16,7 @@ func TestDescriptionEngine_Integration(t *testing.T) {
 		ExternalId:  "test-uuid",
 		Name:        "Hyrox Training Session",
 		Description: "Crushing it today! 💪",
-		Type:        "WEIGHT_TRAINING",
+		Type:        pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
 		Sessions: []*pb.Session{
 			{
 				StrengthSets: []*pb.StrengthSet{

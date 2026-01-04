@@ -18,6 +18,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
+	"github.com/ripixel/fitglue-server/src/go/pkg/domain/activity"
 	"github.com/ripixel/fitglue-server/src/go/pkg/framework"
 	"github.com/ripixel/fitglue-server/src/go/pkg/infrastructure/oauth"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
@@ -109,9 +110,10 @@ func uploadHandler(httpClient *http.Client) framework.HandlerFunc {
 		if eventPayload.Description != "" {
 			writer.WriteField("description", eventPayload.Description)
 		}
-		if eventPayload.ActivityType != "" {
-			writer.WriteField("sport_type", eventPayload.ActivityType)
-			writer.WriteField("activity_type", eventPayload.ActivityType) // Legacy fallback
+		if eventPayload.ActivityType != pb.ActivityType_ACTIVITY_TYPE_UNSPECIFIED {
+			stravaType := activity.GetStravaActivityType(eventPayload.ActivityType)
+			writer.WriteField("sport_type", stravaType)
+			writer.WriteField("activity_type", stravaType) // Legacy fallback
 		}
 		writer.Close()
 
@@ -178,7 +180,7 @@ func uploadHandler(httpClient *http.Client) framework.HandlerFunc {
 			"pipeline_id":        eventPayload.PipelineId,
 			"fit_file_uri":       eventPayload.FitFileUri,
 			"activity_name":      eventPayload.Name,
-			"activity_type":      eventPayload.ActivityType,
+			"activity_type":      activity.GetStravaActivityType(eventPayload.ActivityType),
 			"description":        eventPayload.Description,
 		}
 

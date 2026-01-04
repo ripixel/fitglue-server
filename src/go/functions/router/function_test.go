@@ -72,7 +72,7 @@ func TestRouteActivity(t *testing.T) {
 		ActivityId:   "activity-123",
 		FitFileUri:   "gs://bucket/file.fit",
 		Description:  "Test Description",
-		ActivityType: "WEIGHT_TRAINING",
+		ActivityType: pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
 		Name:         "Test Workout",
 		Source:       pb.ActivitySource_SOURCE_HEVY,
 		Destinations: []string{"strava"},

@@ -1,11 +1,24 @@
 import { XMLParser } from 'fast-xml-parser';
-import { StandardizedActivity, Lap, Record, Session } from '../../types/pb/standardized_activity';
+import { StandardizedActivity, Lap, Record, Session, ActivityType } from '../../types/pb/standardized_activity';
 
 // Helper to safely get array even if XML parser returns single object or undefined
 const asArray = (val: any) => {
   if (!val) return [];
   return Array.isArray(val) ? val : [val];
 };
+
+// Map TCX Sport_t (spec: Running | Biking | Other) to ActivityType
+// This is provider-agnostic and follows the Garmin TCX specification.
+function mapTcxSportToActivityType(sport: string): ActivityType {
+  switch (sport?.toLowerCase()) {
+    case 'running':
+      return ActivityType.ACTIVITY_TYPE_RUN;
+    case 'biking':
+      return ActivityType.ACTIVITY_TYPE_RIDE;
+    default:
+      return ActivityType.ACTIVITY_TYPE_WORKOUT; // "Other" or unknown
+  }
+}
 
 export const mapTCXToStandardized = (tcxXml: string, logData: any, userId: string, source: string): StandardizedActivity => {
   const parser = new XMLParser({
@@ -20,7 +33,7 @@ export const mapTCXToStandardized = (tcxXml: string, logData: any, userId: strin
   }
 
   const tcxId = activity.Id;
-  const sport = activity['@_Sport']; // e.g. Biking, Running
+  const sport = activity['@_Sport']; // e.g. Biking, Running, Other
 
   const generatedLaps: Lap[] = [];
   let totalDistanceToCheck = 0;
@@ -42,26 +55,6 @@ export const mapTCXToStandardized = (tcxXml: string, logData: any, userId: strin
           positionLong: tp.Position?.LongitudeDegrees ? parseFloat(tp.Position.LongitudeDegrees) : 0,
           // Metrics
           altitude: tp.AltitudeMeters ? parseFloat(tp.AltitudeMeters) : 0,
-          // In TCX, DistanceMeters is cumulative
-          // We don't have a "distance" field in Record (only altitude, speed etc in simple view)
-          // But looking at proto: Record has "speed" (m/s), "cadence", "heartRate", "power"
-          // It does not explicitly have "distance" per point, usually calculated or implied.
-          // Wait, looking at proto definition I saw earlier:
-          /*
-          export interface Record {
-            timestamp: string;
-            heartRate: number;
-            power: number;
-            cadence: number;
-            speed: number;
-            altitude: number;
-            positionLat: number;
-            positionLong: number;
-          }
-          */
-          // TCX "DistanceMeters" at a point is valid, but our Record proto doesn't seem to store it?
-          // Actually, let's double check proto. I see `altitude`, `speed`.
-          // We can derive speed if needed, or if TCX has extensions.
           speed: 0, // TCX standard doesn't always have speed in TP, often in extensions
           heartRate: tp.HeartRateBpm?.Value ? parseInt(tp.HeartRateBpm.Value) : 0,
           cadence: tp.Cadence ? parseInt(tp.Cadence) : 0,
@@ -109,8 +102,8 @@ export const mapTCXToStandardized = (tcxXml: string, logData: any, userId: strin
     externalId: logData?.logId?.toString() || tcxId,
     userId: userId,
     startTime: new Date(tcxId), // TCX Id is usually ISO timestamp
-    name: logData?.activityName || `Fitbit ${sport} Activity`,
-    type: sport.toUpperCase(), // e.g. BIKING, RUNNING
+    name: logData?.activityName || `${sport || 'Unknown'} Activity`,
+    type: mapTcxSportToActivityType(sport),
     description: logData?.description || '',
     sessions: [session],
     tags: [],

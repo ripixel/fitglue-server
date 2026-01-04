@@ -43,12 +43,10 @@ func (p *ParkrunProvider) Enrich(ctx context.Context, activity *pb.StandardizedA
 
 	// 1. Basic Checks
 	// Only care about Runs
-	if activity.Type != "Run" && activity.Type != "RUNNING" {
-		// Check both casing? StandardizedActivity Type usage is string, often "Run" or "RUNNING" depending on source.
-		// Let's match case-insensitive "run"
-		if !strings.Contains(strings.ToLower(activity.Type), "run") {
-			return nil, nil
-		}
+	if activity.Type != pb.ActivityType_ACTIVITY_TYPE_RUN &&
+		activity.Type != pb.ActivityType_ACTIVITY_TYPE_TRAIL_RUN &&
+		activity.Type != pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_RUN {
+		return nil, nil
 	}
 
 	// 2. Location Check (Deep traversal)

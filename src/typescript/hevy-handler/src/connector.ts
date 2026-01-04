@@ -1,4 +1,4 @@
-import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, Session, StrengthSet, MuscleGroup, CloudEventSource, ActivitySource, createHevyClient, FrameworkContext } from '@fitglue/shared';
+import { BaseConnector, ConnectorConfig, IngestStrategy, StandardizedActivity, Session, StrengthSet, MuscleGroup, CloudEventSource, ActivitySource, createHevyClient, FrameworkContext, ActivityType } from '@fitglue/shared';
 import type { components } from "@fitglue/shared/dist/integrations/hevy/schema";
 
 // Define Hevy-specific types
@@ -154,7 +154,7 @@ export class HevyConnector extends BaseConnector<HevyConnectorConfig, HevyWorkou
       userId: userId,
       startTime: startTime,
       name: workout.title || 'Hevy Workout',
-      type: 'WEIGHT_TRAINING',
+      type: ActivityType.ACTIVITY_TYPE_WEIGHT_TRAINING,
       description: workout.description || '',
       sessions: [session],
       tags: [],

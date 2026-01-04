@@ -26,7 +26,7 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 	}
 
 	t.Run("Matches Type", func(t *testing.T) {
-		act := &pb.StandardizedActivity{StartTime: makeTime("Mon", 10), Type: "Run"}
+		act := &pb.StandardizedActivity{StartTime: makeTime("Mon", 10), Type: pb.ActivityType_ACTIVITY_TYPE_RUN}
 		inputs := map[string]string{
 			"activity_type":  "run", // Case insensitive check
 			"title_template": "Matched Run",
@@ -41,7 +41,7 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 	})
 
 	t.Run("Fails Type Mismatch", func(t *testing.T) {
-		act := &pb.StandardizedActivity{StartTime: makeTime("Mon", 10), Type: "Swim"}
+		act := &pb.StandardizedActivity{StartTime: makeTime("Mon", 10), Type: pb.ActivityType_ACTIVITY_TYPE_SWIM}
 		inputs := map[string]string{
 			"activity_type": "run",
 		}

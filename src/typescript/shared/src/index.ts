@@ -7,7 +7,7 @@ export * from './framework/auth-strategies';
 
 // Types
 export { ActivityPayload, ActivitySource } from './types/pb/activity';
-export { StandardizedActivity, Session, Lap, StrengthSet, MuscleGroup, Record } from './types/pb/standardized_activity';
+export { StandardizedActivity, Session, Lap, StrengthSet, MuscleGroup, Record, ActivityType } from './types/pb/standardized_activity';
 export { ExecutionRecord, ExecutionStatus } from './types/pb/execution';
 export { CloudEventType, CloudEventSource } from './types/pb/events';
 export * from './types/events-helper';

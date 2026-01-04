@@ -62,8 +62,8 @@ func TestUploadToStrava(t *testing.T) {
 				if !bytes.Contains(bodyBytes, []byte(`"sport_type"`)) {
 					t.Error("Expected part 'sport_type'")
 				}
-				if !bytes.Contains(bodyBytes, []byte("WEIGHT_TRAINING")) {
-					t.Error("Expected value 'WEIGHT_TRAINING'")
+				if !bytes.Contains(bodyBytes, []byte("WeightTraining")) {
+					t.Error("Expected value 'WeightTraining'")
 				}
 
 				// Restore body for any downstream reads (unlikely needed here)
@@ -143,7 +143,7 @@ func TestUploadToStrava(t *testing.T) {
 		UserId:       "user_upload",
 		FitFileUri:   "gs://fitglue-artifacts/activities/user_upload/123.fit",
 		Description:  "Test Activity",
-		ActivityType: "WEIGHT_TRAINING",
+		ActivityType: pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
 		Name:         "Test Workout",
 		Source:       pb.ActivitySource_SOURCE_HEVY,
 	}
