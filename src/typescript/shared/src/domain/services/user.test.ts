@@ -1,6 +1,7 @@
 
 import { UserService } from './user';
 import { UserStore, ActivityStore } from '../../storage/firestore';
+import { FirestoreTokenSource } from '../../infrastructure/oauth/token-source';
 
 // Mock Stores
 const mockUserStore = {
@@ -15,6 +16,17 @@ const mockActivityStore = {
   markProcessed: jest.fn()
 } as unknown as ActivityStore;
 
+// Mock TokenSource
+jest.mock('../../infrastructure/oauth/token-source', () => {
+  return {
+    FirestoreTokenSource: jest.fn().mockImplementation(() => {
+      return {
+        getToken: jest.fn()
+      };
+    })
+  };
+});
+
 describe('UserService', () => {
   let userService: UserService;
 
@@ -24,36 +36,37 @@ describe('UserService', () => {
   });
 
   describe('getValidToken', () => {
-    it('should return token if valid', async () => {
-      const userId = 'user-1';
-      (mockUserStore.get as jest.Mock).mockResolvedValue({
-        integrations: {
-          fitbit: {
-            enabled: true,
-            accessToken: 'valid-token',
-            expiresAt: new Date(Date.now() + 10000)
-          }
-        }
-      });
+    it('should delegate to FirestoreTokenSource', async () => {
+      const mockGetToken = jest.fn().mockResolvedValue({ accessToken: 'mock-token' });
+      (FirestoreTokenSource as unknown as jest.Mock).mockImplementation(() => ({
+        getToken: mockGetToken
+      }));
 
-      const token = await userService.getValidToken(userId, 'fitbit');
-      expect(token).toBe('valid-token');
+      const token = await userService.getValidToken('u1', 'fitbit');
+
+      expect(FirestoreTokenSource).toHaveBeenCalledWith(mockUserStore, 'u1', 'fitbit');
+      expect(mockGetToken).toHaveBeenCalledWith(false); // Default forceRefresh
+      expect(token).toBe('mock-token');
     });
 
-    it('should throw if token expired', async () => {
-      const userId = 'user-1';
-      (mockUserStore.get as jest.Mock).mockResolvedValue({
-        integrations: {
-          fitbit: {
-            enabled: true,
-            accessToken: 'expired-token',
-            expiresAt: new Date(Date.now() - 10000)
-          }
-        }
-      });
+    it('should pass forceRefresh to FirestoreTokenSource', async () => {
+      const mockGetToken = jest.fn().mockResolvedValue({ accessToken: 'mock-token' });
+      (FirestoreTokenSource as unknown as jest.Mock).mockImplementation(() => ({
+        getToken: mockGetToken
+      }));
 
-      await expect(userService.getValidToken(userId, 'fitbit'))
-        .rejects.toThrow(/Token expired/);
+      await userService.getValidToken('u1', 'fitbit', true);
+      expect(mockGetToken).toHaveBeenCalledWith(true);
+    });
+
+    it('should propagate errors from TokenSource', async () => {
+      const mockGetToken = jest.fn().mockRejectedValue(new Error('Refresh failed'));
+      (FirestoreTokenSource as unknown as jest.Mock).mockImplementation(() => ({
+        getToken: mockGetToken
+      }));
+
+      await expect(userService.getValidToken('u1', 'fitbit'))
+        .rejects.toThrow('Refresh failed');
     });
   });
 
