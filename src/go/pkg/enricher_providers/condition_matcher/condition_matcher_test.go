@@ -2,6 +2,7 @@ package condition_matcher
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +22,8 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 			d = 2
 		} else if day == "Sat" {
 			d = 6
+		} else if day == "Sun" {
+			d = 7
 		}
 		return timestamppb.New(time.Date(2024, 1, d, hour, 0, 0, 0, time.UTC))
 	}
@@ -46,8 +49,14 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 			"activity_type": "run",
 		}
 		res, _ := provider.Enrich(ctx, act, nil, inputs, false)
-		if res != nil {
-			t.Errorf("Expected nil (no match), got %v", res)
+		if res == nil {
+			t.Fatal("Expected result with failure metadata, got nil")
+		}
+		if res.Metadata["condition_matcher_applied"] != "false" {
+			t.Errorf("Expected condition_matcher_applied=false")
+		}
+		if !strings.Contains(res.Metadata["condition_fail_reason"], "Activity Type mismatch") {
+			t.Errorf("Expected fail reason to contain 'Activity Type mismatch'")
 		}
 	})
 
@@ -71,8 +80,11 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 			"days": "Sat,Sun",
 		}
 		res, _ := provider.Enrich(ctx, act, nil, inputs, false)
-		if res != nil {
-			t.Errorf("Expected nil, got %v", res)
+		if res == nil {
+			t.Fatal("Expected result with failure metadata, got nil")
+		}
+		if res.Metadata["condition_matcher_applied"] != "false" {
+			t.Errorf("Expected condition_matcher_applied=false")
 		}
 	})
 
@@ -126,8 +138,14 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 			"radius_m":      "1000",
 		}
 		res, _ := provider.Enrich(ctx, act, nil, inputs, false)
-		if res != nil {
-			t.Errorf("Expected nil, got %v", res)
+		if res == nil {
+			t.Fatal("Expected result with failure metadata, got nil")
+		}
+		if res.Metadata["condition_matcher_applied"] != "false" {
+			t.Errorf("Expected condition_matcher_applied=false")
+		}
+		if !strings.Contains(res.Metadata["condition_fail_reason"], "Location mismatch") {
+			t.Errorf("Expected fail reason to contain 'Location mismatch'")
 		}
 	})
 
@@ -142,6 +160,19 @@ func TestConditionMatcher_Enrich(t *testing.T) {
 		res, _ := provider.Enrich(ctx, act, nil, inputs, false)
 		if res == nil {
 			t.Fatal("Expected match")
+		}
+	})
+
+	t.Run("Matches Numeric Day", func(t *testing.T) {
+		// Sunday
+		act := &pb.StandardizedActivity{StartTime: makeTime("Sun", 10)}
+		inputs := map[string]string{
+			"days_of_week":   "0", // Sunday
+			"title_template": "Sunday Run",
+		}
+		res, _ := provider.Enrich(ctx, act, nil, inputs, false)
+		if res == nil {
+			t.Fatal("Expected match for numeric day '0'")
 		}
 	})
 

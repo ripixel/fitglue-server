@@ -33,18 +33,29 @@ func (p *ConditionMatcherProvider) ProviderType() pb.EnricherProviderType {
 }
 
 func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.StandardizedActivity, user *pb.UserRecord, inputs map[string]string, doNotRetry bool) (*enricher_providers.EnrichmentResult, error) {
-	// 1. Check Conditions (AND logic for all provided inputs)
+	// Helper to handle mismatch
+	returnMismatch := func(reason string) (*enricher_providers.EnrichmentResult, error) {
+		// Log for visibility
+		fmt.Printf("ConditionMatcher mismatch: %s\n", reason)
+		return &enricher_providers.EnrichmentResult{
+			Metadata: map[string]string{
+				"condition_matcher_applied": "false",
+				"condition_fail_reason":     reason,
+			},
+		}, nil
+	}
+
+	// 1. Check Conditions (AND logic)
 
 	// A. Activity Type
 	if val, ok := inputs["activity_type"]; ok && val != "" {
-		// Parse input string to ActivityType enum (accepts "RUNNING", "Run", etc.)
 		expectedType := activity.ParseActivityTypeFromString(val)
 		if expectedType != pb.ActivityType_ACTIVITY_TYPE_UNSPECIFIED && act.Type != expectedType {
-			return nil, nil
+			return returnMismatch(fmt.Sprintf("Activity Type mismatch. Expected %v, got %v", expectedType, act.Type))
 		}
 	}
 
-	// B. Days of Week (e.g. "Mon,Tue")
+	// B. Days of Week
 	startTime := act.StartTime.AsTime()
 	daysVal, hasDays := inputs["days"]
 	if !hasDays {
@@ -52,29 +63,27 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.Standardi
 	}
 	if daysVal != "" {
 		currentDay := startTime.Weekday().String()[:3] // "Mon"
+		currentDayInt := int(startTime.Weekday())      // 0-6 (Sun-Sat)
 		match := false
-		for _, day := range strings.Split(daysVal, ",") {
-			if strings.TrimSpace(day) == currentDay {
+		for _, dayStr := range strings.Split(daysVal, ",") {
+			val := strings.TrimSpace(dayStr)
+			if val == currentDay {
 				match = true
 				break
 			}
+			if valInt, err := strconv.Atoi(val); err == nil {
+				if valInt == currentDayInt {
+					match = true
+					break
+				}
+			}
 		}
 		if !match {
-			return nil, nil
+			return returnMismatch(fmt.Sprintf("Day mismatch. Expected one of [%s], got %s (%d)", daysVal, currentDay, currentDayInt))
 		}
 	}
 
-	// C. Time Window (Local Time approximation from Longitude if available, else UTC?)
-	// User request said "rough start time".
-	// Ideally we need timezone. StandardizedActivity doesn't strictly have it, but we can infer or use UTC if config expects UTC.
-	// For now, let's assume we use the inferred local time from Longitude logic derived in Parkrun, or just compare UTC if no location?
-	// The implementation plan didn't specify timezone handling, but Parkrun uses Longitude. Let's reuse that logic if useful, or simpler: Hour matching.
-	// Let's assume input matches the activity's time reference (which is UTC in proto). User probably configures "09:00" implying local time.
-	// This is hard without timezone.
-	// Let's attempt to estimate local time if coordinates exist, otherwise warn/skip?
-	// Or we just check against UTC if the user configures it that way.
-	// Let's stick to the Parkrun logic: Estimate offset from Longitude.
-
+	// C. Time Window
 	localTime := startTime
 	lat, long, hasLoc := getStartLocation(act)
 
@@ -89,7 +98,7 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.Standardi
 	}
 	if startTimeVal != "" {
 		if !checkTime(localTime, startTimeVal, true) {
-			return nil, nil
+			return returnMismatch(fmt.Sprintf("Start Time mismatch. Expected >= %s, got %s (Local Est.)", startTimeVal, localTime.Format("15:04")))
 		}
 	}
 
@@ -99,11 +108,11 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.Standardi
 	}
 	if endTimeVal != "" {
 		if !checkTime(localTime, endTimeVal, false) {
-			return nil, nil
+			return returnMismatch(fmt.Sprintf("End Time mismatch. Expected <= %s, got %s (Local Est.)", endTimeVal, localTime.Format("15:04")))
 		}
 	}
 
-	// D. Location (Lat/Long + Radius)
+	// D. Location
 	latStr := inputs["location_lat"]
 	longStr := inputs["location_long"]
 	if longStr == "" {
@@ -116,7 +125,7 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.Standardi
 		}
 
 		if !hasLoc {
-			return nil, nil
+			return returnMismatch("Location mismatch. No GPS data in activity.")
 		}
 
 		targetLat, err := strconv.ParseFloat(latStr, 64)
@@ -144,7 +153,7 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.Standardi
 
 		dist := distanceMeters(lat, long, targetLat, targetLong)
 		if dist > radius {
-			return nil, nil
+			return returnMismatch(fmt.Sprintf("Location mismatch. Distance %.2fm > Radius %.2fm. Act: (%.4f, %.4f), Target: (%.4f, %.4f)", dist, radius, lat, long, targetLat, targetLong))
 		}
 	}
 
@@ -152,6 +161,7 @@ func (p *ConditionMatcherProvider) Enrich(ctx context.Context, act *pb.Standardi
 	result := &enricher_providers.EnrichmentResult{
 		Metadata: map[string]string{
 			"condition_matcher_applied": "true",
+			"match_debug":               "success",
 		},
 	}
 
