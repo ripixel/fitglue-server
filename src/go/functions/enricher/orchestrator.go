@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -99,12 +98,14 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 	for _, pipeline := range pipelines {
 		slog.Info("Executing pipeline", "id", pipeline.ID)
 
-		// 3a. Fan-Out Enrichers for this Pipeline
+		// 3a. Execute Enrichers Sequentially
 		configs := pipeline.Enrichers
 		results := make([]*providers.EnrichmentResult, len(configs))
-		providerExecs := make([]ProviderExecution, len(configs))
-		var wg sync.WaitGroup
-		errs := make([]error, len(configs))
+		providerExecs := []ProviderExecution{}
+
+		// Use the standardized activity as the working state for this pipeline.
+		// Note: This mutates the payload's activity in-place, allowing subsequent enrichers to see changes.
+		currentActivity := payload.StandardizedActivity
 
 		for i, cfg := range configs {
 			var provider providers.Provider
@@ -113,130 +114,100 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 			// Lookup by Type
 			provider, ok = o.providersByType[cfg.ProviderType]
 			if !ok {
-				// Fallback or skip
 				slog.Warn("Provider not found for type", "type", cfg.ProviderType)
-				providerExecs[i] = ProviderExecution{
+				providerExecs = append(providerExecs, ProviderExecution{
 					ProviderName: fmt.Sprintf("TYPE:%s", cfg.ProviderType),
 					Status:       "SKIPPED",
 					Error:        "provider not registered",
-				}
+				})
 				continue
 			}
 
-			wg.Add(1)
-			go func(idx int, p providers.Provider, inputs map[string]string) {
-				defer wg.Done()
-				// Panic Recovery for Child Goroutine
-				defer func() {
-					if r := recover(); r != nil {
-						slog.Error("Provider panicked", "name", p.Name(), "panic", r)
-						providerExecs[idx].Status = "FAILED"
-						providerExecs[idx].Error = fmt.Sprintf("panic: %v", r)
-					}
-				}()
+			startTime := time.Now()
+			execID := uuid.NewString()
 
-				startTime := time.Now()
-
-				// Generate ExecutionID for tracking
-				execID := uuid.NewString()
-
-				// Log child execution start (non-blocking, best effort)
-				// We don't fail the enrichment if logging fails
-				providerExecs[idx].ProviderName = p.Name()
-				providerExecs[idx].ExecutionID = execID
-				providerExecs[idx].Status = "STARTED"
-
-				res, err := p.Enrich(ctx, payload.StandardizedActivity, userRec, inputs, doNotRetry)
-				duration := time.Since(startTime).Milliseconds()
-				providerExecs[idx].DurationMs = duration
-
-				if err != nil {
-					slog.Error(fmt.Sprintf("Provider failed: %v", p.Name()), "name", p.Name(), "error", err, "duration_ms", duration, "execution_id", execID)
-					errs[idx] = err
-					providerExecs[idx].Status = "FAILED"
-					providerExecs[idx].Error = err.Error()
-					return
-				}
-
-				if res == nil {
-					slog.Warn(fmt.Sprintf("Provider returned nil result: %v", p.Name()), "name", p.Name())
-					providerExecs[idx].Status = "SKIPPED"
-					providerExecs[idx].Error = "nil result"
-					return
-				}
-
-				providerExecs[idx].Status = "SUCCESS"
-				providerExecs[idx].Metadata = res.Metadata
-				results[idx] = res
-				slog.Info(fmt.Sprintf("Provider completed: %v", p.Name()), "name", p.Name(), "duration_ms", duration, "execution_id", execID)
-			}(i, provider, cfg.Inputs)
-		}
-		wg.Wait()
-
-		// Collect provider executions
-		for _, pe := range providerExecs {
-			if pe.ProviderName != "" {
-				allProviderExecutions = append(allProviderExecutions, pe)
+			pe := ProviderExecution{
+				ProviderName: provider.Name(),
+				ExecutionID:  execID,
+				Status:       "STARTED",
 			}
-		}
 
-		// Check if any configured enrichers failed
-		var failedEnrichers []string
-		for i, cfg := range configs {
-			if errs[i] != nil {
-				if retryErr, ok := errs[i].(*providers.RetryableError); ok {
-					slog.Warn("Provider requested retry", "provider", cfg.ProviderType, "reason", retryErr.Reason, "retry_after", retryErr.RetryAfter)
+			// Execute
+			res, err := provider.Enrich(ctx, currentActivity, userRec, cfg.Inputs, doNotRetry)
+			duration := time.Since(startTime).Milliseconds()
+			pe.DurationMs = duration
+
+			if err != nil {
+				slog.Error(fmt.Sprintf("Provider failed: %v", provider.Name()), "name", provider.Name(), "error", err, "duration_ms", duration, "execution_id", execID)
+				// Check for retryable/wait errors
+				if retryErr, ok := err.(*providers.RetryableError); ok {
 					return &ProcessResult{
 						Events:             []*pb.EnrichedActivityEvent{},
-						ProviderExecutions: allProviderExecutions,
+						ProviderExecutions: append(allProviderExecutions, providerExecs...), // Include partial
 					}, retryErr
 				}
-
-				// Check for WaitForInputError
-				if waitErr, ok := errs[i].(*user_input.WaitForInputError); ok {
-					slog.Info("Provider requested user input", "provider", cfg.ProviderType, "activity_id", waitErr.ActivityID)
-					// Create Pending Input in DB
-					pi := &pb.PendingInput{
-						ActivityId:      waitErr.ActivityID,
-						UserId:          payload.UserId,
-						Status:          pb.PendingInput_STATUS_WAITING,
-						RequiredFields:  waitErr.RequiredFields,
-						OriginalPayload: payload, // Full payload for re-publish
-						CreatedAt:       timestamppb.Now(),
-						UpdatedAt:       timestamppb.Now(),
-					}
-					// Use CreatePendingInput (might fail if exists, that's fine/expected if race)
-					// If it exists and matches waiting status, we are fine.
-					// If create fails, check if it exists?
-					// Adapter.CreatePendingInput fails if exists.
-					// We should probably attempt Create, if fail, Log.
-					if err := o.database.CreatePendingInput(ctx, pi); err != nil {
-						// Ignore ALREADY_EXISTS, fail on others?
-						// Note: Database interface doesn't typed errors well yet.
-						// Log warning but proceed to STOP pipeline.
-						slog.Warn("Failed to create pending input (might already exist)", "error", err)
-					}
-
-					// Return SUCCESS (ACK message) but with status STATUS_WAITING.
-					// CRITICAL: This return statement stops the pipeline execution immediately.
-					// The empty Events list ensures no artifacts are created and no destination routing occurs.
-					// We return nil error so Pub/Sub considers the message "processed" (ACK) and doesn't retry it immediately.
-					return &ProcessResult{
-						Events:             []*pb.EnrichedActivityEvent{},
-						ProviderExecutions: allProviderExecutions,
-						Status:             pb.ExecutionStatus_STATUS_WAITING,
-					}, nil // Return nil error to ACK
+				if waitErr, ok := err.(*user_input.WaitForInputError); ok {
+					return o.handleWaitError(ctx, payload, append(allProviderExecutions, providerExecs...), waitErr)
 				}
 
-				failedEnrichers = append(failedEnrichers, fmt.Sprintf("%s: %v", cfg.ProviderType, errs[i]))
+				pe.Status = "FAILED"
+				pe.Error = err.Error()
+				providerExecs = append(providerExecs, pe)
+
+				// Fail pipeline? Yes.
+				return &ProcessResult{
+					Events:             []*pb.EnrichedActivityEvent{},
+					ProviderExecutions: append(allProviderExecutions, providerExecs...),
+				}, fmt.Errorf("enricher failed: %s: %v", provider.Name(), err)
 			}
+
+			if res == nil {
+				slog.Warn(fmt.Sprintf("Provider returned nil result: %v", provider.Name()), "name", provider.Name())
+				pe.Status = "SKIPPED"
+				pe.Error = "nil result"
+				providerExecs = append(providerExecs, pe)
+				continue
+			}
+
+			pe.Status = "SUCCESS"
+			pe.Metadata = res.Metadata
+			results[i] = res
+			providerExecs = append(providerExecs, pe)
+
+			slog.Info(fmt.Sprintf("Provider completed: %v", provider.Name()), "name", provider.Name(), "duration_ms", duration, "execution_id", execID)
+
+			// Apply changes to currentActivity immediately so next provider sees them
+			if res.Name != "" {
+				currentActivity.Name = res.Name
+			}
+			if res.NameSuffix != "" {
+				currentActivity.Name += res.NameSuffix
+			}
+			// Note: Description append logic usually happens at end, but if a provider filters on description?
+			// Let's update Description too.
+			if res.Description != "" {
+				trimmed := strings.TrimSpace(res.Description)
+				if trimmed != "" {
+					if currentActivity.Description != "" {
+						currentActivity.Description += "\n\n"
+					}
+					currentActivity.Description += trimmed
+				}
+			}
+			if res.ActivityType != pb.ActivityType_ACTIVITY_TYPE_UNSPECIFIED {
+				currentActivity.Type = res.ActivityType
+			}
+			// Apply Tags?
+			if len(res.Tags) > 0 {
+				currentActivity.Tags = append(currentActivity.Tags, res.Tags...)
+			}
+			// Note: We currently skip applying complex stream data (HR/Power) to currentActivity here.
+			// Downstream providers typically depend only on metadata (Name/Tags) which we updated above.
+			// Full stream merging happens in the final Fan-In phase.
 		}
-		if len(failedEnrichers) > 0 {
-			return &ProcessResult{
-				Events:             []*pb.EnrichedActivityEvent{},
-				ProviderExecutions: allProviderExecutions,
-			}, fmt.Errorf("enricher(s) failed: %s", strings.Join(failedEnrichers, "; "))
-		}
+
+		// Append executions from this pipeline
+		allProviderExecutions = append(allProviderExecutions, providerExecs...)
 
 		// 3b. Merge Results (Fan-In)
 		finalEvent := &pb.EnrichedActivityEvent{
@@ -290,29 +261,6 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 			}
 			cfgName := configs[i].ProviderType.String()
 			finalEvent.AppliedEnrichments = append(finalEvent.AppliedEnrichments, cfgName)
-
-			if res.Name != "" {
-				finalEvent.Name = res.Name
-			}
-			if res.NameSuffix != "" {
-				finalEvent.Name += res.NameSuffix
-			}
-			if res.Description != "" {
-				trimmed := strings.TrimSpace(res.Description)
-				if trimmed != "" {
-					if finalEvent.Description != "" {
-						finalEvent.Description += "\n\n"
-					}
-					finalEvent.Description += trimmed
-				}
-			}
-			if res.ActivityType != pb.ActivityType_ACTIVITY_TYPE_UNSPECIFIED {
-				finalEvent.ActivityType = res.ActivityType
-			}
-			if len(res.Tags) > 0 {
-				finalEvent.Tags = append(finalEvent.Tags, res.Tags...)
-				finalEvent.ActivityData.Tags = append(finalEvent.ActivityData.Tags, res.Tags...)
-			}
 
 			// Merge Data Streams into Records
 			if len(res.HeartRateStream) > 0 {
@@ -448,4 +396,27 @@ func (o *Orchestrator) resolvePipelines(source pb.ActivitySource, userRec *pb.Us
 	}
 
 	return pipelines
+}
+
+func (o *Orchestrator) handleWaitError(ctx context.Context, payload *pb.ActivityPayload, allExecs []ProviderExecution, waitErr *user_input.WaitForInputError) (*ProcessResult, error) {
+	slog.Warn("Provider requested user input", "activity_id", waitErr.ActivityID)
+	// Create Pending Input in DB
+	pi := &pb.PendingInput{
+		ActivityId:      waitErr.ActivityID,
+		UserId:          payload.UserId,
+		Status:          pb.PendingInput_STATUS_WAITING,
+		RequiredFields:  waitErr.RequiredFields,
+		OriginalPayload: payload, // Full payload for re-publish
+		CreatedAt:       timestamppb.Now(),
+		UpdatedAt:       timestamppb.Now(),
+	}
+	if err := o.database.CreatePendingInput(ctx, pi); err != nil {
+		slog.Warn("Failed to create pending input (might already exist)", "error", err)
+	}
+
+	return &ProcessResult{
+		Events:             []*pb.EnrichedActivityEvent{},
+		ProviderExecutions: allExecs,
+		Status:             pb.ExecutionStatus_STATUS_WAITING,
+	}, nil
 }
