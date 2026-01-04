@@ -907,16 +907,12 @@ program.command('users:replace-pipeline')
 // --- Execution Inspection Commands ---
 
 // Helper to convert ExecutionStatus enum to readable string
+// Uses TypeScript's built-in enum reverse mapping (e.g., ExecutionStatus[5] === "STATUS_WAITING")
 function executionStatusToString(status: number | undefined): string {
-    switch (status) {
-        case ExecutionStatus.STATUS_PENDING: return 'PENDING';
-        case ExecutionStatus.STATUS_STARTED: return 'STARTED';
-        case ExecutionStatus.STATUS_SUCCESS: return 'SUCCESS';
-        case ExecutionStatus.STATUS_FAILED: return 'FAILED';
-        case ExecutionStatus.STATUS_WAITING: return 'WAITING';
-        case ExecutionStatus.STATUS_UNKNOWN: return 'UNKNOWN';
-        default: return `UNKNOWN(${status})`;
-    }
+    if (status === undefined || status === null) return 'UNKNOWN';
+    const name = ExecutionStatus[status];
+    // Remove "STATUS_" prefix for cleaner display
+    return name ? name.replace(/^STATUS_/, '') : `UNKNOWN(${status})`;
 }
 
 // Helper to print execution table uniformly
