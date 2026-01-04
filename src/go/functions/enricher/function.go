@@ -209,8 +209,14 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 	}
 
 	fwCtx.Logger.Info("Enrichment complete", "published_count", publishedCount)
+
+	finalStatus := "SUCCESS"
+	if processResult.Status == pb.ExecutionStatus_STATUS_WAITING {
+		finalStatus = "STATUS_WAITING"
+	}
+
 	return map[string]interface{}{
-		"status":              "SUCCESS",
+		"status":              finalStatus,
 		"published_count":     publishedCount,
 		"total_events":        len(processResult.Events),
 		"published_events":    publishedEvents,

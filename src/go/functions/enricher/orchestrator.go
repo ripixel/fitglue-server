@@ -46,6 +46,7 @@ func (o *Orchestrator) Register(p providers.Provider) {
 type ProcessResult struct {
 	Events             []*pb.EnrichedActivityEvent
 	ProviderExecutions []ProviderExecution
+	Status             pb.ExecutionStatus
 }
 
 // ProviderExecution tracks a single provider's execution
@@ -84,7 +85,11 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 	slog.Info("Resolved pipelines", "count", len(pipelines), "source", payload.Source)
 
 	if len(pipelines) == 0 {
-		return &ProcessResult{Events: []*pb.EnrichedActivityEvent{}, ProviderExecutions: []ProviderExecution{}}, nil
+		return &ProcessResult{
+			Events:             []*pb.EnrichedActivityEvent{},
+			ProviderExecutions: []ProviderExecution{},
+			Status:             pb.ExecutionStatus_STATUS_SUCCESS,
+		}, nil
 	}
 
 	var allEvents []*pb.EnrichedActivityEvent
@@ -219,6 +224,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 					return &ProcessResult{
 						Events:             []*pb.EnrichedActivityEvent{},
 						ProviderExecutions: allProviderExecutions,
+						Status:             pb.ExecutionStatus_STATUS_WAITING,
 					}, nil // Return nil error to ACK
 				}
 
@@ -381,6 +387,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 	return &ProcessResult{
 		Events:             allEvents,
 		ProviderExecutions: allProviderExecutions,
+		Status:             pb.ExecutionStatus_STATUS_SUCCESS,
 	}, nil
 }
 
