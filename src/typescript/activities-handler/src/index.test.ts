@@ -11,7 +11,6 @@ jest.mock('@fitglue/shared', () => {
 });
 
 describe('activities-handler', () => {
-  let req: any;
   let res: any;
   let ctx: any;
   let mockPublish: any;
@@ -22,11 +21,6 @@ describe('activities-handler', () => {
       publish: mockPublish
     }));
 
-    req = {
-      method: 'GET',
-      body: {},
-      query: {},
-    };
     res = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
@@ -54,29 +48,79 @@ describe('activities-handler', () => {
     jest.clearAllMocks();
   });
 
-  describe('GET /', () => {
-    it('returns 401 if no user', async () => {
+  describe('GET', () => {
+    it('/ returns 401 if no user', async () => {
       ctx.userId = undefined;
-      await handler(req, res, ctx);
+      await handler(({
+        method: 'GET',
+        body: {},
+        query: {},
+        path: '',
+      } as any), res, ctx);
       expect(res.status).toHaveBeenCalledWith(401);
     });
 
-    it('returns list of synchronized activities', async () => {
+    it('/ returns list of synchronized activities', async () => {
       ctx.stores.activities.listSynchronized.mockResolvedValue({
         activityId: 'a1',
         title: 'Activity 1',
         description: 'Description 1',
       });
 
-      await handler(req, res, ctx);
+      await handler(({
+        method: 'GET',
+        body: {},
+        query: {},
+        path: '',
+      } as any), res, ctx);
 
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ activities: { activityId: "a1", description: "Description 1", title: "Activity 1" } });
     });
 
+    it('/stats returns a count of', async () => {
+      ctx.stores.activities.countSynchronized.mockResolvedValue(1);
+
+      await handler(({
+        method: 'GET',
+        body: {},
+        query: {},
+        path: '/stats',
+      } as any), res, ctx);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ synchronized_count: 1 });
+    });
+
+    it('/?id={id} returns single activity', async () => {
+      const activity = {
+        activityId: 'a1',
+        title: 'Activity 1',
+        description: 'Description 1',
+      }
+      ctx.stores.activities.getSynchronized.mockResolvedValue(activity);
+
+      await handler(({
+        method: 'GET',
+        body: {},
+        query: {
+          id: 'a1',
+        },
+        path: '',
+      } as any), res, ctx);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ activity });
+    });
+
     it('handles errors', async () => {
       ctx.stores.activities.listSynchronized.mockRejectedValue(new Error('db error'));
-      await handler(req, res, ctx);
+      await handler(({
+        method: 'GET',
+        body: {},
+        query: {},
+        path: '',
+      } as any), res, ctx);
       expect(res.status).toHaveBeenCalledWith(500);
     });
   });
