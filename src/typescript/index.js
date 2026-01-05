@@ -37,3 +37,8 @@ exports.inputsHandler = (req, res) => {
   const inputs = require('./inputs-handler/build/index');
   return inputs.inputsHandler(req, res);
 };
+
+exports.activitiesHandler = (req, res) => {
+  const activities = require('./activities-handler/build/index');
+  return activities.activitiesHandler(req, res);
+};
