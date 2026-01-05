@@ -24,6 +24,6 @@ resource "google_project_iam_member" "cloud_function_sa_storage_admin" {
 
 resource "google_project_iam_member" "cloud_function_sa_fcm_admin" {
   project = var.project_id
-  role    = "roles/firebase.messaging.admin"
+  role    = "roles/firebasecloudmessaging.admin"
   member  = "serviceAccount:${google_service_account.cloud_function_sa.email}"
 }
