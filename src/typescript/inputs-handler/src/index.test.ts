@@ -84,12 +84,13 @@ describe('inputs-handler', () => {
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
         inputs: [{
-          activity_id: 'a1',
-          user_id: 'u1',
+          id: 'a1',
+          activityId: 'a1',
+          userId: 'u1',
           status: 1,
-          required_fields: ['title'],
-          created_at: { seconds: 100 },
-          input_data: {},
+          requiredFields: ['title'],
+          createdAt: { seconds: 100 },
+          inputData: {},
         }]
       });
     });
@@ -105,8 +106,8 @@ describe('inputs-handler', () => {
     beforeEach(() => {
       req.method = 'POST';
       req.body = {
-        activity_id: 'act-1',
-        input_data: { title: 'New Title' }
+        activityId: 'act-1',
+        inputData: { title: 'New Title' }
       };
     });
 

@@ -92,7 +92,7 @@ describe('activities-handler', () => {
       expect(res.json).toHaveBeenCalledWith({ synchronized_count: 1 });
     });
 
-    it('/?id={id} returns single activity', async () => {
+    it('/:id returns single activity', async () => {
       const activity = {
         activityId: 'a1',
         title: 'Activity 1',
@@ -103,10 +103,8 @@ describe('activities-handler', () => {
       await handler(({
         method: 'GET',
         body: {},
-        query: {
-          id: 'a1',
-        },
-        path: '',
+        query: {},
+        path: '/a1',
       } as any), res, ctx);
 
       expect(res.status).toHaveBeenCalledWith(200);

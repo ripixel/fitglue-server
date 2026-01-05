@@ -27,10 +27,14 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
     }
 
     // GET /:id -> Single activity
-    // Note: Cloud Functions HTTP often passes path parts differently depending on deployment
-    // We'll check rudimentary path parsing or query param 'id'
-    const id = req.query.id as string;
-    if (id) {
+    // Extract ID from path (e.g., /activities/abc123 or just /abc123)
+    // Firebase rewrites strip the /api prefix, so we might see /activities/id or just /id
+    const pathSegments = req.path.split('/').filter(s => s !== '');
+    // If path is /activities/stats, we already handled it above
+    // If path is /activities/{id} or /{id}, extract the last segment
+    const id = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : null;
+
+    if (id && id !== 'stats') {
       const activity = await activityStore.getSynchronized(ctx.userId, id);
       if (!activity) {
         res.status(404).json({ error: 'Not found' });
