@@ -12,3 +12,16 @@ output "firebase_custom_domain_dns" {
   description = "Required DNS updates for Firebase Hosting custom domain"
   value       = try(google_firebase_hosting_custom_domain.main.required_dns_updates, null)
 }
+
+output "firebase_web_config" {
+  description = "Firebase Web App configuration"
+  value = {
+    apiKey            = data.google_firebase_web_app_config.web.api_key
+    authDomain        = data.google_firebase_web_app_config.web.auth_domain
+    databaseURL       = data.google_firebase_web_app_config.web.database_url
+    storageBucket     = data.google_firebase_web_app_config.web.storage_bucket
+    messagingSenderId = data.google_firebase_web_app_config.web.messaging_sender_id
+    appId             = google_firebase_web_app.web.app_id
+    measurementId     = data.google_firebase_web_app_config.web.measurement_id
+  }
+}
