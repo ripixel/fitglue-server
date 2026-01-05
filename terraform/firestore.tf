@@ -85,13 +85,4 @@ resource "google_firestore_index" "pending_inputs_user_status_created" {
   }
 }
 
-resource "google_firestore_index" "activities_user_synced_at" {
-  project    = var.project_id
-  database   = google_firestore_database.database.name
-  collection = "activities" // Collection Group
 
-  fields {
-    field_path = "synced_at"
-    order      = "DESCENDING"
-  }
-}
