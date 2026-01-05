@@ -27,3 +27,9 @@ resource "google_project_iam_member" "cloud_function_sa_fcm_admin" {
   role    = "roles/firebasecloudmessaging.admin"
   member  = "serviceAccount:${google_service_account.cloud_function_sa.email}"
 }
+
+resource "google_project_iam_member" "web_deployer_run_viewer" {
+  project = var.project_id
+  role    = "roles/run.viewer"
+  member  = "serviceAccount:circleci-web-deployer@${var.project_id}.iam.gserviceaccount.com"
+}
