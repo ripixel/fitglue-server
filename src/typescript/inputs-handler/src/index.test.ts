@@ -37,6 +37,7 @@ describe('inputs-handler', () => {
       method: 'GET',
       body: {},
       query: {},
+      path: '',
     };
     res = {
       status: jest.fn().mockReturnThis(),
