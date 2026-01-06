@@ -18,10 +18,11 @@ type Database interface {
 
 // ExecutionOptions contains optional fields for execution logging
 type ExecutionOptions struct {
-	UserID      string
-	TestRunID   string
-	TriggerType string
-	Inputs      interface{}
+	UserID              string
+	TestRunID           string
+	TriggerType         string
+	Inputs              interface{}
+	PipelineExecutionID string
 }
 
 // stringPtr returns a pointer to the given string
@@ -85,6 +86,9 @@ func LogStart(ctx context.Context, db Database, execID string, inputs interface{
 		if opts.TriggerType != "" {
 			updates["trigger_type"] = opts.TriggerType
 		}
+		if opts.PipelineExecutionID != "" {
+			updates["pipeline_execution_id"] = opts.PipelineExecutionID
+		}
 	}
 
 	// Encode inputs as JSON if provided
@@ -102,22 +106,22 @@ func LogStart(ctx context.Context, db Database, execID string, inputs interface{
 	return nil
 }
 
-// LogChildExecutionStart creates an execution record with STARTED status and links it to a parent
-func LogChildExecutionStart(ctx context.Context, db Database, service string, parentExecutionID string, opts ExecutionOptions) (string, error) {
+// LogChildExecutionStart creates an execution record with STARTED status and links it to a pipeline
+func LogChildExecutionStart(ctx context.Context, db Database, service string, pipelineExecutionID string, opts ExecutionOptions) (string, error) {
 	execID := fmt.Sprintf("%s-%d", service, time.Now().UnixNano())
 
 	now := timestamppb.Now()
 
 	record := &pb.ExecutionRecord{
-		ExecutionId:       execID,
-		Service:           service,
-		Status:            pb.ExecutionStatus_STATUS_STARTED,
-		Timestamp:         now,
-		StartTime:         now,
-		UserId:            stringPtr(opts.UserID),
-		TestRunId:         stringPtr(opts.TestRunID),
-		TriggerType:       opts.TriggerType,
-		ParentExecutionId: stringPtr(parentExecutionID),
+		ExecutionId:         execID,
+		Service:             service,
+		Status:              pb.ExecutionStatus_STATUS_STARTED,
+		Timestamp:           now,
+		StartTime:           now,
+		UserId:              stringPtr(opts.UserID),
+		TestRunId:           stringPtr(opts.TestRunID),
+		TriggerType:         opts.TriggerType,
+		PipelineExecutionId: stringPtr(pipelineExecutionID),
 	}
 
 	// Encode inputs as JSON if provided

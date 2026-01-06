@@ -86,3 +86,18 @@ resource "google_firestore_index" "pending_inputs_user_status_created" {
 }
 
 
+resource "google_firestore_index" "executions_pipeline_timestamp" {
+  project    = var.project_id
+  database   = google_firestore_database.database.name
+  collection = "executions"
+
+  fields {
+    field_path = "pipeline_execution_id"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "timestamp"
+    order      = "DESCENDING"
+  }
+}

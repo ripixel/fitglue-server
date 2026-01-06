@@ -62,6 +62,6 @@ export interface ExecutionRecord {
   expireAt?:
     | Date
     | undefined;
-  /** Optional parent-child execution tracking */
-  parentExecutionId?: string | undefined;
+  /** Pipeline execution tracking */
+  pipelineExecutionId?: string | undefined;
 }

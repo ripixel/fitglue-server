@@ -23,6 +23,9 @@ message ActivityPayload {
   string original_payload_json = 4; // Raw JSON payload stringified (flexible but preserved)
   map<string, string> metadata = 5; // Extra tracing context
   StandardizedActivity standardized_activity = 6;
+
+  // Execution tracing
+  optional string pipeline_execution_id = 7;
 }
 
 

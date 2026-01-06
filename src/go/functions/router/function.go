@@ -64,6 +64,15 @@ func routeHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fra
 
 	fwCtx.Logger.Info("Starting routing", "source", eventPayload.Source, "pipeline", eventPayload.PipelineId)
 
+	// Extract pipeline_execution_id from payload or use current execution ID
+	pipelineExecID := ""
+	if eventPayload.PipelineExecutionId != nil {
+		pipelineExecID = *eventPayload.PipelineExecutionId
+	}
+	if pipelineExecID == "" {
+		pipelineExecID = fwCtx.ExecutionID
+	}
+
 	// Since we moved routing logic to the Enricher/Pipeline configuration,
 	// the event already carries the list of intended destinations.
 	destinations := eventPayload.Destinations
@@ -101,6 +110,9 @@ func routeHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fra
 			fwCtx.Logger.Error("Failed to create routing event", "error", err)
 			continue
 		}
+
+		// Propagate pipeline execution ID
+		routeEvent.SetExtension("pipeline_execution_id", pipelineExecID)
 
 		resID, err := fwCtx.Service.Pub.PublishCloudEvent(ctx, topic, routeEvent)
 		if err != nil {

@@ -157,8 +157,8 @@ func TestLogChildExecutionStart(t *testing.T) {
 			if record.Service != "child-service" {
 				t.Errorf("Expected child-service, got %v", record.Service)
 			}
-			if record.ParentExecutionId == nil || *record.ParentExecutionId != "parent-exec-123" {
-				t.Errorf("Expected ParentExecutionId 'parent-exec-123', got %v", record.ParentExecutionId)
+			if record.PipelineExecutionId == nil || *record.PipelineExecutionId != "pipeline-123" {
+				t.Errorf("Expected PipelineExecutionId 'pipeline-123', got %v", record.PipelineExecutionId)
 			}
 			if record.UserId == nil || *record.UserId != "user-1" {
 				t.Errorf("Expected user-1, got %v", record.UserId)
@@ -171,7 +171,7 @@ func TestLogChildExecutionStart(t *testing.T) {
 		UserID: "user-1",
 	}
 
-	id, err := execution.LogChildExecutionStart(context.Background(), mockDB, "child-service", "parent-exec-123", opts)
+	id, err := execution.LogChildExecutionStart(context.Background(), mockDB, "child-service", "pipeline-123", opts)
 	if err != nil {
 		t.Fatalf("LogChildExecutionStart failed: %v", err)
 	}

@@ -94,7 +94,7 @@ export const executionConverter: FirestoreDataConverter<ExecutionRecord> = {
     if (model.errorMessage !== undefined) data.error_message = model.errorMessage;
     if (model.inputsJson !== undefined) data.inputs_json = model.inputsJson;
     if (model.outputsJson !== undefined) data.outputs_json = model.outputsJson;
-    if (model.parentExecutionId !== undefined) data.parent_execution_id = model.parentExecutionId;
+    if (model.pipelineExecutionId !== undefined) data.pipeline_execution_id = model.pipelineExecutionId;
     if (model.expireAt !== undefined) data.expire_at = model.expireAt;
 
     return data;
@@ -114,6 +114,7 @@ export const executionConverter: FirestoreDataConverter<ExecutionRecord> = {
       errorMessage: data.error_message,
       inputsJson: data.inputs_json || data.inputsJson,
       outputsJson: data.outputs_json || data.outputsJson,
+      pipelineExecutionId: data.pipeline_execution_id,
       expireAt: toDate(data.expire_at)
     };
   }
@@ -244,7 +245,7 @@ export const mapExecutionPartialToFirestore = (data: Partial<ExecutionRecord>): 
   if (data.errorMessage !== undefined) out.error_message = data.errorMessage;
   if (data.inputsJson !== undefined) out.inputs_json = data.inputsJson;
   if (data.outputsJson !== undefined) out.outputs_json = data.outputsJson;
-  if (data.parentExecutionId !== undefined) out.parent_execution_id = data.parentExecutionId;
+  if (data.pipelineExecutionId !== undefined) out.pipeline_execution_id = data.pipelineExecutionId;
   if (data.expireAt !== undefined) out.expire_at = data.expireAt;
   return out;
 };
@@ -337,7 +338,8 @@ export const synchronizedActivityConverter: FirestoreDataConverter<import('../..
       start_time: model.startTime,
       synced_at: model.syncedAt,
       pipeline_id: model.pipelineId,
-      destinations: model.destinations
+      destinations: model.destinations,
+      pipeline_execution_id: model.pipelineExecutionId
     };
     return data;
   },
@@ -352,7 +354,8 @@ export const synchronizedActivityConverter: FirestoreDataConverter<import('../..
       startTime: toDate(data.start_time),
       syncedAt: toDate(data.synced_at),
       pipelineId: data.pipeline_id,
-      destinations: data.destinations || {}
+      destinations: data.destinations || {},
+      pipelineExecutionId: data.pipeline_execution_id
     };
   }
 };

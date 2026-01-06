@@ -994,18 +994,19 @@ func (x *Counter) GetLastUpdated() *timestamp.Timestamp {
 }
 
 type SynchronizedActivity struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ActivityId    string                 `protobuf:"bytes,1,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
-	Type          ActivityType           `protobuf:"varint,4,opt,name=type,proto3,enum=fitglue.ActivityType" json:"type,omitempty"`
-	Source        string                 `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"` // e.g. "SOURCE_HEVY"
-	StartTime     *timestamp.Timestamp   `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	Destinations  map[string]string      `protobuf:"bytes,7,rep,name=destinations,proto3" json:"destinations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // destination -> external_id
-	SyncedAt      *timestamp.Timestamp   `protobuf:"bytes,8,opt,name=synced_at,json=syncedAt,proto3" json:"synced_at,omitempty"`
-	PipelineId    string                 `protobuf:"bytes,9,opt,name=pipeline_id,json=pipelineId,proto3" json:"pipeline_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	ActivityId          string                 `protobuf:"bytes,1,opt,name=activity_id,json=activityId,proto3" json:"activity_id,omitempty"`
+	Title               string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Description         string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Type                ActivityType           `protobuf:"varint,4,opt,name=type,proto3,enum=fitglue.ActivityType" json:"type,omitempty"`
+	Source              string                 `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"` // e.g. "SOURCE_HEVY"
+	StartTime           *timestamp.Timestamp   `protobuf:"bytes,6,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	Destinations        map[string]string      `protobuf:"bytes,7,rep,name=destinations,proto3" json:"destinations,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // destination -> external_id
+	SyncedAt            *timestamp.Timestamp   `protobuf:"bytes,8,opt,name=synced_at,json=syncedAt,proto3" json:"synced_at,omitempty"`
+	PipelineId          string                 `protobuf:"bytes,9,opt,name=pipeline_id,json=pipelineId,proto3" json:"pipeline_id,omitempty"`
+	PipelineExecutionId string                 `protobuf:"bytes,10,opt,name=pipeline_execution_id,json=pipelineExecutionId,proto3" json:"pipeline_execution_id,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *SynchronizedActivity) Reset() {
@@ -1101,6 +1102,13 @@ func (x *SynchronizedActivity) GetPipelineId() string {
 	return ""
 }
 
+func (x *SynchronizedActivity) GetPipelineExecutionId() string {
+	if x != nil {
+		return x.PipelineExecutionId
+	}
+	return ""
+}
+
 var File_user_proto protoreflect.FileDescriptor
 
 const file_user_proto_rawDesc = "" +
@@ -1172,7 +1180,7 @@ const file_user_proto_rawDesc = "" +
 	"\aCounter\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05count\x18\x02 \x01(\x03R\x05count\x12=\n" +
-	"\flast_updated\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\vlastUpdated\"\xdd\x03\n" +
+	"\flast_updated\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\vlastUpdated\"\x91\x04\n" +
 	"\x14SynchronizedActivity\x12\x1f\n" +
 	"\vactivity_id\x18\x01 \x01(\tR\n" +
 	"activityId\x12\x14\n" +
@@ -1185,7 +1193,9 @@ const file_user_proto_rawDesc = "" +
 	"\fdestinations\x18\a \x03(\v2/.fitglue.SynchronizedActivity.DestinationsEntryR\fdestinations\x127\n" +
 	"\tsynced_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\bsyncedAt\x12\x1f\n" +
 	"\vpipeline_id\x18\t \x01(\tR\n" +
-	"pipelineId\x1a?\n" +
+	"pipelineId\x122\n" +
+	"\x15pipeline_execution_id\x18\n" +
+	" \x01(\tR\x13pipelineExecutionId\x1a?\n" +
 	"\x11DestinationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\xf0\x03\n" +

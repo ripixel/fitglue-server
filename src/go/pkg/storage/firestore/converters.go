@@ -236,37 +236,37 @@ func FirestoreToUser(m map[string]interface{}) *pb.UserRecord {
 
 func ExecutionToFirestore(e *pb.ExecutionRecord) map[string]interface{} {
 	m := map[string]interface{}{
-		"execution_id":        e.ExecutionId,
-		"service":             e.Service,
-		"status":              int32(e.Status), // Store enum as int or string? Protocol is int usually, logger used String()
-		"timestamp":           e.Timestamp.AsTime(),
-		"user_id":             e.UserId,
-		"test_run_id":         e.TestRunId,
-		"trigger_type":        e.TriggerType,
-		"start_time":          e.StartTime.AsTime(),
-		"end_time":            e.EndTime.AsTime(),
-		"error_message":       e.ErrorMessage,
-		"inputs_json":         e.InputsJson,
-		"outputs_json":        e.OutputsJson,
-		"parent_execution_id": e.ParentExecutionId,
+		"execution_id":          e.ExecutionId,
+		"service":               e.Service,
+		"status":                int32(e.Status), // Store enum as int or string? Protocol is int usually, logger used String()
+		"timestamp":             e.Timestamp.AsTime(),
+		"user_id":               e.UserId,
+		"test_run_id":           e.TestRunId,
+		"trigger_type":          e.TriggerType,
+		"start_time":            e.StartTime.AsTime(),
+		"end_time":              e.EndTime.AsTime(),
+		"error_message":         e.ErrorMessage,
+		"inputs_json":           e.InputsJson,
+		"outputs_json":          e.OutputsJson,
+		"pipeline_execution_id": e.PipelineExecutionId,
 	}
 	return m
 }
 
 func FirestoreToExecution(m map[string]interface{}) *pb.ExecutionRecord {
 	e := &pb.ExecutionRecord{
-		ExecutionId:       getString(m, "execution_id"),
-		Service:           getString(m, "service"),
-		Timestamp:         getTime(m, "timestamp"),
-		TriggerType:       getString(m, "trigger_type"), // Required field, not a pointer
-		UserId:            stringPtrOrNil(getString(m, "user_id")),
-		TestRunId:         stringPtrOrNil(getString(m, "test_run_id")),
-		StartTime:         getTime(m, "start_time"),
-		EndTime:           getTime(m, "end_time"),
-		ErrorMessage:      stringPtrOrNil(getString(m, "error_message")),
-		InputsJson:        stringPtrOrNil(getString(m, "inputs_json")),
-		OutputsJson:       stringPtrOrNil(getString(m, "outputs_json")),
-		ParentExecutionId: stringPtrOrNil(getString(m, "parent_execution_id")),
+		ExecutionId:         getString(m, "execution_id"),
+		Service:             getString(m, "service"),
+		Timestamp:           getTime(m, "timestamp"),
+		TriggerType:         getString(m, "trigger_type"), // Required field, not a pointer
+		UserId:              stringPtrOrNil(getString(m, "user_id")),
+		TestRunId:           stringPtrOrNil(getString(m, "test_run_id")),
+		StartTime:           getTime(m, "start_time"),
+		EndTime:             getTime(m, "end_time"),
+		ErrorMessage:        stringPtrOrNil(getString(m, "error_message")),
+		InputsJson:          stringPtrOrNil(getString(m, "inputs_json")),
+		OutputsJson:         stringPtrOrNil(getString(m, "outputs_json")),
+		PipelineExecutionId: stringPtrOrNil(getString(m, "pipeline_execution_id")),
 	}
 
 	if v, ok := m["status"]; ok {

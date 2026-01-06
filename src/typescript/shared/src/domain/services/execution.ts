@@ -60,6 +60,10 @@ export class ExecutionService {
     });
   }
 
+  async listByPipeline(pipelineExecutionId: string): Promise<{ id: string, data: ExecutionRecord }[]> {
+    return this.executionStore.listByPipeline(pipelineExecutionId);
+  }
+
   watchExecutions(filters: { service?: string, status?: string, userId?: string, limit?: number }, onNext: (executions: { id: string, data: ExecutionRecord }[]) => void, onError?: (error: Error) => void): () => void {
     return this.executionStore.watch({
       ...filters,

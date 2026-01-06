@@ -61,6 +61,9 @@ message EnrichedActivityEvent {
   map<string, string> enrichment_metadata = 12;
   repeated string destinations = 13;
   repeated string tags = 14;
+
+  // Execution tracing
+  optional string pipeline_execution_id = 15;
 }
 
 message MessagePublishedData {

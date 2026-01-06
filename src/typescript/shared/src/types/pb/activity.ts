@@ -30,7 +30,11 @@ export interface ActivityPayload {
   originalPayloadJson: string;
   /** Extra tracing context */
   metadata: { [key: string]: string };
-  standardizedActivity?: StandardizedActivity | undefined;
+  standardizedActivity?:
+    | StandardizedActivity
+    | undefined;
+  /** Execution tracing */
+  pipelineExecutionId?: string | undefined;
 }
 
 export interface ActivityPayload_MetadataEntry {

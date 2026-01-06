@@ -171,6 +171,7 @@ export interface SynchronizedActivity {
   destinations: { [key: string]: string };
   syncedAt?: Date | undefined;
   pipelineId: string;
+  pipelineExecutionId: string;
 }
 
 export interface SynchronizedActivity_DestinationsEntry {

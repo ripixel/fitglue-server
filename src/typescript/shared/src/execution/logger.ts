@@ -29,15 +29,17 @@ export async function logExecutionStart(
   ctx: { services: { execution: ExecutionService }; logger: winston.Logger },
   executionId: string,
   trigger: string,
-  originalPayload?: unknown
+  originalPayload?: unknown,
+  pipelineExecutionId?: string
 ): Promise<void> {
-  ctx.logger.info(`Execution started`, { executionId, trigger });
+  ctx.logger.info(`Execution started`, { executionId, trigger, pipelineExecutionId });
 
   // Update existing record to running
   await ctx.services.execution.update(executionId, {
     startTime: new Date(),
     status: ExecutionStatus.STATUS_STARTED,
-    inputsJson: originalPayload ? JSON.stringify(originalPayload) : undefined
+    inputsJson: originalPayload ? JSON.stringify(originalPayload) : undefined,
+    pipelineExecutionId
   });
 }
 

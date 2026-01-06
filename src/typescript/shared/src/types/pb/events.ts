@@ -62,6 +62,8 @@ export interface EnrichedActivityEvent {
   enrichmentMetadata: { [key: string]: string };
   destinations: string[];
   tags: string[];
+  /** Execution tracing */
+  pipelineExecutionId?: string | undefined;
 }
 
 export interface EnrichedActivityEvent_EnrichmentMetadataEntry {

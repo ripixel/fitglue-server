@@ -60,6 +60,7 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 		// Extract metadata
 		var userID string
 		var testRunID string
+		var pipelineExecutionID string
 		var triggerType = e.Type()
 
 		// Try to parse data to find user_id/test_run_id (best effort)
@@ -77,6 +78,12 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 			if tid, ok := rawData["testRunId"].(string); ok {
 				testRunID = tid
 			}
+			if peid, ok := rawData["pipeline_execution_id"].(string); ok {
+				pipelineExecutionID = peid
+			}
+			if peid, ok := rawData["pipelineExecutionId"].(string); ok {
+				pipelineExecutionID = peid
+			}
 		}
 
 		// For HTTP requests, or extensions on any event type
@@ -88,6 +95,17 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 			if trid, ok := extensions["testrunid"].(string); ok {
 				testRunID = trid
 			}
+		}
+
+		// Extract pipeline_execution_id from extensions
+		extensions := e.Extensions()
+		if peid, ok := extensions["pipeline_execution_id"].(string); ok {
+			pipelineExecutionID = peid
+		}
+
+		// If this is the first function (no pipeline_execution_id in event), use our execution ID
+		if pipelineExecutionID == "" {
+			pipelineExecutionID = execID // This is the root execution
 		}
 
 		// Setup Logger
@@ -122,9 +140,10 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 
 		// Log execution start (handler ready) -> Now includes metadata updates
 		startOpts := &execution.ExecutionOptions{
-			UserID:      userID,
-			TestRunID:   testRunID,
-			TriggerType: triggerType,
+			UserID:              userID,
+			TestRunID:           testRunID,
+			TriggerType:         triggerType,
+			PipelineExecutionID: pipelineExecutionID,
 		}
 		if err := execution.LogStart(ctx, svc.DB, execID, inputs, startOpts); err != nil {
 			logger.Warn("Failed to log execution start", "error", err)

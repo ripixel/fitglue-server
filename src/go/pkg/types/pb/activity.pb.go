@@ -84,8 +84,10 @@ type ActivityPayload struct {
 	OriginalPayloadJson  string                 `protobuf:"bytes,4,opt,name=original_payload_json,json=originalPayloadJson,proto3" json:"original_payload_json,omitempty"`                        // Raw JSON payload stringified (flexible but preserved)
 	Metadata             map[string]string      `protobuf:"bytes,5,rep,name=metadata,proto3" json:"metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // Extra tracing context
 	StandardizedActivity *StandardizedActivity  `protobuf:"bytes,6,opt,name=standardized_activity,json=standardizedActivity,proto3" json:"standardized_activity,omitempty"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
+	// Execution tracing
+	PipelineExecutionId *string `protobuf:"bytes,7,opt,name=pipeline_execution_id,json=pipelineExecutionId,proto3,oneof" json:"pipeline_execution_id,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *ActivityPayload) Reset() {
@@ -160,21 +162,30 @@ func (x *ActivityPayload) GetStandardizedActivity() *StandardizedActivity {
 	return nil
 }
 
+func (x *ActivityPayload) GetPipelineExecutionId() string {
+	if x != nil && x.PipelineExecutionId != nil {
+		return *x.PipelineExecutionId
+	}
+	return ""
+}
+
 var File_activity_proto protoreflect.FileDescriptor
 
 const file_activity_proto_rawDesc = "" +
 	"\n" +
-	"\x0eactivity.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bstandardized_activity.proto\"\x9e\x03\n" +
+	"\x0eactivity.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bstandardized_activity.proto\"\xf1\x03\n" +
 	"\x0fActivityPayload\x12/\n" +
 	"\x06source\x18\x01 \x01(\x0e2\x17.fitglue.ActivitySourceR\x06source\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x128\n" +
 	"\ttimestamp\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ttimestamp\x122\n" +
 	"\x15original_payload_json\x18\x04 \x01(\tR\x13originalPayloadJson\x12B\n" +
 	"\bmetadata\x18\x05 \x03(\v2&.fitglue.ActivityPayload.MetadataEntryR\bmetadata\x12R\n" +
-	"\x15standardized_activity\x18\x06 \x01(\v2\x1d.fitglue.StandardizedActivityR\x14standardizedActivity\x1a;\n" +
+	"\x15standardized_activity\x18\x06 \x01(\v2\x1d.fitglue.StandardizedActivityR\x14standardizedActivity\x127\n" +
+	"\x15pipeline_execution_id\x18\a \x01(\tH\x00R\x13pipelineExecutionId\x88\x01\x01\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*Y\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x18\n" +
+	"\x16_pipeline_execution_id*Y\n" +
 	"\x0eActivitySource\x12\x12\n" +
 	"\x0eSOURCE_UNKNOWN\x10\x00\x12\x0f\n" +
 	"\vSOURCE_HEVY\x10\x01\x12\x11\n" +
@@ -220,6 +231,7 @@ func file_activity_proto_init() {
 		return
 	}
 	file_standardized_activity_proto_init()
+	file_activity_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

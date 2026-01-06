@@ -119,9 +119,10 @@ export interface CloudFunctionOptions {
  * Handles both HTTP requests and Pub/Sub messages
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractMetadata(req: any): { userId?: string; testRunId?: string; triggerType: string } {
+function extractMetadata(req: any): { userId?: string; testRunId?: string; pipelineExecutionId?: string; triggerType: string } {
   let userId: string | undefined;
   let testRunId: string | undefined;
+  let pipelineExecutionId: string | undefined;
   let triggerType = 'http';
 
   // Check if this is a Pub/Sub message (has message.data structure)
@@ -133,6 +134,8 @@ function extractMetadata(req: any): { userId?: string; testRunId?: string; trigg
       const messageData = Buffer.from(req.body.message.data, 'base64').toString('utf-8');
       const payload = JSON.parse(messageData);
       userId = payload.user_id || payload.userId;
+      // Extract from payload
+      pipelineExecutionId = payload.pipeline_execution_id || payload.pipelineExecutionId;
     } catch (e) {
       // If parsing fails, continue without user_id
     }
@@ -140,21 +143,29 @@ function extractMetadata(req: any): { userId?: string; testRunId?: string; trigg
     // Check Pub/Sub message attributes for test_run_id
     if (req.body.message.attributes) {
       testRunId = req.body.message.attributes.test_run_id || req.body.message.attributes.testRunId;
+      // Also check attributes for pipeline_execution_id if not in payload
+      if (!pipelineExecutionId) {
+        pipelineExecutionId = req.body.message.attributes.pipeline_execution_id || req.body.message.attributes.pipelineExecutionId;
+      }
     }
   } else {
     // HTTP request
     // Try to extract user_id from request body
     if (req.body) {
       userId = req.body.user_id || req.body.userId;
+      pipelineExecutionId = req.body.pipeline_execution_id || req.body.pipelineExecutionId;
     }
 
-    // Try to extract test_run_id from headers (check both formats)
+    // Try to extract metadata from headers (check both formats)
     if (req.headers) {
       testRunId = req.headers['x-test-run-id'] || req.headers['x-testrunid'];
+      if (!pipelineExecutionId) {
+        pipelineExecutionId = req.headers['x-pipeline-execution-id'];
+      }
     }
   }
 
-  return { userId, testRunId, triggerType };
+  return { userId, testRunId, pipelineExecutionId, triggerType };
 }
 
 export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFunctionOptions) => {
@@ -232,7 +243,10 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
 
     // Extract basic metadata for logging
     const metadata = extractMetadata(req);
-    const { userId, testRunId, triggerType } = metadata;
+    const { userId, testRunId, triggerType, pipelineExecutionId } = metadata;
+
+    // Use current executionId as pipelineExecutionId if not provided (Root Execution)
+    const currentPipelineExecutionId = pipelineExecutionId || executionId;
 
     // Initial Logger
     const preambleLogger = logger.child({
@@ -375,7 +389,7 @@ export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFu
       const originalPayload = isHttp ? req.body : (req.body?.message?.data ? JSON.parse(Buffer.from(req.body.message.data, 'base64').toString()) : req.body);
 
       // Log execution start (update to running + payload)
-      await logExecutionStart(loggingCtx, executionId, triggerType, originalPayload);
+      await logExecutionStart(loggingCtx, executionId, triggerType, originalPayload, currentPipelineExecutionId);
 
       // Attach execution ID to response header early (so it's present even if handler sends response)
       if (isHttp) {

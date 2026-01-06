@@ -130,7 +130,8 @@ export function createWebhookProcessor<TConfig extends ConnectorConfig, TRaw>(
           'activity_id': activityExternalId,
           'connector': connector.name
         },
-        standardizedActivity: standardizedActivity
+        standardizedActivity: standardizedActivity,
+        pipelineExecutionId: ctx.executionId // Root execution ID
       };
 
       const publisher = new CloudEventPublisher<ActivityPayload>(

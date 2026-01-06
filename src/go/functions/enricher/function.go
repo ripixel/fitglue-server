@@ -82,6 +82,12 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 
 	fwCtx.Logger.Info("Starting enrichment", "timestamp", rawEvent.Timestamp, "source", rawEvent.Source)
 
+	// Extract pipeline_execution_id from payload or use current execution ID
+	pipelineExecID := rawEvent.PipelineExecutionId
+	if pipelineExecID == nil || *pipelineExecID == "" {
+		pipelineExecID = &fwCtx.ExecutionID
+	}
+
 	// Initialize Orchestrator
 	bucketName := fwCtx.Service.Config.GCSArtifactBucket
 	if bucketName == "" {
@@ -113,7 +119,7 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 	}
 
 	// Process
-	processResult, err := orchestrator.Process(ctx, &rawEvent, fwCtx.ExecutionID, doNotRetry)
+	processResult, err := orchestrator.Process(ctx, &rawEvent, fwCtx.ExecutionID, *pipelineExecID, doNotRetry)
 
 	if err != nil {
 		// Check if the error is retryable (e.g. data lag)
@@ -181,11 +187,17 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 	publishedEvents := []PublishedEvent{}
 
 	for _, event := range processResult.Events {
+		// Propagate pipeline execution ID
+		event.PipelineExecutionId = pipelineExecID
+
 		resultEvent, err := infrapubsub.NewCloudEvent("/enricher", "com.fitglue.activity.enriched", event)
 		if err != nil {
 			fwCtx.Logger.Error("Failed to create result event", "error", err)
 			continue
 		}
+
+		// Add as CloudEvent extension for framework to extract
+		resultEvent.SetExtension("pipeline_execution_id", *pipelineExecID)
 
 		msgID, err := fwCtx.Service.Pub.PublishCloudEvent(ctx, shared.TopicEnrichedActivity, resultEvent)
 		if err != nil {

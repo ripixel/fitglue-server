@@ -66,6 +66,18 @@ export class ExecutionStore {
   }
 
   /**
+   * List executions belonging to a specific pipeline run.
+   */
+  async listByPipeline(pipelineExecutionId: string): Promise<{ id: string, data: ExecutionRecord }[]> {
+    const query = this.collection()
+      .where('pipeline_execution_id', '==', pipelineExecutionId)
+      .orderBy('timestamp', 'asc');
+
+    const snapshot = await query.get();
+    return snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() as ExecutionRecord }));
+  }
+
+  /**
    * Watch executions with real-time updates.
    */
   watch(filters: { service?: string, status?: number, userId?: string, limit?: number }, onNext: (executions: { id: string, data: ExecutionRecord }[]) => void, onError?: (error: Error) => void): () => void {

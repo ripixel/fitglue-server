@@ -102,10 +102,10 @@ type ExecutionRecord struct {
 	InputsJson   *string              `protobuf:"bytes,11,opt,name=inputs_json,json=inputsJson,proto3,oneof" json:"inputs_json,omitempty"`    // JSON-encoded inputs
 	OutputsJson  *string              `protobuf:"bytes,12,opt,name=outputs_json,json=outputsJson,proto3,oneof" json:"outputs_json,omitempty"` // JSON-encoded outputs
 	ExpireAt     *timestamp.Timestamp `protobuf:"bytes,14,opt,name=expire_at,json=expireAt,proto3,oneof" json:"expire_at,omitempty"`          // When this record should be deleted
-	// Optional parent-child execution tracking
-	ParentExecutionId *string `protobuf:"bytes,13,opt,name=parent_execution_id,json=parentExecutionId,proto3,oneof" json:"parent_execution_id,omitempty"` // Links child executions to parent
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Pipeline execution tracking
+	PipelineExecutionId *string `protobuf:"bytes,15,opt,name=pipeline_execution_id,json=pipelineExecutionId,proto3,oneof" json:"pipeline_execution_id,omitempty"` // Root execution ID for entire pipeline run
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *ExecutionRecord) Reset() {
@@ -229,9 +229,9 @@ func (x *ExecutionRecord) GetExpireAt() *timestamp.Timestamp {
 	return nil
 }
 
-func (x *ExecutionRecord) GetParentExecutionId() string {
-	if x != nil && x.ParentExecutionId != nil {
-		return *x.ParentExecutionId
+func (x *ExecutionRecord) GetPipelineExecutionId() string {
+	if x != nil && x.PipelineExecutionId != nil {
+		return *x.PipelineExecutionId
 	}
 	return ""
 }
@@ -240,7 +240,7 @@ var File_execution_proto protoreflect.FileDescriptor
 
 const file_execution_proto_rawDesc = "" +
 	"\n" +
-	"\x0fexecution.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\x98\x06\n" +
+	"\x0fexecution.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\"\x9e\x06\n" +
 	"\x0fExecutionRecord\x12!\n" +
 	"\fexecution_id\x18\x01 \x01(\tR\vexecutionId\x12\x18\n" +
 	"\aservice\x18\x02 \x01(\tR\aservice\x120\n" +
@@ -257,8 +257,8 @@ const file_execution_proto_rawDesc = "" +
 	"\vinputs_json\x18\v \x01(\tH\x05R\n" +
 	"inputsJson\x88\x01\x01\x12&\n" +
 	"\foutputs_json\x18\f \x01(\tH\x06R\voutputsJson\x88\x01\x01\x12<\n" +
-	"\texpire_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampH\aR\bexpireAt\x88\x01\x01\x123\n" +
-	"\x13parent_execution_id\x18\r \x01(\tH\bR\x11parentExecutionId\x88\x01\x01B\n" +
+	"\texpire_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampH\aR\bexpireAt\x88\x01\x01\x127\n" +
+	"\x15pipeline_execution_id\x18\x0f \x01(\tH\bR\x13pipelineExecutionId\x88\x01\x01B\n" +
 	"\n" +
 	"\b_user_idB\x0e\n" +
 	"\f_test_run_idB\r\n" +
@@ -268,8 +268,8 @@ const file_execution_proto_rawDesc = "" +
 	"\f_inputs_jsonB\x0f\n" +
 	"\r_outputs_jsonB\f\n" +
 	"\n" +
-	"_expire_atB\x16\n" +
-	"\x14_parent_execution_id*\xa1\x01\n" +
+	"_expire_atB\x18\n" +
+	"\x16_pipeline_execution_id*\xa1\x01\n" +
 	"\x0fExecutionStatus\x12\x12\n" +
 	"\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n" +
 	"\x0eSTATUS_STARTED\x10\x01\x12\x12\n" +

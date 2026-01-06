@@ -1302,6 +1302,32 @@ program
     });
 
 program
+    .command('executions:get-by-pipeline <pipelineExecutionId>')
+    .description('Get all executions for a specific pipeline run')
+    .action(async (pipelineExecutionId) => {
+        try {
+            console.log(`Fetching pipeline execution tree for ${pipelineExecutionId}...`);
+            const executions = await executionService.listByPipeline(pipelineExecutionId);
+
+            if (executions.length === 0) {
+                console.log('No executions found.');
+                return;
+            }
+
+            console.log(`\nFound ${executions.length} executions in pipeline run:`);
+            printExecutionTable(executions);
+
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                console.error(`❌ Error getting pipeline executions: ${error.message}`);
+            } else {
+                console.error(`❌ An unknown error occurred`);
+            }
+            process.exit(1);
+        }
+    });
+
+program
     .command('executions:create <executionId>')
     .description('Create a test execution record')
     .option('-s, --service <service>', 'Service name', 'test-service')
@@ -1377,33 +1403,38 @@ program
 program
     .command('executions:clean')
     .description('Delete ALL execution logs from the database')
-    .action(async () => {
+    .option('-f, --force', 'Force deletion without prompt')
+    .action(async (options) => {
         try {
-            const { confirm1 } = await inquirer.prompt([
-                {
-                    type: 'confirm',
-                    name: 'confirm1',
-                    message: 'WARNING: This will delete ALL execution logs. Are you sure?',
-                    default: false
-                }
-            ]);
+            if (!options.force) {
+                const { confirm1 } = await inquirer.prompt([
+                    {
+                        type: 'confirm',
+                        name: 'confirm1',
+                        message: 'WARNING: This will delete ALL execution logs. Are you sure?',
+                        default: false
+                    }
+                ]);
 
-            if (!confirm1) {
-                console.log('Operation cancelled.');
-                return;
+                if (!confirm1) {
+                    console.log('Operation cancelled.');
+                    return;
+                }
             }
 
-            const { confirm2 } = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'confirm2',
-                    message: 'Type "DELETE ALL" to confirm:'
-                }
-            ]);
+            if (!options.force) {
+                const { confirm2 } = await inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'confirm2',
+                        message: 'Type "DELETE ALL" to confirm:'
+                    }
+                ]);
 
-            if (confirm2 !== 'DELETE ALL') {
-                console.log('Confirmation failed. Operation cancelled.');
-                return;
+                if (confirm2 !== 'DELETE ALL') {
+                    console.log('Confirmation failed. Operation cancelled.');
+                    return;
+                }
             }
 
             console.log('Deleting all executions...');

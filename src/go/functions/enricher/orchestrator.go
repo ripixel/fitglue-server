@@ -61,7 +61,7 @@ type ProviderExecution struct {
 }
 
 // Process executes the enrichment pipelines for the activity
-func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload, parentExecutionID string, doNotRetry bool) (*ProcessResult, error) {
+func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload, parentExecutionID string, pipelineExecutionID string, doNotRetry bool) (*ProcessResult, error) {
 	// 1. Fetch User Config
 	userRec, err := o.database.GetUser(ctx, payload.UserId)
 	if err != nil {
@@ -213,17 +213,18 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 
 		// 3b. Merge Results (Fan-In)
 		finalEvent := &pb.EnrichedActivityEvent{
-			UserId:             payload.UserId,
-			Source:             payload.Source,
-			ActivityId:         uuid.NewString(),
-			ActivityData:       payload.StandardizedActivity,
-			ActivityType:       pb.ActivityType_ACTIVITY_TYPE_WORKOUT,
-			Name:               "Workout",
-			AppliedEnrichments: []string{},
-			EnrichmentMetadata: make(map[string]string),
-			Destinations:       pipeline.Destinations,
-			PipelineId:         pipeline.ID,
-			StartTime:          payload.StandardizedActivity.Sessions[0].StartTime,
+			UserId:              payload.UserId,
+			Source:              payload.Source,
+			ActivityId:          uuid.NewString(),
+			ActivityData:        payload.StandardizedActivity,
+			ActivityType:        pb.ActivityType_ACTIVITY_TYPE_WORKOUT,
+			Name:                "Workout",
+			AppliedEnrichments:  []string{},
+			EnrichmentMetadata:  make(map[string]string),
+			Destinations:        pipeline.Destinations,
+			PipelineId:          pipeline.ID,
+			PipelineExecutionId: &pipelineExecutionID,
+			StartTime:           payload.StandardizedActivity.Sessions[0].StartTime,
 		}
 
 		if payload.StandardizedActivity != nil {

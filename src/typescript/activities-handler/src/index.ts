@@ -2,6 +2,7 @@ import { createCloudFunction, FrameworkContext, FirebaseAuthStrategy } from '@fi
 import { Request, Response } from 'express';
 import { SynchronizedActivity } from '@fitglue/shared/dist/types/pb/user';
 import { ActivityType } from '@fitglue/shared/dist/types/pb/standardized_activity';
+import { ExecutionStatus } from '@fitglue/shared/dist/types/pb/execution';
 
 // Helper to convert ActivityType enum to readable string
 const activityTypeToString = (type: number | undefined): string => {
@@ -62,6 +63,14 @@ const activityTypeToString = (type: number | undefined): string => {
   };
 
   return typeMap[type] || `Unknown (${type})`;
+};
+
+// Helper to convert ExecutionStatus enum to readable string
+const executionStatusToString = (status: number | undefined): string => {
+  if (status === undefined) return 'UNKNOWN';
+  // ExecutionStatus is a numeric enum
+  const name = ExecutionStatus[status];
+  return name ? name.replace('STATUS_', '') : 'UNKNOWN';
 };
 
 // Helper to convert ActivitySource to readable string
@@ -133,7 +142,34 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
         res.status(404).json({ error: 'Not found' });
         return;
       }
-      res.status(200).json({ activity: transformActivity(activity) });
+
+      const transformed = transformActivity(activity);
+
+      // Fetch execution trace if pipelineExecutionId is present
+      if (activity.pipelineExecutionId) {
+        try {
+          const executions = await ctx.services.execution.listByPipeline(activity.pipelineExecutionId);
+          // Map to swagger schema
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (transformed as any).pipelineExecution = executions.map(e => ({
+            executionId: e.id,
+            service: e.data.service,
+            status: executionStatusToString(e.data.status),
+            timestamp: e.data.timestamp ? new Date(e.data.timestamp as unknown as string).toISOString() : null, // Handle Firestore/Proto timestamp quirks if needed, usually Date object in JS SDK
+            startTime: e.data.startTime ? new Date(e.data.startTime as unknown as string).toISOString() : null,
+            endTime: e.data.endTime ? new Date(e.data.endTime as unknown as string).toISOString() : null,
+            errorMessage: e.data.errorMessage,
+            triggerType: e.data.triggerType
+          }));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (transformed as any).pipelineExecutionId = activity.pipelineExecutionId;
+        } catch (err) {
+          ctx.logger.error('Failed to fetch pipeline executions', { error: err });
+          // Don't fail the request, just omit the trace
+        }
+      }
+
+      res.status(200).json({ activity: transformed });
       return;
     }
 

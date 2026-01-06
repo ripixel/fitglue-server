@@ -172,8 +172,10 @@ type EnrichedActivityEvent struct {
 	EnrichmentMetadata map[string]string     `protobuf:"bytes,12,rep,name=enrichment_metadata,json=enrichmentMetadata,proto3" json:"enrichment_metadata,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	Destinations       []string              `protobuf:"bytes,13,rep,name=destinations,proto3" json:"destinations,omitempty"`
 	Tags               []string              `protobuf:"bytes,14,rep,name=tags,proto3" json:"tags,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	// Execution tracing
+	PipelineExecutionId *string `protobuf:"bytes,15,opt,name=pipeline_execution_id,json=pipelineExecutionId,proto3,oneof" json:"pipeline_execution_id,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *EnrichedActivityEvent) Reset() {
@@ -304,6 +306,13 @@ func (x *EnrichedActivityEvent) GetTags() []string {
 	return nil
 }
 
+func (x *EnrichedActivityEvent) GetPipelineExecutionId() string {
+	if x != nil && x.PipelineExecutionId != nil {
+		return *x.PipelineExecutionId
+	}
+	return ""
+}
+
 type MessagePublishedData struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          []byte                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
@@ -403,7 +412,7 @@ var File_events_proto protoreflect.FileDescriptor
 
 const file_events_proto_rawDesc = "" +
 	"\n" +
-	"\fevents.proto\x12\x0efitglue.events\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bstandardized_activity.proto\x1a\x0eactivity.proto\"\xd6\x05\n" +
+	"\fevents.proto\x12\x0efitglue.events\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bstandardized_activity.proto\x1a\x0eactivity.proto\"\xa9\x06\n" +
 	"\x15EnrichedActivityEvent\x12\x1f\n" +
 	"\vactivity_id\x18\x01 \x01(\tR\n" +
 	"activityId\x12\x17\n" +
@@ -423,10 +432,12 @@ const file_events_proto_rawDesc = "" +
 	"\x13applied_enrichments\x18\v \x03(\tR\x12appliedEnrichments\x12n\n" +
 	"\x13enrichment_metadata\x18\f \x03(\v2=.fitglue.events.EnrichedActivityEvent.EnrichmentMetadataEntryR\x12enrichmentMetadata\x12\"\n" +
 	"\fdestinations\x18\r \x03(\tR\fdestinations\x12\x12\n" +
-	"\x04tags\x18\x0e \x03(\tR\x04tags\x1aE\n" +
+	"\x04tags\x18\x0e \x03(\tR\x04tags\x127\n" +
+	"\x15pipeline_execution_id\x18\x0f \x01(\tH\x00R\x13pipelineExecutionId\x88\x01\x01\x1aE\n" +
 	"\x17EnrichmentMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x81\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x18\n" +
+	"\x16_pipeline_execution_id\"\x81\x02\n" +
 	"\x14MessagePublishedData\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\fR\x04data\x12T\n" +
 	"\n" +
@@ -507,6 +518,7 @@ func file_events_proto_init() {
 	}
 	file_standardized_activity_proto_init()
 	file_activity_proto_init()
+	file_events_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

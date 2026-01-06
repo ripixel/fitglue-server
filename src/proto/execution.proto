@@ -28,8 +28,8 @@ message ExecutionRecord {
   optional string outputs_json = 12;  // JSON-encoded outputs
   optional google.protobuf.Timestamp expire_at = 14; // When this record should be deleted
 
-  // Optional parent-child execution tracking
-  optional string parent_execution_id = 13;  // Links child executions to parent
+  // Pipeline execution tracking
+  optional string pipeline_execution_id = 15;  // Root execution ID for entire pipeline run
 }
 
 enum ExecutionStatus {

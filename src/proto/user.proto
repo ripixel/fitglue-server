@@ -137,4 +137,5 @@ message SynchronizedActivity {
   map<string, string> destinations = 7; // destination -> external_id
   google.protobuf.Timestamp synced_at = 8;
   string pipeline_id = 9;
+  string pipeline_execution_id = 10;
 }

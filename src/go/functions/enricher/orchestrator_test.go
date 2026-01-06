@@ -159,7 +159,7 @@ func TestOrchestrator_Process(t *testing.T) {
 		}
 
 		// Update calls
-		result, err := orchestrator.Process(ctx, payload, "test-parent-exec-id", false) // false = doNotRetry
+		result, err := orchestrator.Process(ctx, payload, "test-parent-exec-id", "test-pipeline-id", false) // false = doNotRetry
 
 		if err != nil {
 			t.Fatalf("Process failed: %v", err)
@@ -216,7 +216,7 @@ func TestOrchestrator_Process(t *testing.T) {
 		}
 
 		// Update calls
-		result, err := orchestrator.Process(ctx, payload, "test-parent-exec-id", false) // false = doNotRetry
+		result, err := orchestrator.Process(ctx, payload, "test-parent-exec-id", "test-pipeline-id", false) // false = doNotRetry
 
 		if err != nil {
 			t.Fatalf("Process failed: %v", err)
@@ -243,7 +243,7 @@ func TestOrchestrator_Process(t *testing.T) {
 				Sessions: []*pb.Session{{}, {}}, // Two sessions
 			},
 		}
-		_, err := orchestrator.Process(ctx, payload, "exec-1", false)
+		_, err := orchestrator.Process(ctx, payload, "exec-1", "pipe-1", false)
 		if err == nil || err.Error() != "multiple sessions not supported" {
 			t.Errorf("Expected 'multiple sessions not supported' error, got %v", err)
 		}
@@ -264,7 +264,7 @@ func TestOrchestrator_Process(t *testing.T) {
 				},
 			},
 		}
-		_, err := orchestrator.Process(ctx, payload, "exec-1", false)
+		_, err := orchestrator.Process(ctx, payload, "exec-1", "pipe-1", false)
 		if err == nil || err.Error() != "session total elapsed time is 0" {
 			t.Errorf("Expected 'session total elapsed time is 0' error, got %v", err)
 		}
@@ -313,7 +313,7 @@ func TestOrchestrator_Process(t *testing.T) {
 			},
 		}
 
-		_, err := orchestrator.Process(ctx, payload, "exec-1", false)
+		_, err := orchestrator.Process(ctx, payload, "exec-1", "pipe-1", false)
 		if err != nil {
 			t.Fatalf("Process failed: %v", err)
 		}
