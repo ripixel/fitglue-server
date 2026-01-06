@@ -61,11 +61,13 @@ describe('activities-handler', () => {
     });
 
     it('/ returns list of synchronized activities', async () => {
-      ctx.stores.activities.listSynchronized.mockResolvedValue({
+      ctx.stores.activities.listSynchronized.mockResolvedValue([{
         activityId: 'a1',
         title: 'Activity 1',
         description: 'Description 1',
-      });
+        type: 5, // ACTIVITY_TYPE_CROSSFIT
+        source: 'SOURCE_HEVY',
+      }]);
 
       await handler(({
         method: 'GET',
@@ -75,7 +77,15 @@ describe('activities-handler', () => {
       } as any), res, ctx);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ activities: { activityId: "a1", description: "Description 1", title: "Activity 1" } });
+      expect(res.json).toHaveBeenCalledWith({
+        activities: [{
+          activityId: 'a1',
+          title: 'Activity 1',
+          description: 'Description 1',
+          type: 'Crossfit',
+          source: 'Hevy',
+        }]
+      });
     });
 
     it('/stats returns a count of', async () => {
@@ -97,6 +107,8 @@ describe('activities-handler', () => {
         activityId: 'a1',
         title: 'Activity 1',
         description: 'Description 1',
+        type: 46, // ACTIVITY_TYPE_WEIGHT_TRAINING
+        source: 'SOURCE_FITBIT',
       }
       ctx.stores.activities.getSynchronized.mockResolvedValue(activity);
 
@@ -108,7 +120,15 @@ describe('activities-handler', () => {
       } as any), res, ctx);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ activity });
+      expect(res.json).toHaveBeenCalledWith({
+        activity: {
+          activityId: 'a1',
+          title: 'Activity 1',
+          description: 'Description 1',
+          type: 'Weight Training',
+          source: 'Fitbit',
+        }
+      });
     });
 
     it('handles errors', async () => {
