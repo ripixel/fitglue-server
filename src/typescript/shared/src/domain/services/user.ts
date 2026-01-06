@@ -120,6 +120,12 @@ export class UserService {
         });
     }
 
+    async setMockIntegration(userId: string, enabled: boolean): Promise<void> {
+        await this.userStore.setIntegration(userId, 'mock', {
+            enabled,
+        });
+    }
+
     async updateLastUsed(userId: string, provider: string): Promise<void> {
         return this.userStore.updateLastUsed(userId, provider);
     }

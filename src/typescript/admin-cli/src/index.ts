@@ -178,6 +178,27 @@ program.command('users:create')
         }
     });
 
+program.command('users:configure-mock')
+    .argument('<userId>', 'User ID to configure')
+    .description('Configure Mock integration for a user')
+    .action(async (userId) => {
+        try {
+            // Verify user exists
+            const user = await userService.getUser(userId);
+            if (!user) {
+                console.error(`User ${userId} not found`);
+                process.exit(1);
+            }
+
+            await userService.setMockIntegration(userId, true);
+            console.log('Mock integration configured.');
+
+        } catch (error: unknown) {
+            console.error('Error configuring Mock:', error);
+            process.exit(1);
+        }
+    });
+
 program.command('users:configure-hevy')
     .argument('<userId>', 'User ID to configure')
     .description('Configure Hevy integration for a user')
