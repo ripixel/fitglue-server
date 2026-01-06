@@ -279,6 +279,15 @@ resource "google_cloudfunctions2_function" "mock_source_handler" {
   }
 }
 
+resource "google_cloud_run_service_iam_member" "mock_source_handler_invoker" {
+  count    = var.environment == "dev" ? 1 : 0
+  project  = google_cloudfunctions2_function.mock_source_handler.project
+  location = google_cloudfunctions2_function.mock_source_handler.location
+  service  = google_cloudfunctions2_function.mock_source_handler.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
 # ----------------- Hevy Webhook Handler -----------------
 
 resource "google_cloudfunctions2_function" "hevy_handler" {

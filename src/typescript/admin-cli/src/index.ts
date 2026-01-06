@@ -22,6 +22,8 @@ import {
 
 import * as admin from 'firebase-admin';
 
+
+
 // Initialize Firebase if not already initialized
 if (admin.apps.length === 0) {
     admin.initializeApp({
@@ -1172,6 +1174,135 @@ program
             }
             process.exit(1);
         }
+    });
+
+// Helper to find user by pipeline ID
+const findUserByPipelineId = async (pipelineId: string): Promise<UserRecord | null> => {
+    // Inefficient scan, but acceptable for admin CLI/dev tools
+    const users = await userService.listUsers();
+    for (const user of users) {
+        if (user.pipelines && user.pipelines.some(p => p.id === pipelineId)) {
+            return user;
+        }
+    }
+    return null;
+};
+
+
+
+// --- Test Automation Commands ---
+
+const createTestIngressKey = async (userId: string): Promise<string> => {
+    // Generate a new key specifically for testing
+    // We won't check for existing ones because we can't retrieve their secrets.
+    const token = `fg_sk_test_${userId}`;
+    const hash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const existingKey = await apiKeyService.getByHash(hash);
+
+    if (existingKey) {
+        console.log(`✅ Test key already exists for user ${userId}.`);
+    } else {
+        console.log(`Creating test key for user ${userId}...`);
+        await apiKeyService.create(hash, {
+            label: `Auto Test Key (${new Date().toISOString()})`,
+            scopes: ['read:activity'],
+            userId,
+            createdAt: new Date()
+        });
+    }
+
+    return token;
+};
+
+const configureTestPipeline = async (pipelineId: string, behavior: 'success' | 'fail' | 'lag') => {
+    console.log(`Searching for pipeline ${pipelineId}...`);
+    const user = await findUserByPipelineId(pipelineId);
+
+    if (!user) {
+        console.error(`❌ Pipeline ${pipelineId} not found in any user.`);
+        process.exit(1);
+    }
+
+    console.log(`Found pipeline in user ${user.userId}.`);
+
+    // 1. Reconfigure Pipeline
+    console.log(`Reconfiguring for test scenario: ${behavior}...`);
+    const enrichers: EnricherConfig[] = [{
+        providerType: EnricherProviderType.ENRICHER_PROVIDER_MOCK,
+        inputs: {
+            behavior: behavior,
+            name: `Test Activity (${behavior})`,
+            description: `Automated test with behavior: ${behavior}`
+        }
+    }];
+
+    const destinations = ['mock'];
+
+    await userService.replacePipeline(user.userId, pipelineId, 'SOURCE_TEST', enrichers, destinations);
+    console.log(`✅ Pipeline ${pipelineId} reconfigured successfully.`);
+
+    // 2. Create/Get Ingress Key
+    console.log('Generating temporary Ingress Key for trigger...');
+    const ingressKey = await createTestIngressKey(user.userId);
+
+    // 3. Get URL
+    const url = 'https://dev.fitglue.tech/hooks/test'; // Hardcoded as per user request (mapped in firebase.json)
+    console.log(`Target URL: ${url}`);
+
+    // 4. Trigger
+    console.log('🚀 Triggering pipeline...');
+    const payload = {
+        id: `auto_${behavior}_${Date.now()}`
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${ingressKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            console.log(`✅ Trigger successful! Status: ${response.status}`);
+            const data = await response.json();
+            console.log('Response:', JSON.stringify(data, null, 2));
+        } else {
+            console.error(`❌ Trigger failed! Status: ${response.status}`);
+            const text = await response.text();
+            console.error('Response:', text);
+        }
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        console.error(`❌ Error triggering pipeline: ${errorMessage}`);
+    }
+};
+
+program
+    .command('test:success')
+    .argument('<pipelineId>', 'Pipeline ID to configure')
+    .description('Configure pipeline for successful mock execution')
+    .action(async (pipelineId) => {
+        await configureTestPipeline(pipelineId, 'success');
+    });
+
+program
+    .command('test:fail')
+    .argument('<pipelineId>', 'Pipeline ID to configure')
+    .description('Configure pipeline for failed mock execution')
+    .action(async (pipelineId) => {
+        await configureTestPipeline(pipelineId, 'fail');
+    });
+
+program
+    .command('test:lag')
+    .argument('<pipelineId>', 'Pipeline ID to configure')
+    .description('Configure pipeline for lagged mock execution and trigger it')
+    .action(async (pipelineId) => {
+        await configureTestPipeline(pipelineId, 'lag');
     });
 
 // Recursively truncate large arrays/objects for display
