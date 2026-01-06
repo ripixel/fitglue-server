@@ -89,7 +89,7 @@ describe('activities-handler', () => {
       } as any), res, ctx);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ synchronized_count: 1 });
+      expect(res.json).toHaveBeenCalledWith({ synchronizedCount: 1 });
     });
 
     it('/:id returns single activity', async () => {

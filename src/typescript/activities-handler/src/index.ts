@@ -22,17 +22,24 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       monday.setHours(0, 0, 0, 0);
 
       const count = await activityStore.countSynchronized(ctx.userId, monday);
-      res.status(200).json({ synchronized_count: count });
+      res.status(200).json({ synchronizedCount: count });
       return;
     }
 
     // GET /:id -> Single activity
-    // Extract ID from path (e.g., /activities/abc123 or just /abc123)
-    // Firebase rewrites strip the /api prefix, so we might see /activities/id or just /id
-    const pathSegments = req.path.split('/').filter(s => s !== '');
-    // If path is /activities/stats, we already handled it above
-    // If path is /activities/{id} or /{id}, extract the last segment
-    const id = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : null;
+    // Check if this is a list request (path ends with /activities or is just /)
+    if (req.path === '/' || req.path === '/activities' || req.path.endsWith('/activities')) {
+      // GET / -> List
+      const limit = parseInt(req.query.limit as string || '20', 10);
+      const activities = await activityStore.listSynchronized(ctx.userId, limit);
+      res.status(200).json({ activities });
+      return;
+    }
+
+    // Otherwise, extract ID from path
+    // Path could be /activities/{id} or just /{id}
+    const pathParts = req.path.split('/').filter(s => s !== '');
+    const id = pathParts[pathParts.length - 1]; // Last segment is the ID
 
     if (id && id !== 'stats') {
       const activity = await activityStore.getSynchronized(ctx.userId, id);
@@ -44,7 +51,7 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       return;
     }
 
-    // GET / -> List
+    // Fallback to list if we somehow got here
     const limit = parseInt(req.query.limit as string || '20', 10);
     const activities = await activityStore.listSynchronized(ctx.userId, limit);
     res.status(200).json({ activities });
