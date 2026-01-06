@@ -17,6 +17,7 @@ import {
     EnricherConfig,
     PipelineConfig,
     ExecutionRecord,
+    Destination,
 } from '@fitglue/shared';
 
 import * as admin from 'firebase-admin';
@@ -483,6 +484,15 @@ const formatActivityType = (type: string | number | undefined): string => {
     return typeStr;
 };
 
+const getDestinationName = (dest: number | string): string => {
+    if (typeof dest === 'string') return dest;
+    const name = Destination[dest];
+    if (name) {
+        return name.replace('DESTINATION_', '').split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+    }
+    return `Unknown(${dest})`;
+};
+
 // Helper to format user output
 const formatUserOutput = (user: UserRecord) => {
     // Adapter for legacy format where doc was passed
@@ -537,7 +547,9 @@ const formatUserOutput = (user: UserRecord) => {
             } else {
                 console.log(`       Enrichers: (None)`);
             }
-            console.log(`       Destinations: ${p.destinations?.join(', ') || 'None'}`);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const destinationNames = p.destinations?.map((d: any) => getDestinationName(d)).join(', ') || 'None';
+            console.log(`       Destinations: ${destinationNames}`);
         });
     } else {
         console.log(`   Pipelines: None`);
@@ -822,7 +834,8 @@ program.command('users:remove-pipeline')
                     name: 'pipelineId',
                     message: 'Select pipeline to remove:',
                     choices: pipelines.map((p: PipelineConfig) => ({
-                        name: `${p.source} -> ${p.destinations.join(', ')} [${p.id}]`,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        name: `${p.source} -> ${p.destinations.map((d: any) => getDestinationName(d)).join(', ')} [${p.id}]`,
                         value: p.id
                     }))
                 }
@@ -872,7 +885,8 @@ program.command('users:replace-pipeline')
                     name: 'pipelineId',
                     message: 'Select pipeline to replace:',
                     choices: pipelines.map((p: PipelineConfig) => ({
-                        name: `${p.source} -> ${p.destinations.join(', ')} [${p.id}]`,
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        name: `${p.source} -> ${p.destinations.map((d: any) => getDestinationName(d)).join(', ')} [${p.id}]`,
                         value: p.id
                     }))
                 }

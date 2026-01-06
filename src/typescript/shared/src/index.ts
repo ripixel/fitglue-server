@@ -9,7 +9,7 @@ export * from './framework/auth-strategies';
 export { ActivityPayload, ActivitySource } from './types/pb/activity';
 export { StandardizedActivity, Session, Lap, StrengthSet, MuscleGroup, Record, ActivityType } from './types/pb/standardized_activity';
 export { ExecutionRecord, ExecutionStatus } from './types/pb/execution';
-export { CloudEventType, CloudEventSource } from './types/pb/events';
+export { CloudEventType, CloudEventSource, Destination } from './types/pb/events';
 export * from './types/events-helper';
 export { ApiKeyRecord } from './types/pb/auth';
 export { UserRecord, UserIntegrations, HevyIntegration, EnricherProviderType, EnricherConfig, ProcessedActivityRecord, PipelineConfig, SynchronizedActivity } from './types/pb/user';
