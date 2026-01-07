@@ -37,40 +37,46 @@ func (p *AutoIncrementProvider) Enrich(ctx context.Context, activity *pb.Standar
 	// 1. Validation
 	key := inputs["counter_key"]
 	if key == "" {
-		return nil, nil // Misconfigured
+		return &enricher_providers.EnrichmentResult{
+			Metadata: map[string]string{
+				"auto_increment_applied": "false",
+				"reason":                 "Misconfigured",
+			},
+		}, nil
 	}
 
 	// 2. Title Filter (Optional)
-	// NOTE: Since we run in parallel with other providers, this checks the ORIGINAL activity Name.
-	// If the user relies on ConditionMatcher to set the name `Parkrun`, AND this filter to check for `Parkrun`,
-	// it will FAIL because ConditionMatcher hasn't finished yet (or runs in parallel).
-	// This filter is only useful for filtering based on SOURCE name.
 	if filter, ok := inputs["title_contains"]; ok && filter != "" {
 		if !strings.Contains(strings.ToLower(activity.Name), strings.ToLower(filter)) {
-			return nil, nil
+			return &enricher_providers.EnrichmentResult{
+				Metadata: map[string]string{
+					"auto_increment_applied": "false",
+					"reason":                 "Title does not contain filter",
+				},
+			}, nil
 		}
 	}
 
 	if p.service == nil {
-		return nil, fmt.Errorf("service not initialized")
+		return &enricher_providers.EnrichmentResult{
+			Metadata: map[string]string{
+				"auto_increment_applied": "false",
+			},
+		}, fmt.Errorf("service not initialized")
 	}
 
 	// 3. Get/Increment Counter
-	// We use atomic increment if possible, or Get+Set.
-	// Since we are inside an enricher, we should treat this carefully.
-	// If we just Get+Set, race conditions might occur if user uploads 2 activities at once.
-	// Firestore supports transactions, but our Database interface abstracts it.
-	// For now, Get + Set (simple).
-	// Ideally we'd use `FieldValue.increment` but our Store interface expects full object updates for `SetCounter`.
-	// Let's rely on standard Get+Set logic for MVP.
-
 	counter, err := p.service.DB.GetCounter(ctx, user.UserId, key)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
 			counter = nil // Treat as missing -> initialize below
 		} else {
 			// Real error from DB
-			return nil, fmt.Errorf("failed to get counter: %v", err)
+			return &enricher_providers.EnrichmentResult{
+				Metadata: map[string]string{
+					"auto_increment_applied": "false",
+				},
+			}, fmt.Errorf("failed to get counter: %v", err)
 		}
 	}
 
@@ -104,8 +110,9 @@ func (p *AutoIncrementProvider) Enrich(ctx context.Context, activity *pb.Standar
 	return &enricher_providers.EnrichmentResult{
 		NameSuffix: fmt.Sprintf(" (#%d)", newCount),
 		Metadata: map[string]string{
-			"auto_increment_key": key,
-			"auto_increment_val": fmt.Sprintf("%d", newCount),
+			"auto_increment_applied": "true",
+			"auto_increment_key":     key,
+			"auto_increment_val":     fmt.Sprintf("%d", newCount),
 		},
 	}, nil
 }

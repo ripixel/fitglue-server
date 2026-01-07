@@ -89,7 +89,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 		return &ProcessResult{
 			Events:             []*pb.EnrichedActivityEvent{},
 			ProviderExecutions: []ProviderExecution{},
-			Status:             pb.ExecutionStatus_STATUS_SUCCESS,
+			Status:             pb.ExecutionStatus_STATUS_SKIPPED,
 		}, nil
 	}
 

@@ -28,8 +28,14 @@ func TestAutoIncrement_Enrich(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
 		}
-		if res != nil {
-			t.Errorf("Expected nil result (skip), got %v", res)
+		if res == nil {
+			t.Fatal("Expected non-nil result for skip, got nil")
+		}
+		if res.Metadata["auto_increment_applied"] != "false" {
+			t.Errorf("Expected auto_increment_applied=false, got %v", res.Metadata["auto_increment_applied"])
+		}
+		if res.Metadata["reason"] != "Title does not contain filter" {
+			t.Errorf("Expected reason='Title does not contain filter', got %v", res.Metadata["reason"])
 		}
 	})
 
