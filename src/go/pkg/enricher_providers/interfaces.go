@@ -28,6 +28,11 @@ type EnrichmentResult struct {
 
 	// Extra metadata to append
 	Metadata map[string]string
+
+	// HaltPipeline signals the orchestrator to stop processing this pipeline.
+	// Not a failure - the activity is intentionally skipped (e.g., filtered out).
+	HaltPipeline bool
+	HaltReason   string // Human-readable reason for logging/display
 }
 
 // Provider defines the interface for an enrichment service.

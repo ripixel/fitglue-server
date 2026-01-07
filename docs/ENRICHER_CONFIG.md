@@ -321,6 +321,33 @@ Checks start location against known Parkrun coordinates. If within 200m and time
 2. Admin/User must use CLI `inputs:resolve` to provide data.
 3. Pipeline resumes and injects input into activity.
 
+---
+
+### 11. Activity Filter
+**Provider Type**: `ENRICHER_PROVIDER_ACTIVITY_FILTER`
+
+**Purpose**: Stops pipeline execution for specific activities based on type or content analysis.
+
+**Trigger**: Always runs if configured.
+
+**Configuration**:
+```json
+{
+  "providerType": 12,
+  "inputs": {
+    "exclude_activity_types": "WALK,YOGA", // Comma-separated list of types to skip
+    "exclude_title_contains": "commute",   // Skip if title contains this (case-insensitive)
+    "exclude_description_contains": ""     // Skip if description contains this
+  }
+}
+```
+
+**Behavior**:
+- Checks if activity matches any exclusion criteria.
+- If matched, returns `HaltPipeline: true`.
+- Orchestrator stops processing and sets execution status to `STATUS_SKIPPED`.
+- Activity is NOT sent to destinations.
+
 ## Configuring Pipelines via Admin CLI
 
 ### Add a Pipeline
@@ -377,12 +404,11 @@ Interactively select pipeline and reconfigure (keeps same ID).
 ### Enricher Order
 
 **Recommended Order**:
-1. **Metadata Passthrough** - Seeds name/description
-2. **Workout Summary** - Adds exercise details
-3. **Muscle Heatmap** - Adds muscle visualization
-4. **Fitbit Heart Rate** - Adds HR data
-5. **Virtual GPS** - Adds location data (if needed)
-6. **Source Link** - Adds source URL at end
+1. **Workout Summary** - Adds exercise details
+2. **Muscle Heatmap** - Adds muscle visualization
+3. **Fitbit Heart Rate** - Adds HR data
+4. **Virtual GPS** - Adds location data (if needed)
+5. **Source Link** - Adds source URL at end
 
 **Why?** Description-based enrichers append text sequentially. Placing Source Link last ensures the URL appears at the bottom of the description.
 

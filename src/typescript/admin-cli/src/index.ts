@@ -364,6 +364,7 @@ const getEnricherProviderName = (providerType: EnricherProviderType): string => 
         [EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER]: 'Condition Matcher',
         [EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT]: 'Auto Increment',
         [EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT]: 'User Input',
+        [EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER]: 'Activity Filter',
         [EnricherProviderType.ENRICHER_PROVIDER_MOCK]: 'Mock',
         [EnricherProviderType.UNRECOGNIZED]: 'Unrecognized',
     };
@@ -384,6 +385,7 @@ const getAvailableEnricherChoices = (selectedProviderTypes: EnricherProviderType
         { name: 'Condition Matcher', value: EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER },
         { name: 'Auto Increment', value: EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT },
         { name: 'User Input', value: EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT },
+        { name: 'Activity Filter', value: EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER },
         { name: 'Mock', value: EnricherProviderType.ENRICHER_PROVIDER_MOCK }
     ];
 
@@ -2152,6 +2154,25 @@ async function promptForEnricherConfig(providerType: EnricherProviderType): Prom
         inputs = {
             fields: userConfig.fields.join(',')
         };
+    } else if (providerType === EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER) {
+        const answers = await inquirer.prompt([
+            {
+                type: 'input',
+                name: 'exclude_activity_types',
+                message: 'Exclude Activity Types (comma-separated, e.g. WALK, YOGA):',
+            },
+            {
+                type: 'input',
+                name: 'exclude_title_contains',
+                message: 'Exclude Titles Containing (comma-separated case-insensitive):',
+            },
+            {
+                type: 'input',
+                name: 'exclude_description_contains',
+                message: 'Exclude Descriptions Containing (comma-separated case-insensitive):',
+            }
+        ]);
+        inputs = answers;
     } else {
         // Only prompt for JSON if the provider might need config
         // Skip for providers with no config options

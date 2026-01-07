@@ -23,6 +23,7 @@ import (
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 
 	// Register providers
+	_ "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers/activity_filter"
 	_ "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers/auto_increment"
 	_ "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers/condition_matcher"
 	_ "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers/mock"

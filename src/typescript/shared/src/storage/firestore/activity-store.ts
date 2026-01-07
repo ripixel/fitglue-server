@@ -85,4 +85,26 @@ export class ActivityStore {
     }
     return doc.data() || null;
   }
+
+  /**
+   * Check if an external ID exists as a destination in any synchronized activity.
+   * Used for loop prevention - if incoming trigger ID was already posted as a destination,
+   * it means we created this activity and should skip to prevent infinite loops.
+   *
+   * @param userId - User to check
+   * @param destinationKey - e.g., 'strava', 'hevy'
+   * @param externalId - The external ID to check
+   * @returns true if this external ID was already used as a destination
+   */
+  async checkDestinationExists(userId: string, destinationKey: string, externalId: string): Promise<boolean> {
+    // Query for any synchronized activity where destinations.{destinationKey} == externalId
+    // Note: Firestore requires composite index for this query
+    const fieldPath = `destinations.${destinationKey}`;
+    const snapshot = await this.synchronizedCollection(userId)
+      .where(fieldPath, '==', externalId)
+      .limit(1)
+      .get();
+
+    return !snapshot.empty;
+  }
 }

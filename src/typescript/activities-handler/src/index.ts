@@ -159,7 +159,9 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
             startTime: e.data.startTime ? new Date(e.data.startTime as unknown as string).toISOString() : null,
             endTime: e.data.endTime ? new Date(e.data.endTime as unknown as string).toISOString() : null,
             errorMessage: e.data.errorMessage,
-            triggerType: e.data.triggerType
+            triggerType: e.data.triggerType,
+            inputsJson: e.data.inputsJson,
+            outputsJson: e.data.outputsJson
           }));
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (transformed as any).pipelineExecutionId = activity.pipelineExecutionId;

@@ -171,6 +171,25 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 				continue
 			}
 
+			// Check if provider wants to halt the pipeline
+			if res.HaltPipeline {
+				slog.Info(fmt.Sprintf("Provider halted pipeline: %v", provider.Name()), "name", provider.Name(), "reason", res.HaltReason)
+				pe.Status = "SKIPPED"
+				pe.Metadata = res.Metadata
+				if res.HaltReason != "" {
+					pe.Metadata["halt_reason"] = res.HaltReason
+				}
+				providerExecs = append(providerExecs, pe)
+
+				// Skip remaining enrichers and don't publish events for this pipeline
+				allProviderExecutions = append(allProviderExecutions, providerExecs...)
+				return &ProcessResult{
+					Events:             []*pb.EnrichedActivityEvent{},
+					ProviderExecutions: allProviderExecutions,
+					Status:             pb.ExecutionStatus_STATUS_SKIPPED,
+				}, nil
+			}
+
 			pe.Status = "SUCCESS"
 			pe.Metadata = res.Metadata
 			results[i] = res

@@ -38,7 +38,9 @@ const (
 	EnricherProviderType_ENRICHER_PROVIDER_CONDITION_MATCHER    EnricherProviderType = 9
 	EnricherProviderType_ENRICHER_PROVIDER_AUTO_INCREMENT       EnricherProviderType = 10
 	EnricherProviderType_ENRICHER_PROVIDER_USER_INPUT           EnricherProviderType = 11
-	EnricherProviderType_ENRICHER_PROVIDER_MOCK                 EnricherProviderType = 99
+	// Config inputs: "exclude_activity_types" (comma-separated), "exclude_title_contains" (string)
+	EnricherProviderType_ENRICHER_PROVIDER_ACTIVITY_FILTER EnricherProviderType = 12
+	EnricherProviderType_ENRICHER_PROVIDER_MOCK            EnricherProviderType = 99
 )
 
 // Enum value maps for EnricherProviderType.
@@ -56,6 +58,7 @@ var (
 		9:  "ENRICHER_PROVIDER_CONDITION_MATCHER",
 		10: "ENRICHER_PROVIDER_AUTO_INCREMENT",
 		11: "ENRICHER_PROVIDER_USER_INPUT",
+		12: "ENRICHER_PROVIDER_ACTIVITY_FILTER",
 		99: "ENRICHER_PROVIDER_MOCK",
 	}
 	EnricherProviderType_value = map[string]int32{
@@ -71,6 +74,7 @@ var (
 		"ENRICHER_PROVIDER_CONDITION_MATCHER":    9,
 		"ENRICHER_PROVIDER_AUTO_INCREMENT":       10,
 		"ENRICHER_PROVIDER_USER_INPUT":           11,
+		"ENRICHER_PROVIDER_ACTIVITY_FILTER":      12,
 		"ENRICHER_PROVIDER_MOCK":                 99,
 	}
 )
@@ -1273,7 +1277,7 @@ const file_user_proto_rawDesc = "" +
 	" \x01(\tR\x13pipelineExecutionId\x1a?\n" +
 	"\x11DestinationsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\xf0\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01*\x97\x04\n" +
 	"\x14EnricherProviderType\x12!\n" +
 	"\x1dENRICHER_PROVIDER_UNSPECIFIED\x10\x00\x12'\n" +
 	"#ENRICHER_PROVIDER_FITBIT_HEART_RATE\x10\x01\x12%\n" +
@@ -1287,7 +1291,8 @@ const file_user_proto_rawDesc = "" +
 	"#ENRICHER_PROVIDER_CONDITION_MATCHER\x10\t\x12$\n" +
 	" ENRICHER_PROVIDER_AUTO_INCREMENT\x10\n" +
 	"\x12 \n" +
-	"\x1cENRICHER_PROVIDER_USER_INPUT\x10\v\x12\x1a\n" +
+	"\x1cENRICHER_PROVIDER_USER_INPUT\x10\v\x12%\n" +
+	"!ENRICHER_PROVIDER_ACTIVITY_FILTER\x10\f\x12\x1a\n" +
 	"\x16ENRICHER_PROVIDER_MOCK\x10c*\xab\x01\n" +
 	"\x14WorkoutSummaryFormat\x12&\n" +
 	"\"WORKOUT_SUMMARY_FORMAT_UNSPECIFIED\x10\x00\x12\"\n" +

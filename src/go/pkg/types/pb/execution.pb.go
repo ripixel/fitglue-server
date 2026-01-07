@@ -32,6 +32,7 @@ const (
 	ExecutionStatus_STATUS_PENDING      ExecutionStatus = 4
 	ExecutionStatus_STATUS_WAITING      ExecutionStatus = 5
 	ExecutionStatus_STATUS_LAGGED_RETRY ExecutionStatus = 6
+	ExecutionStatus_STATUS_SKIPPED      ExecutionStatus = 7 // Pipeline halted (not a failure, e.g., loop prevention)
 )
 
 // Enum value maps for ExecutionStatus.
@@ -44,6 +45,7 @@ var (
 		4: "STATUS_PENDING",
 		5: "STATUS_WAITING",
 		6: "STATUS_LAGGED_RETRY",
+		7: "STATUS_SKIPPED",
 	}
 	ExecutionStatus_value = map[string]int32{
 		"STATUS_UNKNOWN":      0,
@@ -53,6 +55,7 @@ var (
 		"STATUS_PENDING":      4,
 		"STATUS_WAITING":      5,
 		"STATUS_LAGGED_RETRY": 6,
+		"STATUS_SKIPPED":      7,
 	}
 )
 
@@ -269,7 +272,7 @@ const file_execution_proto_rawDesc = "" +
 	"\r_outputs_jsonB\f\n" +
 	"\n" +
 	"_expire_atB\x18\n" +
-	"\x16_pipeline_execution_id*\xa1\x01\n" +
+	"\x16_pipeline_execution_id*\xb5\x01\n" +
 	"\x0fExecutionStatus\x12\x12\n" +
 	"\x0eSTATUS_UNKNOWN\x10\x00\x12\x12\n" +
 	"\x0eSTATUS_STARTED\x10\x01\x12\x12\n" +
@@ -277,7 +280,8 @@ const file_execution_proto_rawDesc = "" +
 	"\rSTATUS_FAILED\x10\x03\x12\x12\n" +
 	"\x0eSTATUS_PENDING\x10\x04\x12\x12\n" +
 	"\x0eSTATUS_WAITING\x10\x05\x12\x17\n" +
-	"\x13STATUS_LAGGED_RETRY\x10\x06B7Z5github.com/ripixel/fitglue-server/src/go/pkg/types/pbb\x06proto3"
+	"\x13STATUS_LAGGED_RETRY\x10\x06\x12\x12\n" +
+	"\x0eSTATUS_SKIPPED\x10\aB7Z5github.com/ripixel/fitglue-server/src/go/pkg/types/pbb\x06proto3"
 
 var (
 	file_execution_proto_rawDescOnce sync.Once

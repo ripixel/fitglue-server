@@ -171,6 +171,14 @@ export class UserService {
         return this.activityStore.delete(userId, activityId);
     }
 
+    /**
+     * Check if an external ID exists as a destination in any synchronized activity.
+     * Used for loop prevention - prevents infinite trigger chains.
+     */
+    async checkDestinationExists(userId: string, destinationKey: string, externalId: string): Promise<boolean> {
+        return this.activityStore.checkDestinationExists(userId, destinationKey, externalId);
+    }
+
     // Pipeline methods (legacy support)
     async addPipeline(userId: string, source: string, enrichers: EnricherConfig[], destinations: string[]): Promise<string> {
         const id = `pipe_${Date.now()}`;

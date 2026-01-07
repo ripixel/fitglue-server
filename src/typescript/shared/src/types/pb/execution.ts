@@ -16,6 +16,8 @@ export enum ExecutionStatus {
   STATUS_PENDING = 4,
   STATUS_WAITING = 5,
   STATUS_LAGGED_RETRY = 6,
+  /** STATUS_SKIPPED - Pipeline halted (not a failure, e.g., loop prevention) */
+  STATUS_SKIPPED = 7,
   UNRECOGNIZED = -1,
 }
 

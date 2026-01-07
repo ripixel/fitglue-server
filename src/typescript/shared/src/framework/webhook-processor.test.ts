@@ -27,11 +27,13 @@ class MockConnectorClass implements Connector<ConnectorConfig> {
 }
 
 const mockHasProcessedActivity = jest.fn();
+const mockCheckDestinationExists = jest.fn();
 const mockMarkActivityAsProcessed = jest.fn();
 const mockGet = jest.fn();
 
 const mockUserService = {
   hasProcessedActivity: mockHasProcessedActivity,
+  checkDestinationExists: mockCheckDestinationExists,
   markActivityAsProcessed: mockMarkActivityAsProcessed,
   get: mockGet
 };
@@ -80,6 +82,7 @@ describe('createWebhookProcessor', () => {
       integrations: { 'test-connector': { enabled: true } }
     });
     mockHasProcessedActivity.mockResolvedValue(false);
+    mockCheckDestinationExists.mockResolvedValue(false);
     mockFetchAndMap.mockResolvedValue([{
       source: 'TEST',
       externalId: 'evt-123',
@@ -92,6 +95,7 @@ describe('createWebhookProcessor', () => {
 
     expect(mockExtractId).toHaveBeenCalledWith(req.body);
     expect(mockHasProcessedActivity).toHaveBeenCalledWith('user-1', 'test-connector', 'evt-123');
+    expect(mockCheckDestinationExists).toHaveBeenCalledWith('user-1', 'test-connector', 'evt-123');
     expect(mockFetchAndMap).toHaveBeenCalledWith('evt-123', expect.objectContaining({ enabled: true }));
     expect(mockPublish).toHaveBeenCalled();
     expect(mockMarkActivityAsProcessed).toHaveBeenCalledWith('user-1', 'test-connector', 'evt-123', expect.anything());
@@ -112,6 +116,18 @@ describe('createWebhookProcessor', () => {
     expect(result.status).toBe('Skipped');
     expect(mockFetchAndMap).not.toHaveBeenCalled();
     expect(mockPublish).not.toHaveBeenCalled();
+  });
+
+  it('should skip if loop detected', async () => {
+    mockCheckDestinationExists.mockResolvedValue(true);
+    const result = await handler(req, res, ctx);
+
+    expect(result.status).toBe('Skipped');
+    expect(res.send).toHaveBeenCalledWith(expect.stringContaining('Loop prevention'));
+    expect(mockHasProcessedActivity).not.toHaveBeenCalled(); // Should skip dedup cheek entirely? Actually it returns early.
+    expect(mockFetchAndMap).not.toHaveBeenCalled();
+    expect(mockPublish).not.toHaveBeenCalled();
+
   });
 
   it('should error if config is disabled', async () => {
