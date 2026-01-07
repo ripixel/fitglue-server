@@ -254,7 +254,7 @@ func enrichHandler(ctx context.Context, e cloudevents.Event, fwCtx *framework.Fr
 				}
 
 				return map[string]interface{}{
-					"status": "STATUS_LAGGED",
+					"status": "STATUS_LAGGED_RETRY",
 					"reason": originalErr.Error(),
 				}, nil // ACK original message since we've successfully moved it to the delay queue
 			}
