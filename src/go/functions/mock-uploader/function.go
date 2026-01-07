@@ -80,21 +80,18 @@ func mockHandler() framework.HandlerFunc {
 
 		// Persist SynchronizedActivity
 		syncedActivity := &pb.SynchronizedActivity{
-			ActivityId:  eventPayload.ActivityId,
-			Title:       eventPayload.Name,
-			Description: eventPayload.Description,
-			Type:        eventPayload.ActivityType,
-			Source:      eventPayload.Source.String(),
-			StartTime:   eventPayload.StartTime,
-			SyncedAt:    timestamppb.Now(),
-			PipelineId:  eventPayload.PipelineId,
+			ActivityId:          eventPayload.ActivityId,
+			Title:               eventPayload.Name,
+			Description:         eventPayload.Description,
+			Type:                eventPayload.ActivityType,
+			Source:              eventPayload.Source.String(),
+			StartTime:           eventPayload.StartTime,
+			SyncedAt:            timestamppb.Now(),
+			PipelineId:          eventPayload.PipelineId,
+			PipelineExecutionId: fwCtx.PipelineExecutionId, // Use framework context (guaranteed populated)
 			Destinations: map[string]string{
 				"mock": mockExternalID,
 			},
-		}
-
-		if eventPayload.PipelineExecutionId != nil {
-			syncedActivity.PipelineExecutionId = *eventPayload.PipelineExecutionId
 		}
 
 		if err := svc.DB.SetSynchronizedActivity(ctx, eventPayload.UserId, syncedActivity); err != nil {

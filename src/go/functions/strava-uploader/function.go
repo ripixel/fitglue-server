@@ -170,14 +170,15 @@ func uploadHandler(httpClient *http.Client) framework.HandlerFunc {
 		// Persist SynchronizedActivity if successful
 		if uploadResp.ActivityID != 0 {
 			syncedActivity := &pb.SynchronizedActivity{
-				ActivityId:  eventPayload.ActivityId,
-				Title:       eventPayload.Name,
-				Description: eventPayload.Description,
-				Type:        eventPayload.ActivityType,
-				Source:      "SOURCE_FITFILE", // Currently we only have this pipeline, can improve later
-				StartTime:   eventPayload.StartTime,
-				SyncedAt:    timestamppb.Now(),
-				PipelineId:  eventPayload.PipelineId,
+				ActivityId:          eventPayload.ActivityId,
+				Title:               eventPayload.Name,
+				Description:         eventPayload.Description,
+				Type:                eventPayload.ActivityType,
+				Source:              eventPayload.Source.String(), // Use original event source (FROM webhook trigger)
+				StartTime:           eventPayload.StartTime,
+				SyncedAt:            timestamppb.Now(),
+				PipelineId:          eventPayload.PipelineId,
+				PipelineExecutionId: fwCtx.PipelineExecutionId, // Link to execution trace
 				Destinations: map[string]string{
 					"strava": fmt.Sprintf("%d", uploadResp.ActivityID),
 				},

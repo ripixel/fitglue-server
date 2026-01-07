@@ -17,9 +17,10 @@ import (
 // FrameworkContext contains dependencies injected by the framework
 // Similar to TypeScript's FrameworkContext
 type FrameworkContext struct {
-	Service     *bootstrap.Service
-	Logger      *slog.Logger
-	ExecutionID string
+	Service             *bootstrap.Service
+	Logger              *slog.Logger
+	ExecutionID         string
+	PipelineExecutionId string
 }
 
 // HandlerFunc is the signature for a cloud function handler
@@ -153,9 +154,10 @@ func WrapCloudEvent(serviceName string, svc *bootstrap.Service, handler HandlerF
 
 		// Create framework context with Context Logger
 		fwCtx := &FrameworkContext{
-			Service:     svc,
-			Logger:      baseLogger.With("execution_id", execID).With("component", "context"),
-			ExecutionID: execID,
+			Service:             svc,
+			Logger:              baseLogger.With("execution_id", execID).With("component", "context"),
+			ExecutionID:         execID,
+			PipelineExecutionId: pipelineExecutionID,
 		}
 
 		// Defer panic recovery
