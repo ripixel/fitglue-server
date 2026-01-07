@@ -273,8 +273,8 @@ export class FitbitConnector extends BaseConnector<FitbitConnectorConfig> {
       // Map TCX to StandardizedActivity
       try {
         const standardized = mapTCXToStandardized(tcxData as string, act, userId, 'FITBIT');
-        // Override type with Fitbit's activityParentName (TCX Sport attribute is unreliable)
-        standardized.type = mapFitbitActivityType(act.activityParentName);
+        // Override type with Fitbit's activity name (prefer `name` which is more specific, fallback to `activityParentName`)
+        standardized.type = mapFitbitActivityType(act.name || act.activityParentName);
         standardizedActivities.push(standardized);
       } catch (mapErr) {
         console.error(`Failed to map activity ${logIdStr}:`, mapErr);
