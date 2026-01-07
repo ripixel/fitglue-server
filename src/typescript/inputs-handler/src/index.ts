@@ -135,6 +135,35 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
     return;
   }
 
+  if (req.method === 'DELETE') {
+    if (!ctx.userId) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    // Path is like /:activityId for delete
+    const activityId = path.substring(1); // remove leading slash
+    if (!activityId) {
+      res.status(400).json({ error: 'Missing activityId' });
+      return;
+    }
+
+    try {
+      await inputService.dismissInput(activityId, ctx.userId);
+      ctx.logger.info('Dismissed input', { activityId });
+      res.status(200).json({ success: true });
+    } catch (e: unknown) {
+      const err = e as { message?: string };
+      ctx.logger.error('Failed to dismiss input', { error: e, activityId });
+      if (err.message?.includes('Unauthorized')) {
+        res.status(403).json({ error: 'Forbidden' });
+      } else {
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
+    return;
+  }
+
   // --- User Handlers ---
   // (Moved to top priority check)
 

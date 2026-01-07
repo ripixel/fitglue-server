@@ -28,4 +28,8 @@ export class InputStore {
       updated_at: new Date()
     });
   }
+
+  async delete(activityId: string): Promise<void> {
+    await this.db.collection('pending_inputs').doc(activityId).delete();
+  }
 }

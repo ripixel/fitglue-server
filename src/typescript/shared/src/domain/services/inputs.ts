@@ -28,4 +28,18 @@ export class InputService {
 
     await this.store.resolve(activityId, inputData);
   }
+
+  async dismissInput(activityId: string, userId: string): Promise<void> {
+    const pending = await this.store.getPending(activityId);
+    if (!pending) {
+      // Idempotent success if already gone
+      return;
+    }
+
+    if (pending.userId !== userId) {
+      throw new Error('Unauthorized');
+    }
+
+    await this.store.delete(activityId);
+  }
 }
