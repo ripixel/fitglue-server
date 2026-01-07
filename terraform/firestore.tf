@@ -101,3 +101,19 @@ resource "google_firestore_index" "executions_pipeline_timestamp" {
     order      = "DESCENDING"
   }
 }
+
+resource "google_firestore_index" "executions_pipeline_timestamp_asc" {
+  project    = var.project_id
+  database   = google_firestore_database.database.name
+  collection = "executions"
+
+  fields {
+    field_path = "pipeline_execution_id"
+    order      = "ASCENDING"
+  }
+
+  fields {
+    field_path = "timestamp"
+    order      = "ASCENDING"
+  }
+}
