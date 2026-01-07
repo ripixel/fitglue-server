@@ -424,14 +424,15 @@ func FirestoreToPendingInput(m map[string]interface{}) *pb.PendingInput {
 
 func SynchronizedActivityToFirestore(s *pb.SynchronizedActivity) map[string]interface{} {
 	m := map[string]interface{}{
-		"activity_id": s.ActivityId,
-		"title":       s.Title,
-		"description": s.Description,
-		"type":        int32(s.Type),
-		"source":      s.Source,
-		"start_time":  s.StartTime.AsTime(),
-		"synced_at":   s.SyncedAt.AsTime(),
-		"pipeline_id": s.PipelineId,
+		"activity_id":           s.ActivityId,
+		"title":                 s.Title,
+		"description":           s.Description,
+		"type":                  int32(s.Type),
+		"source":                s.Source,
+		"start_time":            s.StartTime.AsTime(),
+		"synced_at":             s.SyncedAt.AsTime(),
+		"pipeline_id":           s.PipelineId,
+		"pipeline_execution_id": s.PipelineExecutionId,
 	}
 
 	if s.Destinations != nil {
@@ -443,13 +444,14 @@ func SynchronizedActivityToFirestore(s *pb.SynchronizedActivity) map[string]inte
 
 func FirestoreToSynchronizedActivity(m map[string]interface{}) *pb.SynchronizedActivity {
 	s := &pb.SynchronizedActivity{
-		ActivityId:  getString(m, "activity_id"),
-		Title:       getString(m, "title"),
-		Description: getString(m, "description"),
-		Source:      getString(m, "source"),
-		StartTime:   getTime(m, "start_time"),
-		SyncedAt:    getTime(m, "synced_at"),
-		PipelineId:  getString(m, "pipeline_id"),
+		ActivityId:          getString(m, "activity_id"),
+		Title:               getString(m, "title"),
+		Description:         getString(m, "description"),
+		Source:              getString(m, "source"),
+		StartTime:           getTime(m, "start_time"),
+		SyncedAt:            getTime(m, "synced_at"),
+		PipelineId:          getString(m, "pipeline_id"),
+		PipelineExecutionId: getString(m, "pipeline_execution_id"),
 	}
 
 	if v, ok := m["type"]; ok {

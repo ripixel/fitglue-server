@@ -64,6 +64,9 @@ addInputsCommands(program);
 import { addTerraformCommands } from './commands/terraform';
 addTerraformCommands(program);
 
+import { addSynchronizedCommands } from './commands/synchronized';
+addSynchronizedCommands(program);
+
 import { randomUUID } from 'crypto';
 import * as crypto from 'crypto';
 

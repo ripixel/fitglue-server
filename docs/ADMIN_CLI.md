@@ -152,6 +152,79 @@ Delete a processed activity record to allow re-ingestion. This is useful when yo
 ./fitglue-admin activities:delete-processed my-user-id SOURCE_FITBIT activity-456
 ```
 
+## Synchronized Activity Commands
+
+### `synchronized:list <userId>`
+
+List all synchronized activities for a user. These are activities that have been successfully processed and uploaded to destinations.
+
+**Options:**
+- `-l, --limit <number>`: Limit results (default: 20)
+
+**Usage:**
+```bash
+./fitglue-admin synchronized:list my-user-id
+
+# With limit
+./fitglue-admin synchronized:list my-user-id --limit 50
+```
+
+**Output:**
+```
+Found 3 synchronized activities:
+--------------------------------------------------
+[abc-123] Morning Run
+  Type: 39, Source: SOURCE_HEVY
+  Synced: 2026-01-07T10:30:00Z
+  Destinations: strava, mock
+--------------------------------------------------
+```
+
+### `synchronized:get <userId> <activityId>`
+
+Get detailed information about a specific synchronized activity, including the pipeline execution trace if available.
+
+**Options:**
+- `-v, --verbose`: Show full execution trace details including input/output payloads
+
+**Usage:**
+```bash
+./fitglue-admin synchronized:get my-user-id abc-123
+
+# With verbose output
+./fitglue-admin synchronized:get my-user-id abc-123 --verbose
+```
+
+**Output:**
+```
+Synchronized Activity Details:
+--------------------------------------------------
+Activity ID: abc-123
+Title: Morning Run
+Description: Great run today!
+Type: 39
+Source: SOURCE_HEVY
+Start Time: 2026-01-07T09:00:00Z
+Synced At: 2026-01-07T10:30:00Z
+Pipeline ID: pipe_123456
+Pipeline Execution ID: exec_789
+Destinations:
+  strava: 12345678
+  mock: mock-abc-123
+--------------------------------------------------
+
+Pipeline Execution Trace:
+--------------------------------------------------
+[hevy-webhook-handler] STATUS_2 (125ms)
+  Execution ID: exec_789
+  Time: 2026-01-07T10:29:55Z
+--------------------------------------------------
+[enricher] STATUS_2 (350ms)
+  Execution ID: exec_790
+  Time: 2026-01-07T10:29:56Z
+--------------------------------------------------
+```
+
 ## Execution Inspection Commands
 
 ### `executions:list`
