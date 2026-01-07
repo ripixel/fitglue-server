@@ -45,19 +45,35 @@ export function addTerraformCommands(program: Command) {
           process.exit(1);
         }
 
-        // 2. Run terraform state list to see if there is a lock
-        // This is lightweight and doesn't require variable files or ZIPs
-        const listResult = spawnSync('terraform', ['state', 'list', '-no-color'], {
+        // 2. Run terraform plan with a short lock timeout to detect locks
+        // terraform state list is a read operation that doesn't acquire locks,
+        // so it won't detect if another process holds a write lock.
+        // Using plan with -lock-timeout=1s will fail fast if locked.
+        console.log('Checking for active locks...');
+        const planResult = spawnSync('terraform', [
+          'plan',
+          '-lock-timeout=1s',
+          `-var-file=envs/${environment}.tfvars`,
+          '-input=false',
+          '-no-color'
+        ], {
           cwd: terraformDir,
           encoding: 'utf-8'
         });
 
-        if (listResult.status === 0) {
-          console.log('✅ No state lock detected. Terraform state list succeeded.');
+        // Check if it failed due to a lock
+        const output = (planResult.stderr || planResult.stdout).toString();
+        const lockError = output.includes('Error acquiring the state lock') || output.includes('Error locking state');
+
+        if (planResult.status === 0 || (!lockError && planResult.status !== 0)) {
+          // Plan succeeded or failed for a non-lock reason
+          if (planResult.status === 0) {
+            console.log('✅ No state lock detected. Terraform plan succeeded.');
+          } else {
+            console.log('✅ No state lock detected (plan failed for other reasons, but no lock issue).');
+          }
           return;
         }
-
-        const output = (listResult.stderr || listResult.stdout).toString();
         const lockIdMatch = output.match(/ID:\s+([0-9]+)/);
 
         if (lockIdMatch) {
