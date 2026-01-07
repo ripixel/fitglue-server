@@ -161,4 +161,36 @@ describe('inputs-handler', () => {
       expect(res.status).toHaveBeenCalledWith(409);
     });
   });
+  describe('DELETE /:activityId', () => {
+    beforeEach(() => {
+      req.method = 'DELETE';
+      req.path = '/act-1';
+      mockInputService.dismissInput = jest.fn();
+    });
+
+    it('returns 400 if missing activityId', async () => {
+      req.path = '/';
+      await handler(req, res, ctx);
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('calls dismissInput and returns success', async () => {
+      await handler(req, res, ctx);
+      expect(mockInputService.dismissInput).toHaveBeenCalledWith('act-1', 'user-1');
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ success: true });
+    });
+
+    it('handles generic errors', async () => {
+      mockInputService.dismissInput.mockRejectedValue(new Error('Some error'));
+      await handler(req, res, ctx);
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+    it('handles encoded IDs', async () => {
+      req.path = '/api/inputs/FITBIT%3A123';
+      await handler(req, res, ctx);
+      expect(mockInputService.dismissInput).toHaveBeenCalledWith('FITBIT:123', 'user-1');
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+  });
 });

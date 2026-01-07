@@ -141,12 +141,17 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       return;
     }
 
-    // Path is like /:activityId for delete
-    const activityId = path.substring(1); // remove leading slash
-    if (!activityId) {
+    // Path is like /:activityId for delete, or possibly /api/inputs/:activityId depending on environment
+    // Robustly extract the last non-empty segment
+    const segments = path.split('/').filter(s => s.length > 0);
+    const rawId = segments.pop();
+
+    if (!rawId) {
       res.status(400).json({ error: 'Missing activityId' });
       return;
     }
+
+    const activityId = decodeURIComponent(rawId);
 
     try {
       await inputService.dismissInput(activityId, ctx.userId);
