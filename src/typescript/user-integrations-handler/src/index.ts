@@ -1,240 +1,190 @@
-import {
-  createCloudFunction,
-  db,
-  FrameworkContext,
-  FirebaseAuthStrategy,
-  UserStore,
-  UserService,
-  ActivityStore,
-  generateOAuthState,
-  getSecret
-} from '@fitglue/shared';
+import { createCloudFunction, FrameworkContext, FirebaseAuthStrategy, generateOAuthState, getSecret } from '@fitglue/shared';
 import { Request, Response } from 'express';
 
-/**
- * User Integrations Handler
- *
- * Endpoints:
- * - GET /users/me/integrations: List integrations with masked tokens
- * - POST /users/me/integrations/{provider}/connect: Generate OAuth URL
- * - DELETE /users/me/integrations/{provider}: Disconnect integration
- */
-
-// Helper to mask sensitive tokens
-function maskToken(token: string | undefined): string | undefined {
-  if (!token) return undefined;
-  if (token.length <= 8) return '****';
-  return token.substring(0, 4) + '****' + token.substring(token.length - 4);
-}
-
-// Get integration status summary (with masked tokens)
-function getIntegrationsSummary(user: {
-  integrations?: {
-    hevy?: { enabled?: boolean; apiKey?: string; lastUsedAt?: Date };
-    strava?: { enabled?: boolean; athleteId?: number; lastUsedAt?: Date };
-    fitbit?: { enabled?: boolean; fitbitUserId?: string; lastUsedAt?: Date };
-  };
-}) {
-  const integrations = user.integrations || {};
-
-  return {
-    hevy: integrations.hevy?.enabled
-      ? {
-        connected: true,
-        externalUserId: integrations.hevy.apiKey ? maskToken(integrations.hevy.apiKey) : undefined,
-        lastUsedAt: integrations.hevy.lastUsedAt?.toISOString()
-      }
-      : { connected: false },
-    strava: integrations.strava?.enabled
-      ? {
-        connected: true,
-        externalUserId: integrations.strava.athleteId?.toString(),
-        lastUsedAt: integrations.strava.lastUsedAt?.toISOString()
-      }
-      : { connected: false },
-    fitbit: integrations.fitbit?.enabled
-      ? {
-        connected: true,
-        externalUserId: integrations.fitbit.fitbitUserId,
-        lastUsedAt: integrations.fitbit.lastUsedAt?.toISOString()
-      }
-      : { connected: false }
-  };
-}
-
-// Extract provider from path
-function extractProvider(path: string): string | null {
-  // Path patterns:
-  // /integrations/{provider}/connect
-  // /integrations/{provider}
-  // Also handle Firebase hosting rewrite paths like /api/users/me/integrations/strava/connect
-  const segments = path.split('/').filter(s => s.length > 0);
-
-  // Find 'integrations' in path and get next segment
-  const integrationIdx = segments.findIndex(s => s === 'integrations');
-  if (integrationIdx >= 0 && segments.length > integrationIdx + 1) {
-    return segments[integrationIdx + 1];
-  }
-
-  return null;
-}
-
-// Check if path is a connect request
-function isConnectPath(path: string): boolean {
-  return path.includes('/connect');
-}
-
 export const handler = async (req: Request, res: Response, ctx: FrameworkContext) => {
-  const { logger } = ctx;
   const userId = ctx.userId;
-
   if (!userId) {
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
 
-  const userStore = new UserStore(db);
-  const activityStore = new ActivityStore(db);
-  const userService = new UserService(userStore, activityStore);
-  const path = req.path;
+  const { logger } = ctx;
 
-  // --- GET /users/me/integrations ---
-  if (req.method === 'GET') {
-    try {
-      const user = await userService.get(userId);
+  try {
+    // Route based on path and method
+    const pathParts = req.path.split('/').filter(p => p !== '');
 
-      if (!user) {
-        res.status(404).json({ error: 'User not found' });
-        return;
-      }
-
-      res.status(200).json(getIntegrationsSummary(user));
-    } catch (e) {
-      logger.error('Failed to get integrations', { error: e, userId });
-      res.status(500).json({ error: 'Internal Server Error' });
+    // GET /users/me/integrations - List all integrations
+    if (req.method === 'GET' && pathParts.length === 0) {
+      return await handleListIntegrations(userId, res, ctx);
     }
-    return;
+
+    // POST /users/me/integrations/{provider}/connect - Generate OAuth URL
+    if (req.method === 'POST' && pathParts.length >= 2 && pathParts[1] === 'connect') {
+      const provider = pathParts[0];
+      return await handleConnect(userId, provider, res, ctx);
+    }
+
+    // DELETE /users/me/integrations/{provider} - Disconnect integration
+    if (req.method === 'DELETE' && pathParts.length >= 1) {
+      const provider = pathParts[0];
+      return await handleDisconnect(userId, provider, res, ctx);
+    }
+
+    res.status(404).json({ error: 'Not found' });
+  } catch (err) {
+    logger.error('Failed to handle integrations request', { error: err });
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-
-  // --- POST /users/me/integrations/{provider}/connect ---
-  if (req.method === 'POST' && isConnectPath(path)) {
-    const provider = extractProvider(path);
-
-    if (!provider || !['strava', 'fitbit'].includes(provider)) {
-      res.status(400).json({ error: 'Invalid or unsupported provider' });
-      return;
-    }
-
-    try {
-      const projectId = process.env.GOOGLE_CLOUD_PROJECT || '';
-      const baseUrl = process.env.BASE_URL || 'https://fitglue.app';
-
-      // Generate state token for CSRF protection
-      const state = await generateOAuthState(userId);
-
-      let authUrl: string;
-
-      if (provider === 'strava') {
-        const clientId = await getSecret(projectId, 'strava-client-id');
-        const redirectUri = `${baseUrl}/api/strava-oauth-handler`;
-
-        authUrl = `https://www.strava.com/oauth/authorize?` +
-          `client_id=${clientId}&` +
-          `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-          `response_type=code&` +
-          `scope=activity:read_all,activity:write&` +
-          `state=${state}`;
-      } else if (provider === 'fitbit') {
-        const clientId = await getSecret(projectId, 'fitbit-client-id');
-        const redirectUri = `${baseUrl}/api/fitbit-oauth-handler`;
-
-        authUrl = `https://www.fitbit.com/oauth2/authorize?` +
-          `client_id=${clientId}&` +
-          `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-          `response_type=code&` +
-          `scope=${encodeURIComponent('activity heartrate location nutrition profile settings sleep social weight')}&` +
-          `state=${state}`;
-      } else {
-        res.status(400).json({ error: 'Invalid provider' });
-        return;
-      }
-
-      logger.info('Generated OAuth URL', { userId, provider });
-      res.status(200).json({ authUrl });
-    } catch (e) {
-      logger.error('Failed to generate OAuth URL', { error: e, userId, provider });
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-    return;
-  }
-
-  // --- DELETE /users/me/integrations/{provider} ---
-  if (req.method === 'DELETE') {
-    const provider = extractProvider(path);
-
-    if (!provider || !['strava', 'fitbit', 'hevy'].includes(provider)) {
-      res.status(400).json({ error: 'Invalid provider' });
-      return;
-    }
-
-    try {
-      const user = await userService.get(userId);
-      if (!user) {
-        res.status(404).json({ error: 'User not found' });
-        return;
-      }
-
-      // Check if integration exists
-      const integrations = user.integrations as Record<string, { enabled?: boolean }> || {};
-      if (!integrations[provider]?.enabled) {
-        res.status(404).json({ error: 'Integration not found' });
-        return;
-      }
-
-      // Clear the integration by setting enabled to false and removing tokens
-      if (provider === 'hevy') {
-        await userStore.setIntegration(userId, 'hevy', {
-          enabled: false,
-          apiKey: '',
-          userId: '',
-          createdAt: new Date(),
-          lastUsedAt: new Date()
-        });
-      } else if (provider === 'strava') {
-        await userStore.setIntegration(userId, 'strava', {
-          enabled: false,
-          accessToken: '',
-          refreshToken: '',
-          expiresAt: new Date(),
-          athleteId: 0,
-          createdAt: new Date(),
-          lastUsedAt: new Date()
-        });
-      } else if (provider === 'fitbit') {
-        await userStore.setIntegration(userId, 'fitbit', {
-          enabled: false,
-          accessToken: '',
-          refreshToken: '',
-          expiresAt: new Date(),
-          fitbitUserId: '',
-          createdAt: new Date(),
-          lastUsedAt: new Date()
-        });
-      }
-
-      logger.info('Disconnected integration', { userId, provider });
-      res.status(200).json({ success: true });
-    } catch (e) {
-      logger.error('Failed to disconnect integration', { error: e, userId, provider });
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-    return;
-  }
-
-  res.status(405).send('Method Not Allowed');
 };
 
-// Export the wrapped function
+async function handleListIntegrations(userId: string, res: Response, ctx: FrameworkContext) {
+  const user = await ctx.services.user.get(userId);
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+
+  const integrations = user.integrations || {};
+
+  // Build masked summary
+  const summary: Record<string, { connected: boolean; externalUserId?: string; lastUsedAt?: Date }> = {};
+
+  if (integrations.hevy) {
+    summary.hevy = {
+      connected: !!integrations.hevy.enabled,
+      externalUserId: integrations.hevy.userId ? `***${integrations.hevy.userId.slice(-4)}` : undefined,
+      lastUsedAt: integrations.hevy.lastUsedAt
+    };
+  }
+
+  if (integrations.strava) {
+    summary.strava = {
+      connected: !!integrations.strava.enabled,
+      externalUserId: integrations.strava.athleteId?.toString(),
+      lastUsedAt: integrations.strava.lastUsedAt
+    };
+  }
+
+  if (integrations.fitbit) {
+    summary.fitbit = {
+      connected: !!integrations.fitbit.enabled,
+      externalUserId: integrations.fitbit.fitbitUserId,
+      lastUsedAt: integrations.fitbit.lastUsedAt
+    };
+  }
+
+  res.status(200).json(summary);
+}
+
+async function handleConnect(userId: string, provider: string, res: Response, ctx: FrameworkContext) {
+  const { logger } = ctx;
+
+  // Validate provider
+  if (!['strava', 'fitbit'].includes(provider)) {
+    res.status(400).json({ error: `Invalid OAuth provider: ${provider}. Hevy uses API key configuration.` });
+    return;
+  }
+
+  try {
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT || '';
+    const env = projectId.includes('-prod') ? 'prod' : projectId.includes('-test') ? 'test' : 'dev';
+    const baseUrl = env === 'prod' ? 'https://fitglue.tech' : `https://${env}.fitglue.tech`;
+
+    // Get client ID from secrets
+    const clientId = await getSecret(projectId, `${provider}-client-id`);
+
+    // Generate state token
+    const state = await generateOAuthState(userId);
+
+    let authUrl: string;
+    if (provider === 'strava') {
+      authUrl = `https://www.strava.com/oauth/authorize?` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${encodeURIComponent(`${baseUrl}/auth/strava/callback`)}&` +
+        `response_type=code&` +
+        `scope=read,activity:read_all,activity:write&` +
+        `state=${state}`;
+    } else {
+      authUrl = `https://www.fitbit.com/oauth2/authorize?` +
+        `client_id=${clientId}&` +
+        `redirect_uri=${encodeURIComponent(`${baseUrl}/auth/fitbit/callback`)}&` +
+        `response_type=code&` +
+        `scope=${encodeURIComponent('activity heartrate profile location')}&` +
+        `state=${state}`;
+    }
+
+    logger.info('Generated OAuth URL', { userId, provider });
+    res.status(200).json({ url: authUrl });
+
+  } catch (err) {
+    logger.error('Failed to generate OAuth URL', { error: err, provider });
+    res.status(500).json({ error: 'Failed to generate authorization URL' });
+  }
+}
+
+async function handleDisconnect(userId: string, provider: string, res: Response, ctx: FrameworkContext) {
+  const { logger } = ctx;
+
+  // Validate provider
+  if (!['strava', 'fitbit', 'hevy'].includes(provider)) {
+    res.status(400).json({ error: `Invalid provider: ${provider}` });
+    return;
+  }
+
+  try {
+    // Get current user to build disabled integration with required fields
+    const user = await ctx.services.user.get(userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const integrations = user.integrations || {};
+
+    // Build disabled integration with all required fields per provider type
+    if (provider === 'strava') {
+      const current = integrations.strava;
+      await ctx.stores.users.setIntegration(userId, 'strava', {
+        enabled: false,
+        accessToken: '',
+        refreshToken: '',
+        athleteId: current?.athleteId || 0,
+        expiresAt: current?.expiresAt,
+        createdAt: current?.createdAt,
+        lastUsedAt: current?.lastUsedAt,
+      });
+    } else if (provider === 'fitbit') {
+      const current = integrations.fitbit;
+      await ctx.stores.users.setIntegration(userId, 'fitbit', {
+        enabled: false,
+        accessToken: '',
+        refreshToken: '',
+        fitbitUserId: current?.fitbitUserId || '',
+        expiresAt: current?.expiresAt,
+        createdAt: current?.createdAt,
+        lastUsedAt: current?.lastUsedAt,
+      });
+    } else if (provider === 'hevy') {
+      const current = integrations.hevy;
+      await ctx.stores.users.setIntegration(userId, 'hevy', {
+        enabled: false,
+        apiKey: '',
+        userId: current?.userId || '',
+        createdAt: current?.createdAt,
+        lastUsedAt: current?.lastUsedAt,
+      });
+    }
+
+    logger.info('Disconnected integration', { userId, provider });
+    res.status(200).json({ message: `Disconnected ${provider}` });
+
+  } catch (err) {
+    logger.error('Failed to disconnect integration', { error: err, provider });
+    res.status(500).json({ error: 'Failed to disconnect integration' });
+  }
+}
+
 export const userIntegrationsHandler = createCloudFunction(handler, {
   auth: {
     strategies: [new FirebaseAuthStrategy()]
