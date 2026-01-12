@@ -11,8 +11,18 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
   const { logger } = ctx;
 
   try {
-    // Route based on path and method
-    const pathParts = req.path.split('/').filter(p => p !== '');
+    const path = req.path;
+
+    // Extract path segments for sub-routes
+    // Path may be /api/users/me/integrations or /integrations or just /
+    // Get the last meaningful segments after 'integrations'
+    const integrationsIndex = path.indexOf('/integrations');
+    const subPath = integrationsIndex >= 0
+      ? path.substring(integrationsIndex + '/integrations'.length)
+      : path;
+    const pathParts = subPath.split('/').filter(p => p !== '');
+
+    logger.info('Routing request', { path, subPath, pathParts, method: req.method });
 
     // GET /users/me/integrations - List all integrations
     if (req.method === 'GET' && pathParts.length === 0) {
