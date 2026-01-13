@@ -95,7 +95,7 @@ func UserToFirestore(u *pb.UserRecord) map[string]interface{} {
 			for j, e := range p.Enrichers {
 				enrichers[j] = map[string]interface{}{
 					"provider_type": int32(e.ProviderType),
-					"inputs":        e.Inputs,
+					"typed_config":  e.TypedConfig,
 				}
 			}
 			pipelines[i] = map[string]interface{}{
@@ -178,12 +178,12 @@ func FirestoreToUser(m map[string]interface{}) *pb.UserRecord {
 					enrichers = make([]*pb.EnricherConfig, len(eList))
 					for j, eRaw := range eList {
 						if eMap, ok := eRaw.(map[string]interface{}); ok {
-							// Inputs
-							inputs := make(map[string]string)
-							if iMap, ok := eMap["inputs"].(map[string]interface{}); ok {
-								for k, v := range iMap {
+							// TypedConfig
+							typedConfig := make(map[string]string)
+							if cMap, ok := eMap["typed_config"].(map[string]interface{}); ok {
+								for k, v := range cMap {
 									if s, ok := v.(string); ok {
-										inputs[k] = s
+										typedConfig[k] = s
 									}
 								}
 							}
@@ -203,7 +203,7 @@ func FirestoreToUser(m map[string]interface{}) *pb.UserRecord {
 
 							enrichers[j] = &pb.EnricherConfig{
 								ProviderType: ptype,
-								Inputs:       inputs,
+								TypedConfig:  typedConfig,
 							}
 						}
 					}

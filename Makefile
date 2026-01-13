@@ -11,7 +11,7 @@ GO_SRC_DIR=src/go
 TS_SRC_DIR=src/typescript
 
 # --- Phony Targets ---
-.PHONY: all clean build test lint build-go test-go lint-go clean-go build-ts test-ts lint-ts typecheck-ts clean-ts
+.PHONY: all clean build test lint build-go test-go lint-go clean-go build-ts test-ts lint-ts typecheck-ts clean-ts plugin-source plugin-enricher plugin-destination
 
 all: generate build test lint
 
@@ -133,3 +133,25 @@ lint: lint-go lint-ts
 prepare: prepare-go
 clean: clean-go clean-ts
 	rm -rf bin/
+
+# --- Plugin Scaffolding ---
+# Usage: make plugin-source name=garmin
+#        make plugin-enricher name=weather
+#        make plugin-destination name=runkeeper
+plugin-source:
+ifndef name
+	$(error Usage: make plugin-source name=<name>)
+endif
+	./scripts/new-plugin.sh source $(name)
+
+plugin-enricher:
+ifndef name
+	$(error Usage: make plugin-enricher name=<name>)
+endif
+	./scripts/new-plugin.sh enricher $(name)
+
+plugin-destination:
+ifndef name
+	$(error Usage: make plugin-destination name=<name>)
+endif
+	./scripts/new-plugin.sh destination $(name)

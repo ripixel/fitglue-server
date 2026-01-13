@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/ripixel/fitglue-server/src/go/pkg/plugin"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
@@ -12,6 +13,37 @@ type VirtualGPSProvider struct{}
 
 func init() {
 	Register(NewVirtualGPSProvider())
+
+	plugin.RegisterEnricher(pb.EnricherProviderType_ENRICHER_PROVIDER_VIRTUAL_GPS, &pb.PluginManifest{
+		Id:          "virtual-gps",
+		Type:        pb.PluginType_PLUGIN_TYPE_ENRICHER,
+		Name:        "Virtual GPS",
+		Description: "Adds GPS coordinates from a virtual route to indoor activities",
+		Icon:        "🗺️",
+		Enabled:     true,
+		ConfigSchema: []*pb.ConfigFieldSchema{
+			{
+				Key:          "route",
+				Label:        "Route",
+				Description:  "Virtual route to use for GPS generation",
+				FieldType:    pb.ConfigFieldType_CONFIG_FIELD_TYPE_SELECT,
+				Required:     false,
+				DefaultValue: "london",
+				Options: []*pb.ConfigFieldOption{
+					{Value: "london", Label: "London Hyde Park (~4km loop)"},
+					{Value: "nyc", Label: "NYC Central Park (~10km loop)"},
+				},
+			},
+			{
+				Key:          "force",
+				Label:        "Force Override",
+				Description:  "Override existing GPS data if present",
+				FieldType:    pb.ConfigFieldType_CONFIG_FIELD_TYPE_BOOLEAN,
+				Required:     false,
+				DefaultValue: "false",
+			},
+		},
+	})
 }
 
 func NewVirtualGPSProvider() *VirtualGPSProvider {

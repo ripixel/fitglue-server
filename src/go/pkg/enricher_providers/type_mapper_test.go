@@ -14,58 +14,72 @@ func TestTypeMapperProvider_Enrich(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		name         string
-		activityName string
-		rulesJson    string
-		expectedType pb.ActivityType
+		name           string
+		activityType   pb.ActivityType
+		typeMappings   string // JSON object: {"OriginalType": "DesiredType"}
+		expectedType   pb.ActivityType
+		expectMetadata bool
 	}{
 		{
-			name:         "Matches substring (Yoga)",
-			activityName: "Morning Yoga Flow",
-			rulesJson:    `[{"substring": "Yoga", "target_type": "YOGA"}]`,
-			expectedType: pb.ActivityType_ACTIVITY_TYPE_YOGA,
+			name:           "Maps WeightTraining to Yoga",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			typeMappings:   `{"WeightTraining": "Yoga"}`,
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_YOGA,
+			expectMetadata: true,
 		},
 		{
-			name:         "Matches substring case-insensitive",
-			activityName: "sunday morning run",
-			rulesJson:    `[{"substring": "run", "target_type": "RUNNING"}]`,
-			expectedType: pb.ActivityType_ACTIVITY_TYPE_RUN,
+			name:           "Maps Run to VirtualRun",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_RUN,
+			typeMappings:   `{"Run": "VirtualRun"}`,
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_RUN,
+			expectMetadata: true,
 		},
 		{
-			name:         "No match keeps original type",
-			activityName: "Heavy Lift",
-			rulesJson:    `[{"substring": "Yoga", "target_type": "YOGA"}]`,
-			expectedType: pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			name:           "Case-insensitive matching",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_RIDE,
+			typeMappings:   `{"ride": "VirtualRide"}`,
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_RIDE,
+			expectMetadata: true,
 		},
 		{
-			name:         "Empty rules JSON does nothing",
-			activityName: "Any Activity",
-			rulesJson:    "",
-			expectedType: pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			name:           "No matching mapping keeps original",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			typeMappings:   `{"Run": "VirtualRun"}`,
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			expectMetadata: false,
 		},
 		{
-			name:         "Invalid JSON does nothing",
-			activityName: "Any Activity",
-			rulesJson:    `{invalid}`,
-			expectedType: pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			name:           "Empty mappings does nothing",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			typeMappings:   "",
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			expectMetadata: false,
 		},
 		{
-			name:         "First match wins",
-			activityName: "Yoga and Run",
-			rulesJson:    `[{"substring": "Yoga", "target_type": "YOGA"}, {"substring": "Run", "target_type": "RUNNING"}]`,
-			expectedType: pb.ActivityType_ACTIVITY_TYPE_YOGA,
+			name:           "Invalid JSON does nothing",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			typeMappings:   `{invalid}`,
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING,
+			expectMetadata: false,
+		},
+		{
+			name:           "Multiple mappings - first match used",
+			activityType:   pb.ActivityType_ACTIVITY_TYPE_RUN,
+			typeMappings:   `{"Run": "VirtualRun", "Ride": "VirtualRide"}`,
+			expectedType:   pb.ActivityType_ACTIVITY_TYPE_VIRTUAL_RUN,
+			expectMetadata: true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			act := &pb.StandardizedActivity{
-				Name: tt.activityName,
-				Type: pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING, // Default
+				Name: "Test Activity",
+				Type: tt.activityType,
 			}
 			config := map[string]string{}
-			if tt.rulesJson != "" {
-				config["rules"] = tt.rulesJson
+			if tt.typeMappings != "" {
+				config["type_mappings"] = tt.typeMappings
 			}
 
 			res, err := provider.Enrich(ctx, act, nil, config, false)
@@ -77,13 +91,16 @@ func TestTypeMapperProvider_Enrich(t *testing.T) {
 				t.Errorf("expected type %v, got %v", tt.expectedType, act.Type)
 			}
 
-			if act.Type != pb.ActivityType_ACTIVITY_TYPE_WEIGHT_TRAINING {
-				// If type changed, check metadata
+			if tt.expectMetadata {
 				expectedStravaName := activity.GetStravaActivityType(act.Type)
 				if res.Metadata["new_type"] != expectedStravaName {
 					t.Errorf("Metadata new_type expected %s, got %s", expectedStravaName, res.Metadata["new_type"])
+				}
+				if res.Metadata["mapping_used"] == "" {
+					t.Error("Expected mapping_used in metadata")
 				}
 			}
 		})
 	}
 }
+

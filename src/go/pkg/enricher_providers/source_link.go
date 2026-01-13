@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ripixel/fitglue-server/src/go/pkg/plugin"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
@@ -13,6 +14,16 @@ type SourceLinkProvider struct{}
 
 func init() {
 	Register(NewSourceLinkProvider())
+
+	plugin.RegisterEnricher(pb.EnricherProviderType_ENRICHER_PROVIDER_SOURCE_LINK, &pb.PluginManifest{
+		Id:           "source-link",
+		Type:         pb.PluginType_PLUGIN_TYPE_ENRICHER,
+		Name:         "Source Link",
+		Description:  "Appends a link to the original activity in the description",
+		Icon:         "🔗",
+		Enabled:      true,
+		ConfigSchema: []*pb.ConfigFieldSchema{}, // No config needed
+	})
 }
 
 func NewSourceLinkProvider() *SourceLinkProvider {

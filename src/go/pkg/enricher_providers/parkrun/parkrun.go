@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
+	"github.com/ripixel/fitglue-server/src/go/pkg/plugin"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
@@ -16,6 +17,33 @@ type ParkrunProvider struct{}
 
 func init() {
 	enricher_providers.Register(NewParkrunProvider())
+
+	plugin.RegisterEnricher(pb.EnricherProviderType_ENRICHER_PROVIDER_PARKRUN, &pb.PluginManifest{
+		Id:          "parkrun",
+		Type:        pb.PluginType_PLUGIN_TYPE_ENRICHER,
+		Name:        "Parkrun",
+		Description: "Detects Parkrun events based on location and time, and sets activity title",
+		Icon:        "🏃",
+		Enabled:     true,
+		ConfigSchema: []*pb.ConfigFieldSchema{
+			{
+				Key:          "enable_titling",
+				Label:        "Set Title",
+				Description:  "Replace activity title with Parkrun event name",
+				FieldType:    pb.ConfigFieldType_CONFIG_FIELD_TYPE_BOOLEAN,
+				Required:     false,
+				DefaultValue: "true",
+			},
+			{
+				Key:          "tags",
+				Label:        "Tags",
+				Description:  "Comma-separated tags to add when matched (e.g., Parkrun)",
+				FieldType:    pb.ConfigFieldType_CONFIG_FIELD_TYPE_STRING,
+				Required:     false,
+				DefaultValue: "Parkrun",
+			},
+		},
+	})
 }
 
 func NewParkrunProvider() *ParkrunProvider {

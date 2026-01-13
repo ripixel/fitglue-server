@@ -54,7 +54,7 @@ func TestEnrichActivity(t *testing.T) {
 						Enrichers: []*pb.EnricherConfig{
 							{
 								ProviderType: pb.EnricherProviderType_ENRICHER_PROVIDER_MOCK,
-								Inputs:       map[string]string{"test_key": "test_value"},
+								TypedConfig:  map[string]string{"test_key": "test_value"},
 							},
 						},
 						Destinations: []pb.Destination{pb.Destination_DESTINATION_STRAVA},

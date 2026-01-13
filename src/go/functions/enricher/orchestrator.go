@@ -135,7 +135,7 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 			}
 
 			// Execute
-			res, err := provider.Enrich(ctx, currentActivity, userRec, cfg.Inputs, doNotRetry)
+			res, err := provider.Enrich(ctx, currentActivity, userRec, cfg.TypedConfig, doNotRetry)
 			duration := time.Since(startTime).Milliseconds()
 			pe.DurationMs = duration
 
@@ -370,7 +370,7 @@ type configuredPipeline struct {
 
 type configuredEnricher struct {
 	ProviderType pb.EnricherProviderType
-	Inputs       map[string]string
+	TypedConfig  map[string]string
 }
 
 func (o *Orchestrator) resolvePipelines(source pb.ActivitySource, userRec *pb.UserRecord) []configuredPipeline {
@@ -384,7 +384,7 @@ func (o *Orchestrator) resolvePipelines(source pb.ActivitySource, userRec *pb.Us
 			for _, e := range p.Enrichers {
 				enrichers = append(enrichers, configuredEnricher{
 					ProviderType: e.ProviderType,
-					Inputs:       e.Inputs,
+					TypedConfig:  e.TypedConfig,
 				})
 			}
 			pipelines = append(pipelines, configuredPipeline{

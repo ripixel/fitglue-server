@@ -3,7 +3,6 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"log/slog"
 
 	"cloud.google.com/go/pubsub"
@@ -68,6 +67,6 @@ func (p *LogPublisher) publish(ctx context.Context, topicID string, data []byte)
 }
 
 func (p *LogPublisher) publishWithAttrs(ctx context.Context, topicID string, data []byte, attributes map[string]string) (string, error) {
-	log.Printf("[LogPublisher] MOCK PUBLISH to %s: %s (attrs: %v)", topicID, string(data), attributes)
+	slog.Info("MOCK PUBLISH", "topic", topicID, "data", string(data), "attributes", attributes)
 	return "mock-msg-id", nil
 }

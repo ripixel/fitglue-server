@@ -50,14 +50,21 @@ The Enricher supports a flexible, configurable pipeline of providers that transf
 
 | Provider | Purpose | Output |
 |----------|---------|--------|
-| **Metadata Passthrough** | Preserves source metadata | Name, Description |
 | **Workout Summary** | Exercise breakdown with sets/reps/weight | Description text |
 | **Muscle Heatmap** | Visual muscle activation chart | Description (emoji bars) |
+| **Fitbit Heart Rate** | Fetches HR data from Fitbit API | Heart rate stream |
 | **Virtual GPS** | Synthetic GPS routes for indoor activities | Lat/Long streams |
 | **Source Link** | Links back to original workout | Description (URL) |
-| **Fitbit Heart Rate** | Fetches HR data from Fitbit API | Heart rate stream |
+| **Metadata Passthrough** | Preserves source metadata | Name, Description |
+| **Type Mapper** | Maps activity types (e.g., Ride → VirtualRide) | Activity type |
+| **Parkrun** | Detects Parkrun events by location/time | Title, tags |
+| **Condition Matcher** | Rule-based title/description templates | Title, Description |
+| **Auto Increment** | Appends incrementing counter to titles | Title |
+| **User Input** | Pauses for user input (title, description) | User-supplied values |
+| **Activity Filter** | Skips activities matching patterns | Pipeline halt |
+| **Branding** | Adds footer branding | Description |
 
-Pipelines are configured per-user via the Admin CLI. See [Enricher Testing Guide](docs/ENRICHER_TESTING.md) for details.
+See [Plugin System Architecture](docs/architecture/plugin-system.md) for details.
 
 ## Features
 
@@ -83,6 +90,10 @@ Pipelines are configured per-user via the Admin CLI. See [Enricher Testing Guide
 - **[Local Development](docs/LOCAL_DEVELOPMENT.md)** - Running the stack locally
 - **[Admin CLI](docs/ADMIN_CLI.md)** - User management and pipeline configuration
 
+### Plugin Development
+- **[Plugin System Architecture](docs/architecture/plugin-system.md)** - How plugins work
+- **[Adding Plugins](docs/development/adding-plugins.md)** - Scaffolding new sources, enrichers, destinations
+
 ### Enrichment & Testing
 - **[Enricher Configuration](docs/ENRICHER_CONFIG.md)** - Configuring enrichment pipelines
 - **[Enricher Testing](docs/ENRICHER_TESTING.md)** - Testing guide for enrichment providers
@@ -96,6 +107,9 @@ Pipelines are configured per-user via the Admin CLI. See [Enricher Testing Guide
 - **[Services & Stores](docs/SERVICES_AND_STORES.md)** - Architecture guide for business logic vs data access
 - **[Connector Framework](docs/CONNECTORS.md)** - Guide to implementing data source integrations
 - **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
+
+### Reference
+- **[Error Codes](docs/reference/errors.md)** - Structured error types and codes
 
 ### Specialized Guides
 - **[FIT Generation](docs/FIT_GENERATION.md)** - Guide to generating FIT files and test data

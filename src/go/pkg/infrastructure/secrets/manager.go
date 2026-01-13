@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hash/crc32"
-	"log"
+	"log/slog"
 	"os"
 
 	secretmanager "cloud.google.com/go/secretmanager/apiv1"
@@ -17,7 +17,7 @@ type SecretsAdapter struct{}
 func (a *SecretsAdapter) GetSecret(ctx context.Context, projectID, secretName string) (string, error) {
 	// 1. Local Fallback
 	if val := os.Getenv(secretName); val != "" {
-		log.Printf("[SecretManager] Using local env var for: %s", secretName)
+		slog.Info("Using local env var for secret", "secret_name", secretName)
 		return val, nil
 	}
 

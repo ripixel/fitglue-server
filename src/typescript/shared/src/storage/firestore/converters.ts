@@ -281,7 +281,7 @@ export const mapPipelineToFirestore = (p: PipelineConfig): Record<string, unknow
   destinations: p.destinations, // Stored as numbers (enum values)
   enrichers: p.enrichers?.map(e => ({
     provider_type: e.providerType,
-    inputs: e.inputs
+    typed_config: e.typedConfig
   }))
 });
 
@@ -300,7 +300,7 @@ export const mapPipelineFromFirestore = (p: Record<string, unknown>): PipelineCo
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   enrichers: ((p.enrichers as any[]) || []).map((e: any) => ({
     providerType: e.provider_type || e.providerType,
-    inputs: e.inputs || {}
+    typedConfig: e.typed_config || e.typedConfig || {}
   }))
 });
 

@@ -112,7 +112,7 @@ func TestOrchestrator_Process(t *testing.T) {
 							Enrichers: []*pb.EnricherConfig{
 								{
 									ProviderType: pb.EnricherProviderType_ENRICHER_PROVIDER_MOCK,
-									Inputs:       map[string]string{"key": "val"},
+									TypedConfig:  map[string]string{"key": "val"},
 								},
 							},
 						},

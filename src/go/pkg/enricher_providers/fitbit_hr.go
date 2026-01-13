@@ -12,6 +12,7 @@ import (
 	"github.com/ripixel/fitglue-server/src/go/pkg/bootstrap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/infrastructure/oauth"
 	fitbit "github.com/ripixel/fitglue-server/src/go/pkg/integrations/fitbit"
+	"github.com/ripixel/fitglue-server/src/go/pkg/plugin"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
 
@@ -21,6 +22,17 @@ type FitBitHeartRate struct {
 
 func init() {
 	Register(NewFitBitHeartRate())
+
+	plugin.RegisterEnricher(pb.EnricherProviderType_ENRICHER_PROVIDER_FITBIT_HEART_RATE, &pb.PluginManifest{
+		Id:                   "fitbit-heart-rate",
+		Type:                 pb.PluginType_PLUGIN_TYPE_ENRICHER,
+		Name:                 "Fitbit Heart Rate",
+		Description:          "Adds heart rate data from Fitbit to your activity",
+		Icon:                 "❤️",
+		Enabled:              true,
+		RequiredIntegrations: []string{"fitbit"},
+		ConfigSchema:         []*pb.ConfigFieldSchema{}, // No config needed
+	})
 }
 
 func NewFitBitHeartRate() *FitBitHeartRate {

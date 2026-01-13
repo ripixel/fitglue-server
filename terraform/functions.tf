@@ -654,3 +654,77 @@ resource "google_cloud_run_service_iam_member" "user_pipelines_handler_invoker" 
   role     = "roles/run.invoker"
   member   = "allUsers"
 }
+
+# ----------------- Plugin Registry Handler -----------------
+resource "google_cloudfunctions2_function" "plugin_registry_handler" {
+  name        = "plugin-registry-handler"
+  location    = var.region
+  description = "Returns FitGlue plugin registry (sources, enrichers, destinations)"
+
+  build_config {
+    runtime     = "nodejs20"
+    entry_point = "pluginRegistryHandler"
+    source {
+      storage_source {
+        bucket = google_storage_bucket.source_bucket.name
+        object = google_storage_bucket_object.typescript_source_zip.name
+      }
+    }
+    environment_variables = {}
+  }
+
+  service_config {
+    available_memory = "256Mi"
+    timeout_seconds  = 60
+    environment_variables = {
+      LOG_LEVEL            = var.log_level
+      GOOGLE_CLOUD_PROJECT = var.project_id
+    }
+    service_account_email = google_service_account.cloud_function_sa.email
+  }
+}
+
+resource "google_cloud_run_service_iam_member" "plugin_registry_handler_invoker" {
+  project  = google_cloudfunctions2_function.plugin_registry_handler.project
+  location = google_cloudfunctions2_function.plugin_registry_handler.location
+  service  = google_cloudfunctions2_function.plugin_registry_handler.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+# ----------------- Integration Request Handler -----------------
+resource "google_cloudfunctions2_function" "integration_request_handler" {
+  name        = "integration-request-handler"
+  location    = var.region
+  description = "Handles integration requests from users"
+
+  build_config {
+    runtime     = "nodejs20"
+    entry_point = "integrationRequestHandler"
+    source {
+      storage_source {
+        bucket = google_storage_bucket.source_bucket.name
+        object = google_storage_bucket_object.typescript_source_zip.name
+      }
+    }
+    environment_variables = {}
+  }
+
+  service_config {
+    available_memory = "256Mi"
+    timeout_seconds  = 60
+    environment_variables = {
+      LOG_LEVEL            = var.log_level
+      GOOGLE_CLOUD_PROJECT = var.project_id
+    }
+    service_account_email = google_service_account.cloud_function_sa.email
+  }
+}
+
+resource "google_cloud_run_service_iam_member" "integration_request_handler_invoker" {
+  project  = google_cloudfunctions2_function.integration_request_handler.project
+  location = google_cloudfunctions2_function.integration_request_handler.location
+  service  = google_cloudfunctions2_function.integration_request_handler.name
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}

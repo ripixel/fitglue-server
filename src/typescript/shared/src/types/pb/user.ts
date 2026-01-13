@@ -134,10 +134,14 @@ export interface SourceEnrichmentConfig {
 export interface EnricherConfig {
   /** Use strictly typed provider enum instead of string name */
   providerType: EnricherProviderType;
-  inputs: { [key: string]: string };
+  /**
+   * Type-safe configuration map (validated against PluginManifest.config_schema)
+   * Keys and values are descriptive strings, not numeric enum values
+   */
+  typedConfig: { [key: string]: string };
 }
 
-export interface EnricherConfig_InputsEntry {
+export interface EnricherConfig_TypedConfigEntry {
   key: string;
   value: string;
 }

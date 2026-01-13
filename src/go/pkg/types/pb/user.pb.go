@@ -803,8 +803,10 @@ func (x *SourceEnrichmentConfig) GetEnrichers() []*EnricherConfig {
 type EnricherConfig struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Use strictly typed provider enum instead of string name
-	ProviderType  EnricherProviderType `protobuf:"varint,1,opt,name=provider_type,json=providerType,proto3,enum=fitglue.EnricherProviderType" json:"provider_type,omitempty"`
-	Inputs        map[string]string    `protobuf:"bytes,2,rep,name=inputs,proto3" json:"inputs,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ProviderType EnricherProviderType `protobuf:"varint,1,opt,name=provider_type,json=providerType,proto3,enum=fitglue.EnricherProviderType" json:"provider_type,omitempty"`
+	// Type-safe configuration map (validated against PluginManifest.config_schema)
+	// Keys and values are descriptive strings, not numeric enum values
+	TypedConfig   map[string]string `protobuf:"bytes,2,rep,name=typed_config,json=typedConfig,proto3" json:"typed_config,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -846,9 +848,9 @@ func (x *EnricherConfig) GetProviderType() EnricherProviderType {
 	return EnricherProviderType_ENRICHER_PROVIDER_UNSPECIFIED
 }
 
-func (x *EnricherConfig) GetInputs() map[string]string {
+func (x *EnricherConfig) GetTypedConfig() map[string]string {
 	if x != nil {
-		return x.Inputs
+		return x.TypedConfig
 	}
 	return nil
 }
@@ -1232,11 +1234,11 @@ const file_user_proto_rawDesc = "" +
 	"\flast_used_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\n" +
 	"lastUsedAt\"O\n" +
 	"\x16SourceEnrichmentConfig\x125\n" +
-	"\tenrichers\x18\x01 \x03(\v2\x17.fitglue.EnricherConfigR\tenrichers\"\xcc\x01\n" +
+	"\tenrichers\x18\x01 \x03(\v2\x17.fitglue.EnricherConfigR\tenrichers\"\xe1\x01\n" +
 	"\x0eEnricherConfig\x12B\n" +
-	"\rprovider_type\x18\x01 \x01(\x0e2\x1d.fitglue.EnricherProviderTypeR\fproviderType\x12;\n" +
-	"\x06inputs\x18\x02 \x03(\v2#.fitglue.EnricherConfig.InputsEntryR\x06inputs\x1a9\n" +
-	"\vInputsEntry\x12\x10\n" +
+	"\rprovider_type\x18\x01 \x01(\x0e2\x1d.fitglue.EnricherProviderTypeR\fproviderType\x12K\n" +
+	"\ftyped_config\x18\x02 \x03(\v2(.fitglue.EnricherConfig.TypedConfigEntryR\vtypedConfig\x1a>\n" +
+	"\x10TypedConfigEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc8\x02\n" +
 	"\x11StravaIntegration\x12\x18\n" +
@@ -1346,7 +1348,7 @@ var file_user_proto_goTypes = []any{
 	(*ProcessedActivityRecord)(nil), // 14: fitglue.ProcessedActivityRecord
 	(*Counter)(nil),                 // 15: fitglue.Counter
 	(*SynchronizedActivity)(nil),    // 16: fitglue.SynchronizedActivity
-	nil,                             // 17: fitglue.EnricherConfig.InputsEntry
+	nil,                             // 17: fitglue.EnricherConfig.TypedConfigEntry
 	nil,                             // 18: fitglue.SynchronizedActivity.DestinationsEntry
 	(*timestamp.Timestamp)(nil),     // 19: google.protobuf.Timestamp
 	(Destination)(0),                // 20: fitglue.events.Destination
@@ -1371,7 +1373,7 @@ var file_user_proto_depIdxs = []int32{
 	19, // 15: fitglue.FitbitIntegration.last_used_at:type_name -> google.protobuf.Timestamp
 	12, // 16: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
 	0,  // 17: fitglue.EnricherConfig.provider_type:type_name -> fitglue.EnricherProviderType
-	17, // 18: fitglue.EnricherConfig.inputs:type_name -> fitglue.EnricherConfig.InputsEntry
+	17, // 18: fitglue.EnricherConfig.typed_config:type_name -> fitglue.EnricherConfig.TypedConfigEntry
 	19, // 19: fitglue.StravaIntegration.expires_at:type_name -> google.protobuf.Timestamp
 	19, // 20: fitglue.StravaIntegration.created_at:type_name -> google.protobuf.Timestamp
 	19, // 21: fitglue.StravaIntegration.last_used_at:type_name -> google.protobuf.Timestamp

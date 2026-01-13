@@ -2,12 +2,10 @@ import {
   createCloudFunction,
   db,
   FrameworkContext,
-  FirebaseAuthStrategy,
-  UserStore,
-  UserService,
-  ActivityStore
+  FirebaseAuthStrategy
 } from '@fitglue/shared';
 import { Request, Response } from 'express';
+
 
 
 /**
@@ -87,7 +85,7 @@ function mapPipelineToResponse(pipeline: {
 }
 
 export const handler = async (req: Request, res: Response, ctx: FrameworkContext) => {
-  const { logger } = ctx;
+  const { logger, services } = ctx;
   const userId = ctx.userId;
 
   if (!userId) {
@@ -95,9 +93,8 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
     return;
   }
 
-  const userStore = new UserStore(db);
-  const activityStore = new ActivityStore(db);
-  const userService = new UserService(userStore, activityStore);
+  // Use ctx.services instead of creating new stores (already initialized by framework)
+  const userService = services.user;
 
   // --- GET /users/me ---
   if (req.method === 'GET') {

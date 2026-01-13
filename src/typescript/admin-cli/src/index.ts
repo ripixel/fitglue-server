@@ -451,8 +451,8 @@ const formatUserOutput = (user: UserRecord) => {
                 p.enrichers.forEach((e: any, eIdx: number) => {
                     const providerName = getEnricherProviderName(e.provider_type || e.providerType);
                     console.log(`         ${eIdx + 1}. ${providerName}`);
-                    if (e.inputs && Object.keys(e.inputs).length > 0) {
-                        Object.entries(e.inputs).forEach(([key, val]) => {
+                    if (e.typedConfig && Object.keys(e.typedConfig).length > 0) {
+                        Object.entries(e.typedConfig).forEach(([key, val]) => {
                             let printed = false;
                             if (typeof val === 'string' && (val.trim().startsWith('{') || val.trim().startsWith('['))) {
                                 try {
@@ -709,12 +709,12 @@ program.command('users:add-pipeline')
 
 
                 // Provider-specific configuration prompts
-                const inputs = await promptForEnricherConfig(config.providerType);
+                const typedConfig = await promptForEnricherConfig(config.providerType);
 
 
                 enrichers.push({
                     providerType: config.providerType,
-                    inputs
+                    typedConfig
                 });
             }
 
@@ -866,12 +866,12 @@ program.command('users:replace-pipeline')
 
 
                 // Provider-specific configuration prompts
-                const inputs = await promptForEnricherConfig(config.providerType);
+                const typedConfig = await promptForEnricherConfig(config.providerType);
 
 
                 enrichers.push({
                     providerType: config.providerType,
-                    inputs
+                    typedConfig
                 });
             }
 
@@ -1156,7 +1156,7 @@ const configureTestPipeline = async (pipelineId: string, behavior: 'success' | '
     console.log(`Reconfiguring for test scenario: ${behavior}...`);
     const enrichers: EnricherConfig[] = [{
         providerType: EnricherProviderType.ENRICHER_PROVIDER_MOCK,
-        inputs: {
+        typedConfig: {
             behavior: behavior,
             name: `Test Activity (${behavior})`,
             description: `Automated test with behavior: ${behavior}`

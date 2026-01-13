@@ -1,3 +1,4 @@
+export * from './errors';
 export * from './config';
 export * from './infrastructure/secrets';
 export * from './infrastructure/crypto';
@@ -16,6 +17,9 @@ export { UserRecord, UserIntegrations, HevyIntegration, EnricherProviderType, En
 export { FitbitNotification } from './types/pb/fitbit';
 export * from './types/integrations';
 
+// Plugin Registry
+export * from './plugin/registry';
+export { PluginManifest, PluginRegistryResponse, PluginType, ConfigFieldType, ConfigFieldSchema, ConfigFieldOption } from './types/pb/plugin';
 
 // Services
 export * from './domain/services/user';
@@ -34,3 +38,4 @@ export * as storage from './storage/firestore';
 export { UserStore, ActivityStore, ApiKeyStore, ExecutionStore, IntegrationIdentityStore, InputStore } from './storage/firestore';
 export { mapTCXToStandardized } from './domain/file-parsers/tcx';
 export * from './execution/logger';
+

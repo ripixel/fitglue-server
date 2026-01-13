@@ -1,0 +1,71 @@
+syntax = "proto3";
+package fitglue;
+
+option go_package = "github.com/ripixel/fitglue-server/src/go/pkg/types/pb";
+
+// PluginType categorizes plugins
+enum PluginType {
+  PLUGIN_TYPE_UNSPECIFIED = 0;
+  PLUGIN_TYPE_SOURCE = 1;
+  PLUGIN_TYPE_ENRICHER = 2;
+  PLUGIN_TYPE_DESTINATION = 3;
+}
+
+// PluginManifest defines metadata for any plugin
+message PluginManifest {
+  string id = 1;                              // Unique identifier (e.g., "hevy", "fitbit-hr", "strava")
+  PluginType type = 2;                        // Source, Enricher, or Destination
+  string name = 3;                            // Human-readable name
+  string description = 4;                     // Short description
+  string icon = 5;                            // Emoji or icon name
+  repeated ConfigFieldSchema config_schema = 6;  // Configuration fields
+  repeated string required_integrations = 7;   // e.g., ["fitbit"] requires Fitbit connected
+  bool enabled = 8;                           // Whether this plugin is available
+
+  // For enrichers: links to the EnricherProviderType enum value
+  optional int32 enricher_provider_type = 9;
+  // For destinations: links to the Destination enum value
+  optional int32 destination_type = 10;
+}
+
+// ConfigFieldSchema defines a single configuration field
+message ConfigFieldSchema {
+  string key = 1;                             // Field key in config map
+  string label = 2;                           // Human-readable label
+  string description = 3;                     // Help text
+  ConfigFieldType field_type = 4;             // Type of input
+  bool required = 5;                          // Whether field is required
+  string default_value = 6;                   // Default value (as string)
+  repeated ConfigFieldOption options = 7;     // For SELECT/MULTI_SELECT types
+  ConfigFieldValidation validation = 8;       // Validation rules
+}
+
+enum ConfigFieldType {
+  CONFIG_FIELD_TYPE_UNSPECIFIED = 0;
+  CONFIG_FIELD_TYPE_STRING = 1;
+  CONFIG_FIELD_TYPE_NUMBER = 2;
+  CONFIG_FIELD_TYPE_BOOLEAN = 3;
+  CONFIG_FIELD_TYPE_SELECT = 4;               // Dropdown
+  CONFIG_FIELD_TYPE_MULTI_SELECT = 5;         // Multiple selection
+  CONFIG_FIELD_TYPE_KEY_VALUE_MAP = 6;        // Record<string, string> map - stored as JSON
+}
+
+message ConfigFieldOption {
+  string value = 1;                           // Stored value (descriptive string)
+  string label = 2;                           // Display label
+}
+
+message ConfigFieldValidation {
+  optional int32 min_length = 1;
+  optional int32 max_length = 2;
+  optional string pattern = 3;                // Regex pattern
+  optional double min_value = 4;
+  optional double max_value = 5;
+}
+
+// PluginRegistryResponse for API discovery
+message PluginRegistryResponse {
+  repeated PluginManifest sources = 1;
+  repeated PluginManifest enrichers = 2;
+  repeated PluginManifest destinations = 3;
+}

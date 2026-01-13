@@ -61,7 +61,9 @@ message SourceEnrichmentConfig {
 message EnricherConfig {
   // Use strictly typed provider enum instead of string name
   EnricherProviderType provider_type = 1;
-  map<string, string> inputs = 2;
+  // Type-safe configuration map (validated against PluginManifest.config_schema)
+  // Keys and values are descriptive strings, not numeric enum values
+  map<string, string> typed_config = 2;
 }
 
 enum EnricherProviderType {
