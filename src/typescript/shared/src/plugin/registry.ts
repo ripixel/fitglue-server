@@ -68,6 +68,59 @@ export function clearRegistry(): void {
 }
 
 // ============================================================================
+// Register all known source manifests
+// ============================================================================
+
+registerSource({
+  id: 'hevy',
+  type: PluginType.PLUGIN_TYPE_SOURCE,
+  name: 'Hevy',
+  description: 'Import strength training workouts from Hevy',
+  icon: '🏋️',
+  enabled: true,
+  requiredIntegrations: ['hevy'],
+  configSchema: [],
+});
+
+registerSource({
+  id: 'fitbit',
+  type: PluginType.PLUGIN_TYPE_SOURCE,
+  name: 'Fitbit',
+  description: 'Import activities from Fitbit',
+  icon: '⌚',
+  enabled: true,
+  requiredIntegrations: ['fitbit'],
+  configSchema: [],
+});
+
+registerSource({
+  id: 'mock',
+  type: PluginType.PLUGIN_TYPE_SOURCE,
+  name: 'Mock',
+  description: 'Testing source for development',
+  icon: '🧪',
+  enabled: false,
+  requiredIntegrations: [],
+  configSchema: [],
+});
+
+// ============================================================================
+// Register all known destination manifests
+// ============================================================================
+
+registerDestination({
+  id: 'strava',
+  type: PluginType.PLUGIN_TYPE_DESTINATION,
+  name: 'Strava',
+  description: 'Upload activities to Strava',
+  icon: '🚴',
+  enabled: true,
+  requiredIntegrations: ['strava'],
+  configSchema: [],
+  destinationType: 1, // DestinationType.DESTINATION_STRAVA
+});
+
+// ============================================================================
 // Register all known enricher manifests
 // These match the Go plugin registrations in enricher_providers/
 // ============================================================================
