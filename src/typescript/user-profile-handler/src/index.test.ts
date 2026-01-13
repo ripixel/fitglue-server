@@ -52,6 +52,9 @@ describe('user-profile-handler', () => {
         info: jest.fn(),
         warn: jest.fn(),
         error: jest.fn()
+      },
+      services: {
+        user: mockUserService
       }
     };
   });
