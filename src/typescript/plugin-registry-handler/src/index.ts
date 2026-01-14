@@ -31,6 +31,7 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       sources: registry.sources.filter(p => showAll || p.enabled),
       enrichers: registry.enrichers.filter(p => showAll || p.enabled),
       destinations: registry.destinations.filter(p => showAll || p.enabled),
+      integrations: registry.integrations, // Already filtered in getRegistry()
     };
 
     // Cache for 5 minutes (plugin list rarely changes)
@@ -41,6 +42,7 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       sourceCount: response.sources.length,
       enricherCount: response.enrichers.length,
       destinationCount: response.destinations.length,
+      integrationCount: response.integrations.length,
     });
   } catch (e) {
     logger.error('Failed to get plugin registry', { error: e });

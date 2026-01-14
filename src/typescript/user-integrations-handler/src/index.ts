@@ -41,6 +41,12 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       return await handleDisconnect(userId, provider, res, ctx);
     }
 
+    // PUT /users/me/integrations/{provider} - Configure API key integration
+    if (req.method === 'PUT' && pathParts.length >= 1) {
+      const provider = pathParts[0];
+      return await handleConfigure(userId, provider, req.body, res, ctx);
+    }
+
     res.status(404).json({ error: 'Not found' });
   } catch (err) {
     logger.error('Failed to handle integrations request', { error: err });
@@ -192,6 +198,69 @@ async function handleDisconnect(userId: string, provider: string, res: Response,
   } catch (err) {
     logger.error('Failed to disconnect integration', { error: err, provider });
     res.status(500).json({ error: 'Failed to disconnect integration' });
+  }
+}
+
+async function handleConfigure(
+  userId: string,
+  provider: string,
+  body: { apiKey?: string },
+  res: Response,
+  ctx: FrameworkContext
+) {
+  const { logger } = ctx;
+
+  // Only API key integrations can be configured this way
+  if (provider !== 'hevy') {
+    res.status(400).json({
+      error: `${provider} uses OAuth authentication. Use the Connect flow instead.`
+    });
+    return;
+  }
+
+  const apiKey = body?.apiKey?.trim();
+  if (!apiKey) {
+    res.status(400).json({ error: 'API key is required' });
+    return;
+  }
+
+  try {
+    // Validate the API key by making a test call to Hevy
+    const isValid = await validateHevyApiKey(apiKey);
+    if (!isValid) {
+      res.status(400).json({ error: 'Invalid API key. Please check and try again.' });
+      return;
+    }
+
+    // Save the integration
+    await ctx.stores.users.setIntegration(userId, 'hevy', {
+      enabled: true,
+      apiKey: apiKey,
+      userId: '', // Will be populated on first webhook
+      createdAt: new Date(),
+    });
+
+    logger.info('Configured Hevy integration', { userId });
+    res.status(200).json({ message: 'Hevy connected successfully' });
+
+  } catch (err) {
+    logger.error('Failed to configure Hevy integration', { error: err });
+    res.status(500).json({ error: 'Failed to configure integration' });
+  }
+}
+
+async function validateHevyApiKey(apiKey: string): Promise<boolean> {
+  try {
+    // Make a simple API call to validate the key
+    const response = await fetch('https://api.hevyapp.com/v1/user', {
+      headers: {
+        'api-key': apiKey,
+        'Accept': 'application/json',
+      },
+    });
+    return response.ok;
+  } catch {
+    return false;
   }
 }
 

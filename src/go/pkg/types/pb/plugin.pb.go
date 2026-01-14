@@ -135,6 +135,56 @@ func (ConfigFieldType) EnumDescriptor() ([]byte, []int) {
 	return file_plugin_proto_rawDescGZIP(), []int{1}
 }
 
+// IntegrationAuthType defines how users authenticate with an integration
+type IntegrationAuthType int32
+
+const (
+	IntegrationAuthType_INTEGRATION_AUTH_TYPE_UNSPECIFIED IntegrationAuthType = 0
+	IntegrationAuthType_INTEGRATION_AUTH_TYPE_OAUTH       IntegrationAuthType = 1
+	IntegrationAuthType_INTEGRATION_AUTH_TYPE_API_KEY     IntegrationAuthType = 2
+)
+
+// Enum value maps for IntegrationAuthType.
+var (
+	IntegrationAuthType_name = map[int32]string{
+		0: "INTEGRATION_AUTH_TYPE_UNSPECIFIED",
+		1: "INTEGRATION_AUTH_TYPE_OAUTH",
+		2: "INTEGRATION_AUTH_TYPE_API_KEY",
+	}
+	IntegrationAuthType_value = map[string]int32{
+		"INTEGRATION_AUTH_TYPE_UNSPECIFIED": 0,
+		"INTEGRATION_AUTH_TYPE_OAUTH":       1,
+		"INTEGRATION_AUTH_TYPE_API_KEY":     2,
+	}
+)
+
+func (x IntegrationAuthType) Enum() *IntegrationAuthType {
+	p := new(IntegrationAuthType)
+	*p = x
+	return p
+}
+
+func (x IntegrationAuthType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (IntegrationAuthType) Descriptor() protoreflect.EnumDescriptor {
+	return file_plugin_proto_enumTypes[2].Descriptor()
+}
+
+func (IntegrationAuthType) Type() protoreflect.EnumType {
+	return &file_plugin_proto_enumTypes[2]
+}
+
+func (x IntegrationAuthType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use IntegrationAuthType.Descriptor instead.
+func (IntegrationAuthType) EnumDescriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{2}
+}
+
 // PluginManifest defines metadata for any plugin
 type PluginManifest struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
@@ -483,19 +533,146 @@ func (x *ConfigFieldValidation) GetMaxValue() float64 {
 	return 0
 }
 
+// IntegrationManifest defines metadata for external service integrations
+type IntegrationManifest struct {
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                                               // Unique identifier (e.g., "hevy", "fitbit", "strava")
+	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                                           // Human-readable name
+	Description string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`                                             // Short description
+	Icon        string                 `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`                                                           // Emoji or icon name
+	AuthType    IntegrationAuthType    `protobuf:"varint,5,opt,name=auth_type,json=authType,proto3,enum=fitglue.IntegrationAuthType" json:"auth_type,omitempty"` // How users connect
+	Enabled     bool                   `protobuf:"varint,6,opt,name=enabled,proto3" json:"enabled,omitempty"`                                                    // Whether this integration is available
+	DocsUrl     string                 `protobuf:"bytes,7,opt,name=docs_url,json=docsUrl,proto3" json:"docs_url,omitempty"`                                      // Link to setup guide
+	// Setup configuration
+	SetupTitle        string `protobuf:"bytes,8,opt,name=setup_title,json=setupTitle,proto3" json:"setup_title,omitempty"`                      // Modal title e.g., "Connect Hevy"
+	SetupInstructions string `protobuf:"bytes,9,opt,name=setup_instructions,json=setupInstructions,proto3" json:"setup_instructions,omitempty"` // Markdown-formatted setup steps
+	ApiKeyLabel       string `protobuf:"bytes,10,opt,name=api_key_label,json=apiKeyLabel,proto3" json:"api_key_label,omitempty"`                // Label for API key input e.g., "API Key"
+	ApiKeyHelpUrl     string `protobuf:"bytes,11,opt,name=api_key_help_url,json=apiKeyHelpUrl,proto3" json:"api_key_help_url,omitempty"`        // URL where user gets the key
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *IntegrationManifest) Reset() {
+	*x = IntegrationManifest{}
+	mi := &file_plugin_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IntegrationManifest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IntegrationManifest) ProtoMessage() {}
+
+func (x *IntegrationManifest) ProtoReflect() protoreflect.Message {
+	mi := &file_plugin_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IntegrationManifest.ProtoReflect.Descriptor instead.
+func (*IntegrationManifest) Descriptor() ([]byte, []int) {
+	return file_plugin_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *IntegrationManifest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetAuthType() IntegrationAuthType {
+	if x != nil {
+		return x.AuthType
+	}
+	return IntegrationAuthType_INTEGRATION_AUTH_TYPE_UNSPECIFIED
+}
+
+func (x *IntegrationManifest) GetEnabled() bool {
+	if x != nil {
+		return x.Enabled
+	}
+	return false
+}
+
+func (x *IntegrationManifest) GetDocsUrl() string {
+	if x != nil {
+		return x.DocsUrl
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetSetupTitle() string {
+	if x != nil {
+		return x.SetupTitle
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetSetupInstructions() string {
+	if x != nil {
+		return x.SetupInstructions
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetApiKeyLabel() string {
+	if x != nil {
+		return x.ApiKeyLabel
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetApiKeyHelpUrl() string {
+	if x != nil {
+		return x.ApiKeyHelpUrl
+	}
+	return ""
+}
+
 // PluginRegistryResponse for API discovery
 type PluginRegistryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sources       []*PluginManifest      `protobuf:"bytes,1,rep,name=sources,proto3" json:"sources,omitempty"`
 	Enrichers     []*PluginManifest      `protobuf:"bytes,2,rep,name=enrichers,proto3" json:"enrichers,omitempty"`
 	Destinations  []*PluginManifest      `protobuf:"bytes,3,rep,name=destinations,proto3" json:"destinations,omitempty"`
+	Integrations  []*IntegrationManifest `protobuf:"bytes,4,rep,name=integrations,proto3" json:"integrations,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PluginRegistryResponse) Reset() {
 	*x = PluginRegistryResponse{}
-	mi := &file_plugin_proto_msgTypes[4]
+	mi := &file_plugin_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -507,7 +684,7 @@ func (x *PluginRegistryResponse) String() string {
 func (*PluginRegistryResponse) ProtoMessage() {}
 
 func (x *PluginRegistryResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_plugin_proto_msgTypes[4]
+	mi := &file_plugin_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -520,7 +697,7 @@ func (x *PluginRegistryResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginRegistryResponse.ProtoReflect.Descriptor instead.
 func (*PluginRegistryResponse) Descriptor() ([]byte, []int) {
-	return file_plugin_proto_rawDescGZIP(), []int{4}
+	return file_plugin_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *PluginRegistryResponse) GetSources() []*PluginManifest {
@@ -540,6 +717,13 @@ func (x *PluginRegistryResponse) GetEnrichers() []*PluginManifest {
 func (x *PluginRegistryResponse) GetDestinations() []*PluginManifest {
 	if x != nil {
 		return x.Destinations
+	}
+	return nil
+}
+
+func (x *PluginRegistryResponse) GetIntegrations() []*IntegrationManifest {
+	if x != nil {
+		return x.Integrations
 	}
 	return nil
 }
@@ -593,11 +777,26 @@ const file_plugin_proto_rawDesc = "" +
 	"\n" +
 	"_min_valueB\f\n" +
 	"\n" +
-	"_max_value\"\xbf\x01\n" +
+	"_max_value\"\xfc\x02\n" +
+	"\x13IntegrationManifest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04icon\x18\x04 \x01(\tR\x04icon\x129\n" +
+	"\tauth_type\x18\x05 \x01(\x0e2\x1c.fitglue.IntegrationAuthTypeR\bauthType\x12\x18\n" +
+	"\aenabled\x18\x06 \x01(\bR\aenabled\x12\x19\n" +
+	"\bdocs_url\x18\a \x01(\tR\adocsUrl\x12\x1f\n" +
+	"\vsetup_title\x18\b \x01(\tR\n" +
+	"setupTitle\x12-\n" +
+	"\x12setup_instructions\x18\t \x01(\tR\x11setupInstructions\x12\"\n" +
+	"\rapi_key_label\x18\n" +
+	" \x01(\tR\vapiKeyLabel\x12'\n" +
+	"\x10api_key_help_url\x18\v \x01(\tR\rapiKeyHelpUrl\"\x81\x02\n" +
 	"\x16PluginRegistryResponse\x121\n" +
 	"\asources\x18\x01 \x03(\v2\x17.fitglue.PluginManifestR\asources\x125\n" +
 	"\tenrichers\x18\x02 \x03(\v2\x17.fitglue.PluginManifestR\tenrichers\x12;\n" +
-	"\fdestinations\x18\x03 \x03(\v2\x17.fitglue.PluginManifestR\fdestinations*x\n" +
+	"\fdestinations\x18\x03 \x03(\v2\x17.fitglue.PluginManifestR\fdestinations\x12@\n" +
+	"\fintegrations\x18\x04 \x03(\v2\x1c.fitglue.IntegrationManifestR\fintegrations*x\n" +
 	"\n" +
 	"PluginType\x12\x1b\n" +
 	"\x17PLUGIN_TYPE_UNSPECIFIED\x10\x00\x12\x16\n" +
@@ -611,7 +810,11 @@ const file_plugin_proto_rawDesc = "" +
 	"\x19CONFIG_FIELD_TYPE_BOOLEAN\x10\x03\x12\x1c\n" +
 	"\x18CONFIG_FIELD_TYPE_SELECT\x10\x04\x12\"\n" +
 	"\x1eCONFIG_FIELD_TYPE_MULTI_SELECT\x10\x05\x12#\n" +
-	"\x1fCONFIG_FIELD_TYPE_KEY_VALUE_MAP\x10\x06B7Z5github.com/ripixel/fitglue-server/src/go/pkg/types/pbb\x06proto3"
+	"\x1fCONFIG_FIELD_TYPE_KEY_VALUE_MAP\x10\x06*\x80\x01\n" +
+	"\x13IntegrationAuthType\x12%\n" +
+	"!INTEGRATION_AUTH_TYPE_UNSPECIFIED\x10\x00\x12\x1f\n" +
+	"\x1bINTEGRATION_AUTH_TYPE_OAUTH\x10\x01\x12!\n" +
+	"\x1dINTEGRATION_AUTH_TYPE_API_KEY\x10\x02B7Z5github.com/ripixel/fitglue-server/src/go/pkg/types/pbb\x06proto3"
 
 var (
 	file_plugin_proto_rawDescOnce sync.Once
@@ -625,31 +828,35 @@ func file_plugin_proto_rawDescGZIP() []byte {
 	return file_plugin_proto_rawDescData
 }
 
-var file_plugin_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_plugin_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_plugin_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_plugin_proto_goTypes = []any{
 	(PluginType)(0),                // 0: fitglue.PluginType
 	(ConfigFieldType)(0),           // 1: fitglue.ConfigFieldType
-	(*PluginManifest)(nil),         // 2: fitglue.PluginManifest
-	(*ConfigFieldSchema)(nil),      // 3: fitglue.ConfigFieldSchema
-	(*ConfigFieldOption)(nil),      // 4: fitglue.ConfigFieldOption
-	(*ConfigFieldValidation)(nil),  // 5: fitglue.ConfigFieldValidation
-	(*PluginRegistryResponse)(nil), // 6: fitglue.PluginRegistryResponse
+	(IntegrationAuthType)(0),       // 2: fitglue.IntegrationAuthType
+	(*PluginManifest)(nil),         // 3: fitglue.PluginManifest
+	(*ConfigFieldSchema)(nil),      // 4: fitglue.ConfigFieldSchema
+	(*ConfigFieldOption)(nil),      // 5: fitglue.ConfigFieldOption
+	(*ConfigFieldValidation)(nil),  // 6: fitglue.ConfigFieldValidation
+	(*IntegrationManifest)(nil),    // 7: fitglue.IntegrationManifest
+	(*PluginRegistryResponse)(nil), // 8: fitglue.PluginRegistryResponse
 }
 var file_plugin_proto_depIdxs = []int32{
-	0, // 0: fitglue.PluginManifest.type:type_name -> fitglue.PluginType
-	3, // 1: fitglue.PluginManifest.config_schema:type_name -> fitglue.ConfigFieldSchema
-	1, // 2: fitglue.ConfigFieldSchema.field_type:type_name -> fitglue.ConfigFieldType
-	4, // 3: fitglue.ConfigFieldSchema.options:type_name -> fitglue.ConfigFieldOption
-	5, // 4: fitglue.ConfigFieldSchema.validation:type_name -> fitglue.ConfigFieldValidation
-	2, // 5: fitglue.PluginRegistryResponse.sources:type_name -> fitglue.PluginManifest
-	2, // 6: fitglue.PluginRegistryResponse.enrichers:type_name -> fitglue.PluginManifest
-	2, // 7: fitglue.PluginRegistryResponse.destinations:type_name -> fitglue.PluginManifest
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	0,  // 0: fitglue.PluginManifest.type:type_name -> fitglue.PluginType
+	4,  // 1: fitglue.PluginManifest.config_schema:type_name -> fitglue.ConfigFieldSchema
+	1,  // 2: fitglue.ConfigFieldSchema.field_type:type_name -> fitglue.ConfigFieldType
+	5,  // 3: fitglue.ConfigFieldSchema.options:type_name -> fitglue.ConfigFieldOption
+	6,  // 4: fitglue.ConfigFieldSchema.validation:type_name -> fitglue.ConfigFieldValidation
+	2,  // 5: fitglue.IntegrationManifest.auth_type:type_name -> fitglue.IntegrationAuthType
+	3,  // 6: fitglue.PluginRegistryResponse.sources:type_name -> fitglue.PluginManifest
+	3,  // 7: fitglue.PluginRegistryResponse.enrichers:type_name -> fitglue.PluginManifest
+	3,  // 8: fitglue.PluginRegistryResponse.destinations:type_name -> fitglue.PluginManifest
+	7,  // 9: fitglue.PluginRegistryResponse.integrations:type_name -> fitglue.IntegrationManifest
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_plugin_proto_init() }
@@ -664,8 +871,8 @@ func file_plugin_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_plugin_proto_rawDesc), len(file_plugin_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   5,
+			NumEnums:      3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

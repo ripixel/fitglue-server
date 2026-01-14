@@ -9,7 +9,9 @@ import {
   PluginManifest,
   PluginRegistryResponse,
   PluginType,
-  ConfigFieldType
+  ConfigFieldType,
+  IntegrationManifest,
+  IntegrationAuthType,
 } from '../types/pb/plugin';
 import { EnricherProviderType } from '../types/pb/user';
 
@@ -17,6 +19,7 @@ import { EnricherProviderType } from '../types/pb/user';
 const sources: Map<string, PluginManifest> = new Map();
 const enrichers: Map<EnricherProviderType, PluginManifest> = new Map();
 const destinations: Map<string, PluginManifest> = new Map();
+const integrations: Map<string, IntegrationManifest> = new Map();
 
 /**
  * Register a source plugin manifest
@@ -41,6 +44,13 @@ export function registerDestination(manifest: PluginManifest): void {
 }
 
 /**
+ * Register an integration manifest
+ */
+export function registerIntegration(manifest: IntegrationManifest): void {
+  integrations.set(manifest.id, manifest);
+}
+
+/**
  * Get the full plugin registry
  */
 export function getRegistry(): PluginRegistryResponse {
@@ -48,6 +58,7 @@ export function getRegistry(): PluginRegistryResponse {
     sources: Array.from(sources.values()),
     enrichers: Array.from(enrichers.values()),
     destinations: Array.from(destinations.values()),
+    integrations: Array.from(integrations.values()).filter(i => i.enabled),
   };
 }
 
@@ -65,6 +76,7 @@ export function clearRegistry(): void {
   sources.clear();
   enrichers.clear();
   destinations.clear();
+  integrations.clear();
 }
 
 // ============================================================================
@@ -414,4 +426,59 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MOCK, {
     { key: 'name', label: 'Activity Name', description: 'Name to set', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'description', label: 'Description', description: 'Description to add', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
   ],
+});
+
+// ============================================================================
+// Register all known integrations
+// NOTE: Keep in sync with web/skier.tasks.mjs for marketing site
+// ============================================================================
+
+registerIntegration({
+  id: 'hevy',
+  name: 'Hevy',
+  description: 'Import strength training workouts',
+  icon: '🏋️',
+  authType: IntegrationAuthType.INTEGRATION_AUTH_TYPE_API_KEY,
+  enabled: true,
+  docsUrl: 'https://docs.hevy.com',
+  setupTitle: 'Connect Hevy',
+  setupInstructions: `To connect Hevy, you'll need to generate an API key from the Hevy app:
+
+1. Open the **Hevy app** on your phone
+2. Go to **Settings** (gear icon)
+3. Scroll down and tap **Developer API**
+4. Tap **Generate API Key**
+5. Copy the key and paste it below
+
+Your workouts will automatically sync when you log them in Hevy.`,
+  apiKeyLabel: 'Hevy API Key',
+  apiKeyHelpUrl: 'https://docs.hevy.com/developer-api',
+});
+
+registerIntegration({
+  id: 'fitbit',
+  name: 'Fitbit',
+  description: 'Sync activities and health data from your Fitbit device',
+  icon: '⌚',
+  authType: IntegrationAuthType.INTEGRATION_AUTH_TYPE_OAUTH,
+  enabled: true,
+  docsUrl: '',
+  setupTitle: 'Connect Fitbit',
+  setupInstructions: 'Click **Connect** to authorize FitGlue to access your Fitbit activity and heart rate data. You will be redirected to Fitbit to sign in.',
+  apiKeyLabel: '',
+  apiKeyHelpUrl: '',
+});
+
+registerIntegration({
+  id: 'strava',
+  name: 'Strava',
+  description: 'Upload activities to Strava',
+  icon: '🚴',
+  authType: IntegrationAuthType.INTEGRATION_AUTH_TYPE_OAUTH,
+  enabled: true,
+  docsUrl: '',
+  setupTitle: 'Connect Strava',
+  setupInstructions: 'Click **Connect** to authorize FitGlue to upload enriched activities to your Strava profile. You will be redirected to Strava to sign in.',
+  apiKeyLabel: '',
+  apiKeyHelpUrl: '',
 });
