@@ -223,7 +223,24 @@ FitGlue analyzes your sets, reps, and weight data, identifies your primary muscl
     '✅ Analyzes volume trends and intensity',
     '✅ customizable formats (Compact, Detailed, Verbose)',
   ],
-});
+  exampleBefore: 'Upper Body Workout',
+  exampleAfter: `💪 Upper Body Workout
+
+Hit a solid upper body session today — 5 exercises, 20 sets total. Focused on chest and shoulders with some triceps accessory work.
+
+**Bench Press** • 4 × 8 × 80kg (2,560kg volume)
+**Overhead Press** • 4 × 10 × 40kg
+**Incline DB Press** • 4 × 12 × 24kg
+**Lateral Raises** • 4 × 15 × 10kg
+**Tricep Pushdowns** • 4 × 12 × 25kg
+
+📊 Total Volume: 8,240kg | 57 reps | New PR on Bench!`,
+  useCases: [
+    'Share detailed workout logs on Strava',
+    'Track progressive overload with volume stats',
+    'Celebrate personal records automatically',
+  ],
+} as PluginManifest & { exampleBefore?: string; exampleAfter?: string; useCases?: string[] });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP, {
   id: 'muscle-heatmap',
@@ -284,7 +301,21 @@ Every exercise in your workout is mapped to primary and secondary muscle groups.
     '✅ Adjustable muscle coefficients',
     '✅ Works with all strength activities',
   ],
-});
+  exampleBefore: 'Push Day completed',
+  exampleAfter: `Push Day completed
+
+🔥 Muscle Heatmap
+━━━━━━━━━━━━━━━━
+Chest    🟪🟪🟪🟪🟪
+Shoulders 🟪🟪🟪🟪⬜
+Triceps  🟪🟪🟪⬜⬜
+Core     🟪🟪⬜⬜⬜`,
+  useCases: [
+    'Visualize muscle balance in your program',
+    'Show training focus areas on Strava',
+    'Identify lagging muscle groups',
+  ],
+} as PluginManifest & { exampleBefore?: string; exampleAfter?: string; useCases?: string[] });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE, {
   id: 'fitbit-heart-rate',
@@ -376,29 +407,6 @@ When activities are imported from sources like Hevy or Fitbit, Source Link adds 
     '✅ Adds a link to the original activity',
     '✅ Easy cross-referencing between apps',
     '✅ Works with all source integrations',
-  ],
-});
-
-registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH, {
-  id: 'metadata-passthrough',
-  type: PluginType.PLUGIN_TYPE_ENRICHER,
-  name: 'Metadata Passthrough',
-  description: 'Passes through metadata from the source activity',
-  icon: '📦',
-  enabled: true,
-  requiredIntegrations: [],
-  configSchema: [],
-  marketingDescription: `
-### Preserve Source Metadata
-Carries through all metadata from the source activity to the destination. This ensures nothing is lost in translation between fitness platforms.
-
-### How it works
-When activities flow through your pipeline, this booster preserves metadata fields like notes, tags, and custom data from the source. These are then included when uploading to destinations.
-  `,
-  features: [
-    '✅ Preserves all source metadata',
-    '✅ Notes, tags, and custom fields included',
-    '✅ Nothing lost in translation',
   ],
 });
 
