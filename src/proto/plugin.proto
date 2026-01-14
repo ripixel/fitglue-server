@@ -26,7 +26,12 @@ message PluginManifest {
   optional int32 enricher_provider_type = 9;
   // For destinations: links to the Destination enum value
   optional int32 destination_type = 10;
+
+  // Marketing metadata
+  string marketing_description = 11;          // Extended description for marketing site (markdown supported)
+  repeated string features = 12;              // List of features/capabilities to display
 }
+
 
 // ConfigFieldSchema defines a single configuration field
 message ConfigFieldSchema {
@@ -84,6 +89,9 @@ message IntegrationManifest {
   string setup_instructions = 9;              // Markdown-formatted setup steps
   string api_key_label = 10;                  // Label for API key input e.g., "API Key"
   string api_key_help_url = 11;               // URL where user gets the key
+  // Marketing metadata
+  string marketing_description = 12;          // Extended description for marketing site (markdown)
+  repeated string features = 13;              // List of features/capabilities
 }
 
 // PluginRegistryResponse for API discovery

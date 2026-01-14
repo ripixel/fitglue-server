@@ -62,7 +62,13 @@ export interface PluginManifest {
     | number
     | undefined;
   /** For destinations: links to the Destination enum value */
-  destinationType?: number | undefined;
+  destinationType?:
+    | number
+    | undefined;
+  /** Marketing metadata */
+  marketingDescription: string;
+  /** List of features/capabilities to display */
+  features: string[];
 }
 
 /** ConfigFieldSchema defines a single configuration field */
@@ -127,6 +133,10 @@ export interface IntegrationManifest {
   apiKeyLabel: string;
   /** URL where user gets the key */
   apiKeyHelpUrl: string;
+  /** Marketing metadata */
+  marketingDescription: string;
+  /** List of features/capabilities */
+  features: string[];
 }
 
 /** PluginRegistryResponse for API discovery */

@@ -200,8 +200,11 @@ type PluginManifest struct {
 	EnricherProviderType *int32 `protobuf:"varint,9,opt,name=enricher_provider_type,json=enricherProviderType,proto3,oneof" json:"enricher_provider_type,omitempty"`
 	// For destinations: links to the Destination enum value
 	DestinationType *int32 `protobuf:"varint,10,opt,name=destination_type,json=destinationType,proto3,oneof" json:"destination_type,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// Marketing metadata
+	MarketingDescription string   `protobuf:"bytes,11,opt,name=marketing_description,json=marketingDescription,proto3" json:"marketing_description,omitempty"` // Extended description for marketing site (markdown supported)
+	Features             []string `protobuf:"bytes,12,rep,name=features,proto3" json:"features,omitempty"`                                                     // List of features/capabilities to display
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *PluginManifest) Reset() {
@@ -302,6 +305,20 @@ func (x *PluginManifest) GetDestinationType() int32 {
 		return *x.DestinationType
 	}
 	return 0
+}
+
+func (x *PluginManifest) GetMarketingDescription() string {
+	if x != nil {
+		return x.MarketingDescription
+	}
+	return ""
+}
+
+func (x *PluginManifest) GetFeatures() []string {
+	if x != nil {
+		return x.Features
+	}
+	return nil
 }
 
 // ConfigFieldSchema defines a single configuration field
@@ -548,8 +565,11 @@ type IntegrationManifest struct {
 	SetupInstructions string `protobuf:"bytes,9,opt,name=setup_instructions,json=setupInstructions,proto3" json:"setup_instructions,omitempty"` // Markdown-formatted setup steps
 	ApiKeyLabel       string `protobuf:"bytes,10,opt,name=api_key_label,json=apiKeyLabel,proto3" json:"api_key_label,omitempty"`                // Label for API key input e.g., "API Key"
 	ApiKeyHelpUrl     string `protobuf:"bytes,11,opt,name=api_key_help_url,json=apiKeyHelpUrl,proto3" json:"api_key_help_url,omitempty"`        // URL where user gets the key
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// Marketing metadata
+	MarketingDescription string   `protobuf:"bytes,12,opt,name=marketing_description,json=marketingDescription,proto3" json:"marketing_description,omitempty"` // Extended description for marketing site (markdown)
+	Features             []string `protobuf:"bytes,13,rep,name=features,proto3" json:"features,omitempty"`                                                     // List of features/capabilities
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *IntegrationManifest) Reset() {
@@ -659,6 +679,20 @@ func (x *IntegrationManifest) GetApiKeyHelpUrl() string {
 	return ""
 }
 
+func (x *IntegrationManifest) GetMarketingDescription() string {
+	if x != nil {
+		return x.MarketingDescription
+	}
+	return ""
+}
+
+func (x *IntegrationManifest) GetFeatures() []string {
+	if x != nil {
+		return x.Features
+	}
+	return nil
+}
+
 // PluginRegistryResponse for API discovery
 type PluginRegistryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -732,7 +766,7 @@ var File_plugin_proto protoreflect.FileDescriptor
 
 const file_plugin_proto_rawDesc = "" +
 	"\n" +
-	"\fplugin.proto\x12\afitglue\"\xbe\x03\n" +
+	"\fplugin.proto\x12\afitglue\"\x8f\x04\n" +
 	"\x0ePluginManifest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12'\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x13.fitglue.PluginTypeR\x04type\x12\x12\n" +
@@ -744,7 +778,9 @@ const file_plugin_proto_rawDesc = "" +
 	"\aenabled\x18\b \x01(\bR\aenabled\x129\n" +
 	"\x16enricher_provider_type\x18\t \x01(\x05H\x00R\x14enricherProviderType\x88\x01\x01\x12.\n" +
 	"\x10destination_type\x18\n" +
-	" \x01(\x05H\x01R\x0fdestinationType\x88\x01\x01B\x19\n" +
+	" \x01(\x05H\x01R\x0fdestinationType\x88\x01\x01\x123\n" +
+	"\x15marketing_description\x18\v \x01(\tR\x14marketingDescription\x12\x1a\n" +
+	"\bfeatures\x18\f \x03(\tR\bfeaturesB\x19\n" +
 	"\x17_enricher_provider_typeB\x13\n" +
 	"\x11_destination_type\"\xcd\x02\n" +
 	"\x11ConfigFieldSchema\x12\x10\n" +
@@ -777,7 +813,7 @@ const file_plugin_proto_rawDesc = "" +
 	"\n" +
 	"_min_valueB\f\n" +
 	"\n" +
-	"_max_value\"\xfc\x02\n" +
+	"_max_value\"\xcd\x03\n" +
 	"\x13IntegrationManifest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -791,7 +827,9 @@ const file_plugin_proto_rawDesc = "" +
 	"\x12setup_instructions\x18\t \x01(\tR\x11setupInstructions\x12\"\n" +
 	"\rapi_key_label\x18\n" +
 	" \x01(\tR\vapiKeyLabel\x12'\n" +
-	"\x10api_key_help_url\x18\v \x01(\tR\rapiKeyHelpUrl\"\x81\x02\n" +
+	"\x10api_key_help_url\x18\v \x01(\tR\rapiKeyHelpUrl\x123\n" +
+	"\x15marketing_description\x18\f \x01(\tR\x14marketingDescription\x12\x1a\n" +
+	"\bfeatures\x18\r \x03(\tR\bfeatures\"\x81\x02\n" +
 	"\x16PluginRegistryResponse\x121\n" +
 	"\asources\x18\x01 \x03(\v2\x17.fitglue.PluginManifestR\asources\x125\n" +
 	"\tenrichers\x18\x02 \x03(\v2\x17.fitglue.PluginManifestR\tenrichers\x12;\n" +

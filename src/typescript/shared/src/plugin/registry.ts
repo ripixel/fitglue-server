@@ -92,6 +92,8 @@ registerSource({
   enabled: true,
   requiredIntegrations: ['hevy'],
   configSchema: [],
+  marketingDescription: '',
+  features: [],
 });
 
 registerSource({
@@ -103,6 +105,8 @@ registerSource({
   enabled: true,
   requiredIntegrations: ['fitbit'],
   configSchema: [],
+  marketingDescription: '',
+  features: [],
 });
 
 registerSource({
@@ -114,6 +118,8 @@ registerSource({
   enabled: false,
   requiredIntegrations: [],
   configSchema: [],
+  marketingDescription: '',
+  features: [],
 });
 
 // ============================================================================
@@ -130,6 +136,8 @@ registerDestination({
   requiredIntegrations: ['strava'],
   configSchema: [],
   destinationType: 1, // DestinationType.DESTINATION_STRAVA
+  marketingDescription: '',
+  features: [],
 });
 
 // ============================================================================
@@ -168,6 +176,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_WORKOUT_SUMMARY, {
       defaultValue: 'true',
       options: [],
     },
+  ],
+  marketingDescription: `
+### What is Workout Summary?
+This booster uses advanced AI to analyze your strength training data and generate engaging, human-readable summaries of your sessions. Instead of just a list of numbers, you get a narrative description of your workout intensity, volume, and focus areas.
+
+### How it works
+FitGlue analyzes your sets, reps, and weight data, identifies your primary muscle groups targeted, and calculates total volume. It then uses a Large Language Model (LLM) to craft a summary that highlights your achievements, personal bests, and overall effort.
+  `,
+  features: [
+    '✅ Narrative summaries of your strength workouts',
+    '✅ Highlights key lifts and personal bests',
+    '✅ Analyzes volume trends and intensity',
+    '✅ customizable formats (Compact, Detailed, Verbose)',
   ],
 });
 
@@ -217,6 +238,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP, {
       ],
     },
   ],
+  marketingDescription: `
+### Visualize Your Training
+The Muscle Heatmap booster generates a visual representation of your training volume by muscle group. Using a heatmap style visualization, you can instantly see which muscles you hit hardest and which ones might be lagging.
+
+### How it works
+Every exercise in your workout is mapped to primary and secondary muscle groups. We calculate the volume load for each muscle and generate a "heatmap" bar or chart that is appended to your activity description. It's a great way to show off your leg day or chest pump!
+  `,
+  features: [
+    '✅ Visual heatmap of trained muscles',
+    '✅ Supports Emoji, Percentage, and Text formats',
+    '✅ Adjustable muscle coefficients',
+    '✅ Works with all strength activities',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE, {
@@ -228,6 +262,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE, {
   enabled: true,
   requiredIntegrations: ['fitbit'],
   configSchema: [],
+  marketingDescription: `
+### Unified Heart Data
+Sync your heart rate data from your Fitbit device and overlay it onto your imported activities. This is perfect for when you track a workout (like weightlifting) on one app but wear your Fitbit for health monitoring.
+
+### How it works
+When an activity is imported (e.g., from Hevy), FitGlue checks your Fitbit account for heart rate data recorded during that time window. It creates a second-by-second heart rate stream and attaches it to the activity before sending it to Strava or other destinations.
+  `,
+  features: [
+    '✅ Merges heart rate from Fitbit to any activity',
+    '✅ Perfect for gym workouts where you don\'t start a GPS watch',
+    '✅ Accurate calorie data based on heart rate',
+    '✅ Seamless background synchronization',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS, {
@@ -261,6 +308,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS, {
       options: [],
     },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK, {
@@ -272,6 +321,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK, {
   enabled: true,
   requiredIntegrations: [],
   configSchema: [],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH, {
@@ -283,6 +334,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH, {
   enabled: true,
   requiredIntegrations: [],
   configSchema: [],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_TYPE_MAPPER, {
@@ -304,6 +357,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_TYPE_MAPPER, {
       options: [],
     },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_PARKRUN, {
@@ -334,6 +389,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_PARKRUN, {
       options: [],
     },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER, {
@@ -355,6 +412,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER, {
     { key: 'title_template', label: 'Title Template', description: 'Title when matched', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'description_template', label: 'Description Template', description: 'Description when matched', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT, {
@@ -370,6 +429,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT, {
     { key: 'title_contains', label: 'Title Filter', description: 'Only increment if title contains this', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'initial_value', label: 'Initial Value', description: 'Starting number', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '1', options: [] },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT, {
@@ -383,6 +444,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT, {
   configSchema: [
     { key: 'fields', label: 'Required Fields', description: 'Comma-separated fields (title,description)', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: 'description', options: [] },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER, {
@@ -399,6 +462,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER, {
     { key: 'include_activity_types', label: 'Include Only Activity Types', description: 'Only include these types', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'include_title_contains', label: 'Include Only Titles Containing', description: 'Must contain one of these', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MOCK, {
@@ -426,6 +491,8 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MOCK, {
     { key: 'name', label: 'Activity Name', description: 'Name to set', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'description', label: 'Description', description: 'Description to add', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
   ],
+  marketingDescription: '',
+  features: [],
 });
 
 // ============================================================================
@@ -453,6 +520,19 @@ registerIntegration({
 Your workouts will automatically sync when you log them in Hevy.`,
   apiKeyLabel: 'Hevy API Key',
   apiKeyHelpUrl: 'https://docs.hevy.com/developer-api',
+  marketingDescription: `
+### What is Hevy?
+Hevy is a popular workout tracking app designed for strength training enthusiasts. It lets you log exercises, sets, reps, and weights with a clean, intuitive interface.
+
+### What FitGlue Does
+FitGlue connects to your Hevy account via API key, allowing your logged workouts to flow into the FitGlue pipeline. From there, you can enhance them with AI summaries, muscle heatmaps, and more — then sync them to Strava or other destinations.
+  `,
+  features: [
+    '✅ Import all your strength workouts automatically',
+    '✅ Exercises, sets, reps, and weights included',
+    '✅ Real-time sync when you finish a workout',
+    '✅ Simple API key setup — no OAuth required',
+  ],
 });
 
 registerIntegration({
@@ -467,6 +547,19 @@ registerIntegration({
   setupInstructions: 'Click **Connect** to authorize FitGlue to access your Fitbit activity and heart rate data. You will be redirected to Fitbit to sign in.',
   apiKeyLabel: '',
   apiKeyHelpUrl: '',
+  marketingDescription: `
+### What is Fitbit?
+Fitbit is a leading wearable fitness tracker that monitors your activity, heart rate, sleep, and more. Millions of users rely on Fitbit devices to track their daily health metrics.
+
+### What FitGlue Does
+FitGlue connects to your Fitbit account via OAuth, enabling you to import activities and heart rate data. Use Fitbit as a source for activities, or overlay heart rate data onto workouts from other sources like Hevy.
+  `,
+  features: [
+    '✅ Import activities tracked by your Fitbit device',
+    '✅ Use heart rate data to enrich workouts from other sources',
+    '✅ Secure OAuth connection — no passwords stored',
+    '✅ Automatic sync of new activities',
+  ],
 });
 
 registerIntegration({
@@ -481,4 +574,17 @@ registerIntegration({
   setupInstructions: 'Click **Connect** to authorize FitGlue to upload enriched activities to your Strava profile. You will be redirected to Strava to sign in.',
   apiKeyLabel: '',
   apiKeyHelpUrl: '',
+  marketingDescription: `
+### What is Strava?
+Strava is the social network for athletes. Share your activities with friends, compete on segments, and track your training progress over time.
+
+### What FitGlue Does
+FitGlue connects to your Strava account via OAuth and can upload your enriched activities directly. Workouts from Hevy or Fitbit — enhanced with AI descriptions, muscle heatmaps, and heart rate data — appear on your Strava feed automatically.
+  `,
+  features: [
+    '✅ Upload enriched activities to Strava automatically',
+    '✅ AI-generated descriptions appear in your feed',
+    '✅ Muscle heatmaps and stats included',
+    '✅ Secure OAuth connection',
+  ],
 });
