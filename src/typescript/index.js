@@ -63,9 +63,9 @@ exports.userPipelinesHandler = (req, res) => {
   return userPipelines.userPipelinesHandler(req, res);
 };
 
-exports.pluginRegistryHandler = (req, res) => {
-  const pluginRegistry = require('./plugin-registry-handler/build/index');
-  return pluginRegistry.pluginRegistryHandler(req, res);
+exports.registryHandler = (req, res) => {
+  const registry = require('./registry-handler/build/index');
+  return registry.registryHandler(req, res);
 };
 
 exports.integrationRequestHandler = (req, res) => {

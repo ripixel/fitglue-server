@@ -92,8 +92,19 @@ registerSource({
   enabled: true,
   requiredIntegrations: ['hevy'],
   configSchema: [],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Strength Training Source
+Import your weight training workouts from Hevy into FitGlue for enhancement and distribution. Every exercise, set, rep, and weight is captured with full fidelity.
+
+### How it works
+When you complete a workout in Hevy, FitGlue receives a webhook notification and imports the full workout data. The activity enters your FitGlue pipeline where it can be enriched with AI descriptions, muscle heatmaps, and more.
+  `,
+  features: [
+    '✅ Import strength workouts with full exercise details',
+    '✅ Capture sets, reps, weights, and rest periods',
+    '✅ Real-time sync via webhooks',
+    '✅ Works seamlessly with all FitGlue boosters',
+  ],
 });
 
 registerSource({
@@ -105,8 +116,19 @@ registerSource({
   enabled: true,
   requiredIntegrations: ['fitbit'],
   configSchema: [],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Wearable Activity Source
+Import activities tracked by your Fitbit device into FitGlue. Runs, walks, bike rides, and workouts with heart rate and calorie data are all supported.
+
+### How it works
+FitGlue connects to the Fitbit API and receives notifications when you complete activities. The full activity data, including heart rate zones and GPS tracks (if available), is imported into your pipeline.
+  `,
+  features: [
+    '✅ Import all Fitbit-tracked activities',
+    '✅ Heart rate data included automatically',
+    '✅ GPS tracks for outdoor activities',
+    '✅ Automatic sync when activities complete',
+  ],
 });
 
 registerSource({
@@ -136,8 +158,19 @@ registerDestination({
   requiredIntegrations: ['strava'],
   configSchema: [],
   destinationType: 1, // DestinationType.DESTINATION_STRAVA
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Share Your Enhanced Activities
+Upload your enriched activities to Strava automatically. Your AI descriptions, muscle heatmaps, and merged heart rate data will appear on your Strava feed.
+
+### How it works
+Once activities pass through your enrichment pipeline, FitGlue uploads them to Strava via the official API. They appear as native Strava activities, complete with all the enhancements you've configured.
+  `,
+  features: [
+    '✅ Upload activities to Strava automatically',
+    '✅ AI descriptions and muscle heatmaps included',
+    '✅ Heart rate and GPS data attached',
+    '✅ Secure OAuth connection to your Strava account',
+  ],
 });
 
 // ============================================================================
@@ -308,8 +341,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS, {
       options: [],
     },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Virtual GPS for Indoor Workouts
+Add GPS coordinates to indoor activities so they appear with a map on Strava. Choose from preset routes in famous locations like London’s Hyde Park or NYC’s Central Park.
+
+### How it works
+When an activity is processed, Virtual GPS overlays a pre-defined GPS route onto the activity. The route is scaled to match your workout duration, giving your indoor session a scenic virtual location.
+  `,
+  features: [
+    '✅ Adds GPS to indoor/gym activities',
+    '✅ Activities appear with a map on Strava',
+    '✅ Choice of scenic routes (London, NYC)',
+    '✅ Route scaled to match workout duration',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK, {
@@ -321,8 +365,18 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_SOURCE_LINK, {
   enabled: true,
   requiredIntegrations: [],
   configSchema: [],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Link Back to the Source
+Automatically appends a deep link to the original activity in your workout description. Great for cross-referencing your data.
+
+### How it works
+When activities are imported from sources like Hevy or Fitbit, Source Link adds a clickable URL pointing back to the original activity. This makes it easy to see the full details in the source app.
+  `,
+  features: [
+    '✅ Adds a link to the original activity',
+    '✅ Easy cross-referencing between apps',
+    '✅ Works with all source integrations',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH, {
@@ -334,8 +388,18 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_METADATA_PASSTHROUGH, {
   enabled: true,
   requiredIntegrations: [],
   configSchema: [],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Preserve Source Metadata
+Carries through all metadata from the source activity to the destination. This ensures nothing is lost in translation between fitness platforms.
+
+### How it works
+When activities flow through your pipeline, this booster preserves metadata fields like notes, tags, and custom data from the source. These are then included when uploading to destinations.
+  `,
+  features: [
+    '✅ Preserves all source metadata',
+    '✅ Notes, tags, and custom fields included',
+    '✅ Nothing lost in translation',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_TYPE_MAPPER, {
@@ -357,8 +421,18 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_TYPE_MAPPER, {
       options: [],
     },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Remap Activity Types
+Convert activity types from one category to another. Perfect for when your source app uses different type names than your destination.
+
+### How it works
+Define mapping rules like "WeightTraining" → "Weight Training" or "Ride" → "Virtual Ride". When activities are processed, their type is automatically converted according to your mappings.
+  `,
+  features: [
+    '✅ Convert activity types between platforms',
+    '✅ Configurable mapping rules',
+    '✅ Works with all source and destination types',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_PARKRUN, {
@@ -389,8 +463,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_PARKRUN, {
       options: [],
     },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Automatic Parkrun Detection
+Automatically detects when your activity is a Parkrun event based on location and time, then names it accordingly.
+
+### How it works
+If your Saturday morning run starts near a known Parkrun location at the right time, this booster recognizes it and updates your activity title to "Parkrun @ [Location Name]". Tags are also added for easy filtering.
+  `,
+  features: [
+    '✅ Automatic Parkrun event detection',
+    '✅ Location and time-based matching',
+    '✅ Customizable activity title format',
+    '✅ Automatic tagging for filtering',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER, {
@@ -412,8 +497,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_CONDITION_MATCHER, {
     { key: 'title_template', label: 'Title Template', description: 'Title when matched', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'description_template', label: 'Description Template', description: 'Description when matched', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Smart Conditional Templates
+Apply custom titles and descriptions based on when, where, and what type of activity you’re doing.
+
+### How it works
+Define conditions like "Saturday morning run near the park" and specify a title template. When activities match your conditions, the template is applied automatically. Perfect for recurring workouts like "Morning Gym Session" or "Sunday Long Run".
+  `,
+  features: [
+    '✅ Match by activity type, day, time, or location',
+    '✅ Custom title and description templates',
+    '✅ Perfect for recurring workout names',
+    '✅ Radius-based location matching',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT, {
@@ -429,8 +525,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_AUTO_INCREMENT, {
     { key: 'title_contains', label: 'Title Filter', description: 'Only increment if title contains this', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'initial_value', label: 'Initial Value', description: 'Starting number', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '1', options: [] },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Numbered Activity Series
+Automatically add incrementing numbers to your activity titles. Great for tracking workout series.
+
+### How it works
+Define a counter key and optional title filter. Activities matching the filter get an incrementing number appended, like "Leg Day #1", "Leg Day #2", etc. Each counter key maintains its own sequence.
+  `,
+  features: [
+    '✅ Automatic sequential numbering',
+    '✅ Multiple independent counters',
+    '✅ Title filtering for targeted numbering',
+    '✅ Configurable starting value',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT, {
@@ -444,8 +551,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_USER_INPUT, {
   configSchema: [
     { key: 'fields', label: 'Required Fields', description: 'Comma-separated fields (title,description)', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: 'description', options: [] },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Manual Intervention Point
+Pauses the pipeline to let you manually add or edit activity details before continuing.
+
+### How it works
+When an activity reaches this booster, it’s held pending your input. You receive a notification and can update the title, description, or other fields. Once you confirm, the activity continues through the pipeline.
+  `,
+  features: [
+    '✅ Manual title and description editing',
+    '✅ Activity held until you approve',
+    '✅ Notification when input is needed',
+    '✅ Configurable required fields',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER, {
@@ -462,8 +580,19 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_ACTIVITY_FILTER, {
     { key: 'include_activity_types', label: 'Include Only Activity Types', description: 'Only include these types', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
     { key: 'include_title_contains', label: 'Include Only Titles Containing', description: 'Must contain one of these', fieldType: ConfigFieldType.CONFIG_FIELD_TYPE_STRING, required: false, defaultValue: '', options: [] },
   ],
-  marketingDescription: '',
-  features: [],
+  marketingDescription: `
+### Filter Unwanted Activities
+Skip activities you don’t want synced based on type or title patterns.
+
+### How it works
+Define include or exclude rules by activity type or title keywords. Activities matching exclude patterns (or not matching include patterns) are skipped and won’t be sent to destinations. Perfect for filtering out test workouts or specific activity types.
+  `,
+  features: [
+    '✅ Include or exclude by activity type',
+    '✅ Title keyword filtering',
+    '✅ Stop unwanted activities from syncing',
+    '✅ Flexible pattern matching',
+  ],
 });
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MOCK, {

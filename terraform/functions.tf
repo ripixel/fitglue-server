@@ -655,15 +655,15 @@ resource "google_cloud_run_service_iam_member" "user_pipelines_handler_invoker" 
   member   = "allUsers"
 }
 
-# ----------------- Plugin Registry Handler -----------------
-resource "google_cloudfunctions2_function" "plugin_registry_handler" {
-  name        = "plugin-registry-handler"
+# ----------------- Registry Handler -----------------
+resource "google_cloudfunctions2_function" "registry_handler" {
+  name        = "registry-handler"
   location    = var.region
-  description = "Returns FitGlue plugin registry (sources, enrichers, destinations)"
+  description = "Returns FitGlue registry (connections and plugins)"
 
   build_config {
     runtime     = "nodejs20"
-    entry_point = "pluginRegistryHandler"
+    entry_point = "registryHandler"
     source {
       storage_source {
         bucket = google_storage_bucket.source_bucket.name
@@ -684,10 +684,10 @@ resource "google_cloudfunctions2_function" "plugin_registry_handler" {
   }
 }
 
-resource "google_cloud_run_service_iam_member" "plugin_registry_handler_invoker" {
-  project  = google_cloudfunctions2_function.plugin_registry_handler.project
-  location = google_cloudfunctions2_function.plugin_registry_handler.location
-  service  = google_cloudfunctions2_function.plugin_registry_handler.name
+resource "google_cloud_run_service_iam_member" "registry_handler_invoker" {
+  project  = google_cloudfunctions2_function.registry_handler.project
+  location = google_cloudfunctions2_function.registry_handler.location
+  service  = google_cloudfunctions2_function.registry_handler.name
   role     = "roles/run.invoker"
   member   = "allUsers"
 }

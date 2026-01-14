@@ -15,7 +15,9 @@
     "mock-source-handler",
     "user-profile-handler",
     "user-integrations-handler",
-    "user-pipelines-handler"
+    "user-pipelines-handler",
+    "registry-handler",
+    "integration-request-handler"
   ],
   "scripts": {
     "build": "npm run build --workspace=@fitglue/shared && npm run build --workspaces --if-present",

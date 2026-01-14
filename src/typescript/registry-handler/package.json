@@ -1,19 +1,19 @@
 {
-  "name": "plugin-registry-handler",
+  "name": "registry-handler",
   "version": "1.0.0",
-  "description": "Returns the FitGlue plugin registry (sources, enrichers, destinations)",
+  "description": "Returns the FitGlue registry (connections and plugins)",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
     "gcp-build": "npm run build",
     "test": "jest",
     "lint": "eslint src --ext .ts",
-    "start": "functions-framework --target=pluginRegistryHandler",
-    "dev": "concurrently \"tsc -w\" \"functions-framework --target=pluginRegistryHandler\""
+    "start": "functions-framework --target=registryHandler",
+    "dev": "concurrently \"tsc -w\" \"functions-framework --target=registryHandler\""
   },
   "dependencies": {
     "@google-cloud/functions-framework": "^3.0.0",
-    "@fitglue/shared": "file:../shared",
+    "@fitglue/shared": "^1.0.0",
     "typescript": "^5.0.0"
   },
   "devDependencies": {

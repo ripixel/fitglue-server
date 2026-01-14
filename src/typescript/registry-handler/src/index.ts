@@ -2,13 +2,13 @@ import { createCloudFunction, getRegistry, FrameworkContext } from '@fitglue/sha
 import { Request, Response } from 'express';
 
 /**
- * Plugin Registry Handler
+ * Registry Handler
  *
  * Endpoints:
- * - GET /plugins: Returns all registered plugins (sources, enrichers, destinations)
+ * - GET /registry: Returns all registered connections and plugins
  *
  * This endpoint is public (no auth required) to allow the frontend to fetch
- * plugin metadata for form rendering before user authentication.
+ * registry metadata for page rendering before user authentication.
  */
 
 export const handler = async (req: Request, res: Response, ctx: FrameworkContext) => {
@@ -51,7 +51,7 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
 };
 
 // Export the wrapped function - no auth required
-export const pluginRegistryHandler = createCloudFunction(handler, {
+export const registryHandler = createCloudFunction(handler, {
   auth: {
     strategies: [] // No auth required - public endpoint
   }
