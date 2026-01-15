@@ -76,7 +76,7 @@ describe('createCloudFunction', () => {
   });
 
   it('should execute handler and log success', async () => {
-    const cloudFunction = createCloudFunction(handler);
+    const cloudFunction = createCloudFunction(handler, { allowUnauthenticated: true });
     await cloudFunction(mockReq, mockRes);
 
     expect(handler).toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe('createCloudFunction', () => {
 
   it('should handle errors and log failure', async () => {
     handler.mockRejectedValue(new Error('Test Error'));
-    const cloudFunction = createCloudFunction(handler);
+    const cloudFunction = createCloudFunction(handler, { allowUnauthenticated: true });
 
     await cloudFunction(mockReq, mockRes);
 
@@ -94,7 +94,7 @@ describe('createCloudFunction', () => {
   });
 
   it('should extract user_id from body', async () => {
-    const cloudFunction = createCloudFunction(handler);
+    const cloudFunction = createCloudFunction(handler, { allowUnauthenticated: true });
     await cloudFunction(mockReq, mockRes);
 
     const ctx = handler.mock.calls[0][2] as FrameworkContext;
@@ -105,7 +105,7 @@ describe('createCloudFunction', () => {
     handler.mockImplementation(async (req, res) => {
       res.status(400).json({ error: 'Bad Request' });
     });
-    const cloudFunction = createCloudFunction(handler);
+    const cloudFunction = createCloudFunction(handler, { allowUnauthenticated: true });
     await cloudFunction(mockReq, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(400);

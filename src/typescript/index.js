@@ -77,3 +77,8 @@ exports.mobileSyncHandler = (req, res) => {
   const mobileSync = require('./mobile-sync-handler/dist/index');
   return mobileSync.mobileSyncHandler(req, res);
 };
+
+exports.billingHandler = (req, res) => {
+  const billing = require('./billing-handler/dist/index');
+  return billing.billingHandler(req, res);
+};

@@ -112,6 +112,12 @@ export interface CloudFunctionOptions {
     strategies: AuthStrategy[]; // Only accept strategy instances
     requiredScopes?: string[];
   };
+  /**
+   * Set to true for public endpoints that don't require authentication.
+   * If false/undefined and no auth.strategies, createCloudFunction throws.
+   * Cannot have auth strategies *and* allowUnauthenticated.
+   */
+  allowUnauthenticated?: boolean;
 }
 
 /**
@@ -169,6 +175,16 @@ function extractMetadata(req: any): { userId?: string; testRunId?: string; pipel
 }
 
 export const createCloudFunction = (handler: FrameworkHandler, options?: CloudFunctionOptions) => {
+  // SECURITY: Require auth by default - handlers must explicitly opt out
+  const hasAuth = options?.auth?.strategies && options.auth.strategies.length > 0;
+  const isPublic = options?.allowUnauthenticated === true;
+
+  if (!hasAuth && !isPublic) {
+    throw new Error(
+      'Security: Auth required. Add auth.strategies or set allowUnauthenticated: true'
+    );
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return async (reqOrEvent: any, resOrContext?: any) => {
     const serviceName = process.env.K_SERVICE || 'unknown-function';

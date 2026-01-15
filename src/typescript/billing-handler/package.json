@@ -1,10 +1,10 @@
 {
-  "name": "@fitglue/billing-handler",
+  "name": "billing-handler",
   "version": "1.0.0",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
     "@fitglue/shared": "v1",

@@ -6,9 +6,9 @@ let stripe: Stripe;
 
 async function getStripe(): Promise<Stripe> {
   if (!stripe) {
-    const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'fitglue-dev';
+    const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'fitglue-server-dev';
     const secretKey = await getSecret(projectId, 'stripe-secret-key');
-    stripe = new Stripe(secretKey, { apiVersion: '2024-12-18.acacia' });
+    stripe = new Stripe(secretKey, {});
   }
   return stripe;
 }
@@ -28,7 +28,7 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
     }
 
     try {
-      const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'fitglue-dev';
+      const projectId = process.env.GOOGLE_CLOUD_PROJECT || 'fitglue-server-dev';
       const stripeClient = await getStripe();
       const priceId = await getSecret(projectId, 'stripe-price-id');
 
@@ -47,7 +47,7 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
         });
         customerId = customer.id;
         // Update user with Stripe customer ID
-        await ctx.stores.users.update(userId, { stripe_customer_id: customerId });
+        await ctx.stores.users.update(userId, { stripeCustomerId: customerId });
       }
 
       // Determine environment URL
@@ -131,6 +131,5 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
 export const billingHandler = createCloudFunction(handler, {
   auth: {
     strategies: [new FirebaseAuthStrategy()],
-    allowUnauthenticated: ['/webhook'] // Webhook doesn't require Firebase auth (it has Stripe signature)
   }
 });

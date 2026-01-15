@@ -50,9 +50,8 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
   }
 };
 
-// Export the wrapped function - no auth required
+// Export the wrapped function - no auth required (public endpoint)
 export const registryHandler = createCloudFunction(handler, {
-  auth: {
-    strategies: [] // No auth required - public endpoint
-  }
+  allowUnauthenticated: true
 });
+
