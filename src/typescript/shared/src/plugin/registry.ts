@@ -150,6 +150,58 @@ registerSource({
   useCases: [],
 });
 
+registerSource({
+  id: 'apple-health',
+  type: PluginType.PLUGIN_TYPE_SOURCE,
+  name: 'Apple Health',
+  description: 'Import workouts and health data from iOS devices',
+  icon: '🍎',
+  enabled: true,
+  requiredIntegrations: ['apple-health'],
+  configSchema: [],
+  marketingDescription: `
+### iOS Health Data Source
+Import workouts, heart rate data, and GPS routes directly from Apple Health on your iPhone or Apple Watch. FitGlue's mobile app syncs your health data seamlessly.
+
+### How it works
+Install the FitGlue mobile app on your iOS device and grant access to Apple Health. Workouts are automatically synced in the background and flow through your FitGlue pipeline.
+  `,
+  features: [
+    '✅ Import workouts from Apple Watch and iPhone',
+    '✅ Heart rate data included automatically',
+    '✅ GPS routes for outdoor activities',
+    '✅ Background sync when app is installed',
+  ],
+  transformations: [],
+  useCases: [],
+});
+
+registerSource({
+  id: 'health-connect',
+  type: PluginType.PLUGIN_TYPE_SOURCE,
+  name: 'Health Connect',
+  description: 'Import workouts and health data from Android devices',
+  icon: '🤖',
+  enabled: true,
+  requiredIntegrations: ['health-connect'],
+  configSchema: [],
+  marketingDescription: `
+### Android Health Data Source
+Import workouts, heart rate data, and GPS routes from Android Health Connect. FitGlue's mobile app syncs your health data from any compatible fitness tracker or app.
+
+### How it works
+Install the FitGlue mobile app on your Android device and grant access to Health Connect. Workouts are automatically synced in the background and flow through your FitGlue pipeline.
+  `,
+  features: [
+    '✅ Import workouts from any Health Connect-compatible device',
+    '✅ Heart rate data included automatically',
+    '✅ GPS routes for outdoor activities',
+    '✅ Background sync when app is installed',
+  ],
+  transformations: [],
+  useCases: [],
+});
+
 // ============================================================================
 // Register all known destination manifests
 // ============================================================================
@@ -304,12 +356,17 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_MUSCLE_HEATMAP, {
 The Muscle Heatmap booster generates a visual representation of your training volume by muscle group. Using a heatmap style visualization, you can instantly see which muscles you hit hardest and which ones might be lagging.
 
 ### How it works
-Every exercise in your workout is mapped to primary and secondary muscle groups. We calculate the volume load for each muscle and generate a "heatmap" bar or chart that is appended to your activity description. It's a great way to show off your leg day or chest pump!
+Every exercise in your workout is mapped to primary and secondary muscle groups using our built-in exercise taxonomy. We calculate the volume load for each muscle and generate a "heatmap" bar or chart that is appended to your activity description.
+
+### Smart Exercise Recognition
+Our database includes 100+ canonical exercises with fuzzy matching, so even custom-named exercises like "Dave's Bench Press" are correctly identified. Abbreviations (DB, BB, KB) are automatically expanded, and typos are handled gracefully.
   `,
   features: [
     '✅ Visual heatmap of trained muscles',
     '✅ Supports Emoji, Percentage, and Text formats',
-    '✅ Adjustable muscle coefficients',
+    '✅ Smart exercise recognition with fuzzy matching',
+    '✅ 100+ exercises in canonical database',
+    '✅ Adjustable muscle coefficients (Standard, Powerlifting, Bodybuilding)',
     '✅ Works with all strength activities',
   ],
   transformations: [
@@ -330,6 +387,7 @@ Muscle Heatmap:
     'Visualize muscle balance in your program',
     'Show training focus areas on Strava',
     'Identify lagging muscle groups',
+    'Track custom exercises with automatic muscle mapping',
   ],
 });
 
@@ -337,7 +395,7 @@ registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_FITBIT_HEART_RATE, {
   id: 'fitbit-heart-rate',
   type: PluginType.PLUGIN_TYPE_ENRICHER,
   name: 'Fitbit Heart Rate',
-  description: 'Adds heart rate data from Fitbit to your activity',
+  description: 'Adds heart rate data from Fitbit to your activity with smart GPS alignment',
   icon: '❤️',
   enabled: true,
   requiredIntegrations: ['fitbit'],
@@ -348,11 +406,16 @@ Sync your heart rate data from your Fitbit device and overlay it onto your impor
 
 ### How it works
 When an activity is imported (e.g., from Hevy), FitGlue checks your Fitbit account for heart rate data recorded during that time window. It creates a second-by-second heart rate stream and attaches it to the activity before sending it to Strava or other destinations.
+
+### Smart GPS Alignment
+When your activity has GPS data (from a phone app or watch), FitGlue uses an "Elastic Match" algorithm to align Fitbit heart rate data with your GPS timestamps. This handles minor clock drift between devices automatically, ensuring your HR matches the correct location points within ±2 seconds accuracy.
   `,
   features: [
     '✅ Merges heart rate from Fitbit to any activity',
+    '✅ Smart GPS alignment handles clock drift between devices',
     '✅ Perfect for gym workouts where you don\'t start a GPS watch',
     '✅ Accurate calorie data based on heart rate',
+    '✅ Linear interpolation for precise timestamp matching',
     '✅ Seamless background synchronization',
   ],
   transformations: [
@@ -360,15 +423,17 @@ When an activity is imported (e.g., from Hevy), FitGlue checks your Fitbit accou
       field: 'heartRateStream',
       label: 'Heart Rate Data',
       before: '(no heart rate)',
-      after: '❤️ Second-by-second HR stream attached\nAvg: ~130bpm | Max: ~165bpm',
+      after: '❤️ Second-by-second HR stream attached\\nAvg: ~130bpm | Max: ~165bpm',
     },
   ],
   useCases: [
     'Add heart rate to Hevy gym workouts',
+    'Merge Fitbit HR with phone GPS running data',
     'Complete activity data on Strava',
     'Track training intensity across all activities',
   ],
 });
+
 
 registerEnricher(EnricherProviderType.ENRICHER_PROVIDER_VIRTUAL_GPS, {
   id: 'virtual-gps',
@@ -833,5 +898,73 @@ FitGlue connects to your Strava account via OAuth and can upload your enriched a
     '✅ AI-generated descriptions appear in your feed',
     '✅ Muscle heatmaps and stats included',
     '✅ Secure OAuth connection',
+  ],
+});
+
+registerIntegration({
+  id: 'apple-health',
+  name: 'Apple Health',
+  description: 'Sync workouts and health data from your iOS device',
+  icon: '🍎',
+  authType: IntegrationAuthType.INTEGRATION_AUTH_TYPE_UNSPECIFIED, // Uses mobile app, no auth fields needed
+  enabled: true,
+  docsUrl: '',
+  setupTitle: 'Connect Apple Health',
+  setupInstructions: `To connect Apple Health, install the **FitGlue mobile app** on your iOS device:
+
+1. Download **FitGlue** from the App Store
+2. Sign in with your FitGlue account
+3. Grant access to Apple Health when prompted
+4. Your workouts will sync automatically in the background
+
+**Note:** Apple Health data can only be accessed from the mobile app running on your iOS device.`,
+  apiKeyLabel: '',
+  apiKeyHelpUrl: '',
+  marketingDescription: `
+### What is Apple Health?
+Apple Health is the centralized health data repository on iOS devices. It aggregates data from your Apple Watch, iPhone sensors, and third-party fitness apps.
+
+### What FitGlue Does
+FitGlue's mobile app reads your workout data from Apple Health and syncs it to the cloud. Workouts complete with heart rate data and GPS routes flow through your FitGlue pipeline for enhancement and distribution to destinations like Strava.
+  `,
+  features: [
+    '✅ Import workouts from Apple Watch and iPhone',
+    '✅ Heart rate data from wrist sensors',
+    '✅ GPS routes for outdoor activities',
+    '✅ Background sync via FitGlue mobile app',
+  ],
+});
+
+registerIntegration({
+  id: 'health-connect',
+  name: 'Health Connect',
+  description: 'Sync workouts and health data from your Android device',
+  icon: '🤖',
+  authType: IntegrationAuthType.INTEGRATION_AUTH_TYPE_UNSPECIFIED, // Uses mobile app, no auth fields needed
+  enabled: true,
+  docsUrl: '',
+  setupTitle: 'Connect Health Connect',
+  setupInstructions: `To connect Health Connect, install the **FitGlue mobile app** on your Android device:
+
+1. Download **FitGlue** from the Google Play Store
+2. Sign in with your FitGlue account
+3. Grant access to Health Connect when prompted
+4. Your workouts will sync automatically in the background
+
+**Note:** Health Connect data can only be accessed from the mobile app running on your Android device.`,
+  apiKeyLabel: '',
+  apiKeyHelpUrl: '',
+  marketingDescription: `
+### What is Health Connect?
+Health Connect is Android's unified health data platform. It allows apps and wearables to share health and fitness data in a standardized way.
+
+### What FitGlue Does
+FitGlue's mobile app reads your workout data from Health Connect and syncs it to the cloud. Workouts from Garmin, Samsung, Fitbit, and other compatible devices flow through your FitGlue pipeline for enhancement and distribution.
+  `,
+  features: [
+    '✅ Import workouts from any Health Connect-compatible device',
+    '✅ Works with Garmin, Samsung, Fitbit, and more',
+    '✅ Heart rate and GPS data included',
+    '✅ Background sync via FitGlue mobile app',
   ],
 });

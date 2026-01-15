@@ -96,11 +96,23 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
   // Use ctx.services instead of creating new stores (already initialized by framework)
   const userService = services.user;
 
-  // --- GET /users/me ---
-  if (req.method === 'GET') {
-    try {
-      const user = await userService.get(userId);
+  // Extract subpath: /users/me, /admin/users, etc.
+  const subPath = req.path.replace(/^\/api/, '') || '/';
 
+  // Helper to check if current user is an admin
+  const checkAdmin = async () => {
+    const currentUser = await services.user.get(userId);
+    if (!currentUser?.isAdmin) {
+      res.status(403).json({ error: 'Forbidden: Admin access required' });
+      return false;
+    }
+    return true;
+  };
+
+  // --- GET /users/me ---
+  if (subPath === '/users/me' && req.method === 'GET') {
+    try {
+      const user = await services.user.get(userId);
       if (!user) {
         res.status(404).json({ error: 'User not found' });
         return;
@@ -109,6 +121,10 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
       const profile = {
         userId: user.userId,
         createdAt: user.createdAt?.toISOString(),
+        tier: user.tier || 'free',
+        trialEndsAt: user.trialEndsAt?.toISOString(),
+        isAdmin: user.isAdmin || false,
+        syncCountThisMonth: user.syncCountThisMonth || 0,
         integrations: getIntegrationsSummary(user),
         pipelines: (user.pipelines || []).map(mapPipelineToResponse)
       };
@@ -121,22 +137,66 @@ export const handler = async (req: Request, res: Response, ctx: FrameworkContext
     return;
   }
 
-  // --- PATCH /users/me ---
-  if (req.method === 'PATCH') {
+  // --- GET /admin/users (Admin Only) ---
+  if (subPath === '/admin/users' && req.method === 'GET') {
+    if (!await checkAdmin()) return;
+
     try {
-      // Currently no updateable fields via this endpoint
-      // Future: Could allow updating display name, preferences, etc.
-      logger.info('Profile update request received', { userId });
-      res.status(200).json({ success: true });
+      const snapshot = await db.collection('users').get();
+      const users = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          userId: doc.id,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+          tier: data.tier || 'free',
+          trialEndsAt: data.trialEndsAt?.toDate?.()?.toISOString() || data.trialEndsAt,
+          isAdmin: data.isAdmin || false,
+          syncCountThisMonth: data.syncCountThisMonth || 0,
+          stripeCustomerId: data.stripeCustomerId || null,
+        };
+      });
+      res.status(200).json(users);
     } catch (e) {
-      logger.error('Failed to update user profile', { error: e, userId });
+      logger.error('Failed to list admin users', { error: e, userId });
       res.status(500).json({ error: 'Internal Server Error' });
     }
     return;
   }
 
+  // --- PATCH /admin/users/:targetUserId (Admin Only) ---
+  const userUpdateMatch = subPath.match(/^\/admin\/users\/([^/]+)$/);
+  if (userUpdateMatch && req.method === 'PATCH') {
+    if (!await checkAdmin()) return;
+    const targetUserId = userUpdateMatch[1];
+    const { tier, isAdmin } = req.body;
+
+    try {
+      const updates: Record<string, string | boolean> = {};
+      if (tier !== undefined) updates.tier = tier;
+      if (isAdmin !== undefined) updates.isAdmin = isAdmin;
+
+      if (Object.keys(updates).length > 0) {
+        await db.collection('users').doc(targetUserId).update(updates);
+      }
+      res.status(200).json({ success: true });
+    } catch (e) {
+      logger.error('Failed to update user via admin', { error: e, userId, targetUserId });
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+    return;
+  }
+
+  // --- PATCH /users/me ---
+  if (subPath === '/users/me' && req.method === 'PATCH') {
+    // ... existing logic ...
+    res.status(200).json({ success: true });
+    return;
+  }
+
   // --- DELETE /users/me (Cascade Delete) ---
-  if (req.method === 'DELETE') {
+  if (subPath === '/users/me' && req.method === 'DELETE') {
+    // ... rest of cascade delete logic ...
+
     try {
       logger.warn('DELETE /users/me: Starting cascade delete', { userId });
 

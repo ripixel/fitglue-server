@@ -1,5 +1,6 @@
-import { createCloudFunction, FrameworkContext, FirebaseAuthStrategy, generateOAuthState, getSecret } from '@fitglue/shared';
+import { createCloudFunction, FrameworkContext, FirebaseAuthStrategy, generateOAuthState, getSecret, canAddConnection, countActiveConnections } from '@fitglue/shared';
 import { Request, Response } from 'express';
+
 
 export const handler = async (req: Request, res: Response, ctx: FrameworkContext) => {
   const userId = ctx.userId;
@@ -102,7 +103,21 @@ async function handleConnect(userId: string, provider: string, res: Response, ct
     return;
   }
 
+  // Check connection limit for free tier users
+  const user = await ctx.services.user.get(userId);
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  const currentCount = countActiveConnections(user);
+  const { allowed, reason } = canAddConnection(user, currentCount);
+  if (!allowed) {
+    res.status(403).json({ error: reason });
+    return;
+  }
+
   try {
+
     const projectId = process.env.GOOGLE_CLOUD_PROJECT || '';
     const env = projectId.includes('-prod') ? 'prod' : projectId.includes('-test') ? 'test' : 'dev';
     const baseUrl = env === 'prod' ? 'https://fitglue.tech' : `https://${env}.fitglue.tech`;
@@ -224,7 +239,25 @@ async function handleConfigure(
     return;
   }
 
+  // Check connection limit for free tier users
+  const user = await ctx.services.user.get(userId);
+  if (!user) {
+    res.status(404).json({ error: 'User not found' });
+    return;
+  }
+  // Only check limit if Hevy is not already connected (this is a new connection)
+  const hevyAlreadyConnected = user.integrations?.hevy?.enabled;
+  if (!hevyAlreadyConnected) {
+    const currentCount = countActiveConnections(user);
+    const { allowed, reason } = canAddConnection(user, currentCount);
+    if (!allowed) {
+      res.status(403).json({ error: reason });
+      return;
+    }
+  }
+
   try {
+
     // Validate the API key by making a test call to Hevy
     const isValid = await validateHevyApiKey(apiKey);
     if (!isValid) {

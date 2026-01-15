@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers/muscle_heatmap"
 	"github.com/ripixel/fitglue-server/src/go/pkg/plugin"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
 )
@@ -170,7 +171,17 @@ func (p *MuscleHeatmapProvider) Enrich(ctx context.Context, activity *pb.Standar
 	for _, set := range allSets {
 		// Process Primary Muscle
 		primary := set.PrimaryMuscleGroup
+		secondary := set.SecondaryMuscleGroups
 		load := calculateLoad(set)
+
+		// Fallback: if muscle group is unspecified, use taxonomy lookup
+		if primary == pb.MuscleGroup_MUSCLE_GROUP_UNSPECIFIED || primary == pb.MuscleGroup_MUSCLE_GROUP_OTHER {
+			result := muscle_heatmap.LookupExercise(set.ExerciseName)
+			if result.Matched {
+				primary = result.Primary
+				secondary = result.Secondary
+			}
+		}
 
 		if primary != pb.MuscleGroup_MUSCLE_GROUP_UNSPECIFIED && primary != pb.MuscleGroup_MUSCLE_GROUP_OTHER {
 			coeff := getMuscleCoefficient(coeffs, primary)
@@ -184,7 +195,7 @@ func (p *MuscleHeatmapProvider) Enrich(ctx context.Context, activity *pb.Standar
 		}
 
 		// Process Secondary Muscles (0.5x impact)
-		for _, sec := range set.SecondaryMuscleGroups {
+		for _, sec := range secondary {
 			if sec != pb.MuscleGroup_MUSCLE_GROUP_UNSPECIFIED && sec != pb.MuscleGroup_MUSCLE_GROUP_OTHER {
 				coeff := getMuscleCoefficient(coeffs, sec)
 				score := load * coeff * 0.5

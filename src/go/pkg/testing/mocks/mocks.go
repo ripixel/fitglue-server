@@ -99,6 +99,18 @@ func (m *MockDatabase) SetSynchronizedActivity(ctx context.Context, userId strin
 	return nil
 }
 
+// --- Sync Count (for tier limits) ---
+
+func (m *MockDatabase) IncrementSyncCount(ctx context.Context, userID string) error {
+	// No-op for tests by default
+	return nil
+}
+
+func (m *MockDatabase) ResetSyncCount(ctx context.Context, userID string) error {
+	// No-op for tests by default
+	return nil
+}
+
 // --- Mock Publisher ---
 type MockPublisher struct {
 	PublishCloudEventFunc func(ctx context.Context, topic string, e event.Event) (string, error)

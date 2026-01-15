@@ -17,7 +17,8 @@
     "user-integrations-handler",
     "user-pipelines-handler",
     "registry-handler",
-    "integration-request-handler"
+    "integration-request-handler",
+    "mobile-sync-handler"
   ],
   "scripts": {
     "build": "npm run build --workspace=@fitglue/shared && npm run build --workspaces --if-present",

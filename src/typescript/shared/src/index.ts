@@ -27,6 +27,9 @@ export * from './domain/services/execution';
 export * from './domain/services/apikey';
 export * from './domain/services/inputs';
 
+// Domain Logic
+export * from './domain/tier';
+
 // Integrations
 export * from './integrations/hevy/client';
 export * from './integrations/fitbit/client';

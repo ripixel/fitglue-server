@@ -78,16 +78,29 @@ export class UserService {
 
     /**
      * Create or ensure a user exists.
+     * New users get a 30-day Pro trial.
      */
     async createUser(userId: string): Promise<void> {
+        const now = new Date();
+        const trialEndsAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
         await this.userStore.create(userId, {
             userId: userId,
-            createdAt: new Date(),
+            createdAt: now,
             integrations: {} as UserIntegrations,
             pipelines: [],
-            fcmTokens: []
+            fcmTokens: [],
+            // Initialize with 30-day Pro trial
+            tier: 'pro',
+            trialEndsAt: trialEndsAt,
+            isAdmin: false,
+            syncCountThisMonth: 0,
+            syncCountResetAt: now,
+            stripeCustomerId: '', // Will be set when user subscribes
         });
     }
+
+
 
     /**
      * Set Hevy integration for a user.

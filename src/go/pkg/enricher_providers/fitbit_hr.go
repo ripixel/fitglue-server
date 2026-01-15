@@ -27,7 +27,7 @@ func init() {
 		Id:                   "fitbit-heart-rate",
 		Type:                 pb.PluginType_PLUGIN_TYPE_ENRICHER,
 		Name:                 "Fitbit Heart Rate",
-		Description:          "Adds heart rate data from Fitbit to your activity",
+		Description:          "Adds heart rate data from Fitbit with smart GPS alignment",
 		Icon:                 "❤️",
 		Enabled:              true,
 		RequiredIntegrations: []string{"fitbit"},
@@ -119,28 +119,42 @@ func (p *FitBitHeartRate) EnrichWithClient(ctx context.Context, activity *pb.Sta
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	// 7. Build Stream
-	stream := make([]int, durationSec)
+	// 7. Build Stream - Check if GPS data exists for alignment
+	var stream []int
+	alignmentMetadata := make(map[string]string)
 
-	for _, dataPoint := range hrResponse.ActivitiesHeartIntraday.Dataset {
-		ptTime, _ := time.Parse("15:04:05", dataPoint.Time)
-		startDayTime, _ := time.Parse("15:04", startTimeStr)
+	if hasGPSData(activity) {
+		// Use elastic matching for GPS+HR alignment
+		slog.Info("GPS data detected, applying elastic HR alignment")
 
-		offset := int(ptTime.Sub(startDayTime).Seconds())
+		// Convert HR response to timed samples
+		hrSamples := ConvertHRResponseToSamples(hrResponse.ActivitiesHeartIntraday.Dataset, startTime)
 
-		if offset >= 0 && offset < durationSec {
-			stream[offset] = dataPoint.Value
-		}
-	}
+		// Extract GPS timestamps from activity records
+		gpsTimestamps := extractGPSTimestamps(activity)
 
-	// Fill gaps (Forward Fill)
-	lastVal := 0
-	for i := 0; i < len(stream); i++ {
-		if stream[i] != 0 {
-			lastVal = stream[i]
+		if len(gpsTimestamps) > 0 && len(hrSamples) > 0 {
+			alignResult, err := AlignTimeSeries(gpsTimestamps, hrSamples, DefaultAlignmentConfig)
+			if err != nil {
+				slog.Warn("HR alignment failed, falling back to index-based mapping", "error", err)
+				stream = buildStreamIndexBased(hrResponse.ActivitiesHeartIntraday.Dataset, startTimeStr, durationSec)
+			} else {
+				stream = alignResult.AlignedHR
+				for k, v := range alignResult.Metadata {
+					alignmentMetadata[k] = v
+				}
+				if alignResult.WarningMessage != "" {
+					alignmentMetadata["alignment_warning"] = alignResult.WarningMessage
+				}
+			}
 		} else {
-			stream[i] = lastVal
+			// Fallback if no meaningful data
+			stream = buildStreamIndexBased(hrResponse.ActivitiesHeartIntraday.Dataset, startTimeStr, durationSec)
 		}
+	} else {
+		// No GPS data - use original index-based mapping
+		stream = buildStreamIndexBased(hrResponse.ActivitiesHeartIntraday.Dataset, startTimeStr, durationSec)
+		alignmentMetadata["alignment_status"] = "skipped_no_gps"
 	}
 
 	pointsFound := len(hrResponse.ActivitiesHeartIntraday.Dataset)
@@ -201,7 +215,7 @@ func (p *FitBitHeartRate) EnrichWithClient(ctx context.Context, activity *pb.Sta
 	return &EnrichmentResult{
 		Name:            "", // Don't wipe name
 		HeartRateStream: stream,
-		Metadata: map[string]string{
+		Metadata: mergeMetadata(map[string]string{
 			"hr_source":     "fitbit",
 			"query_date":    date,
 			"query_start":   startTimeStr,
@@ -209,6 +223,78 @@ func (p *FitBitHeartRate) EnrichWithClient(ctx context.Context, activity *pb.Sta
 			"points_found":  fmt.Sprintf("%d", pointsFound),
 			"status_detail": "Success",
 			"do_not_retry":  fmt.Sprintf("%v", doNotRetry),
-		},
+		}, alignmentMetadata),
 	}, nil
+}
+
+// hasGPSData checks if any record in the activity has GPS coordinates
+func hasGPSData(activity *pb.StandardizedActivity) bool {
+	for _, session := range activity.Sessions {
+		for _, lap := range session.Laps {
+			for _, record := range lap.Records {
+				if record.PositionLat != 0 || record.PositionLong != 0 {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// extractGPSTimestamps extracts all record timestamps from the activity
+func extractGPSTimestamps(activity *pb.StandardizedActivity) []time.Time {
+	var timestamps []time.Time
+	for _, session := range activity.Sessions {
+		for _, lap := range session.Laps {
+			for _, record := range lap.Records {
+				if record.Timestamp != nil {
+					timestamps = append(timestamps, record.Timestamp.AsTime())
+				}
+			}
+		}
+	}
+	return timestamps
+}
+
+// buildStreamIndexBased creates HR stream using original index-based mapping
+func buildStreamIndexBased(dataset []struct {
+	Time  string `json:"time"`
+	Value int    `json:"value"`
+}, startTimeStr string, durationSec int) []int {
+	stream := make([]int, durationSec)
+
+	for _, dataPoint := range dataset {
+		ptTime, _ := time.Parse("15:04:05", dataPoint.Time)
+		startDayTime, _ := time.Parse("15:04", startTimeStr)
+
+		offset := int(ptTime.Sub(startDayTime).Seconds())
+
+		if offset >= 0 && offset < durationSec {
+			stream[offset] = dataPoint.Value
+		}
+	}
+
+	// Fill gaps (Forward Fill)
+	lastVal := 0
+	for i := 0; i < len(stream); i++ {
+		if stream[i] != 0 {
+			lastVal = stream[i]
+		} else {
+			stream[i] = lastVal
+		}
+	}
+
+	return stream
+}
+
+// mergeMetadata combines two metadata maps, with second map taking precedence
+func mergeMetadata(base, overlay map[string]string) map[string]string {
+	result := make(map[string]string)
+	for k, v := range base {
+		result[k] = v
+	}
+	for k, v := range overlay {
+		result[k] = v
+	}
+	return result
 }

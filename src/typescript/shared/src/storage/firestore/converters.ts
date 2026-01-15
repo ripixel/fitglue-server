@@ -332,6 +332,13 @@ export const userConverter: FirestoreDataConverter<UserRecord> = {
     if (model.integrations !== undefined) data.integrations = mapUserIntegrationsToFirestore(model.integrations);
     if (model.pipelines !== undefined) data.pipelines = model.pipelines?.map(mapPipelineToFirestore);
     if (model.fcmTokens !== undefined) data.fcm_tokens = model.fcmTokens;
+    // Tier management fields
+    if (model.tier !== undefined) data.tier = model.tier;
+    if (model.trialEndsAt !== undefined) data.trial_ends_at = model.trialEndsAt;
+    if (model.isAdmin !== undefined) data.is_admin = model.isAdmin;
+    if (model.syncCountThisMonth !== undefined) data.sync_count_this_month = model.syncCountThisMonth;
+    if (model.syncCountResetAt !== undefined) data.sync_count_reset_at = model.syncCountResetAt;
+    if (model.stripeCustomerId !== undefined) data.stripe_customer_id = model.stripeCustomerId;
     return data;
   },
   fromFirestore(snapshot: QueryDocumentSnapshot): UserRecord {
@@ -341,10 +348,18 @@ export const userConverter: FirestoreDataConverter<UserRecord> = {
       createdAt: toDate(data.created_at || data.createdAt),
       integrations: mapUserIntegrationsFromFirestore(data.integrations),
       pipelines: (data.pipelines || []).map(mapPipelineFromFirestore),
-      fcmTokens: data.fcm_tokens || data.fcmTokens || []
+      fcmTokens: data.fcm_tokens || data.fcmTokens || [],
+      // Tier management fields (with backwards-compatible defaults)
+      tier: data.tier || 'free',
+      trialEndsAt: toDate(data.trial_ends_at),
+      isAdmin: data.is_admin || false,
+      syncCountThisMonth: data.sync_count_this_month || 0,
+      syncCountResetAt: toDate(data.sync_count_reset_at),
+      stripeCustomerId: data.stripe_customer_id || undefined,
     };
   }
 };
+
 
 export const processedActivityConverter: FirestoreDataConverter<ProcessedActivityRecord> = {
   toFirestore(model: ProcessedActivityRecord): FirebaseFirestore.DocumentData {

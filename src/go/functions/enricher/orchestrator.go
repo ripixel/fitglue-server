@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	shared "github.com/ripixel/fitglue-server/src/go/pkg"
 	fit "github.com/ripixel/fitglue-server/src/go/pkg/domain/file_generators"
+	"github.com/ripixel/fitglue-server/src/go/pkg/domain/tier"
 	providers "github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers"
 	"github.com/ripixel/fitglue-server/src/go/pkg/enricher_providers/user_input"
 	pb "github.com/ripixel/fitglue-server/src/go/pkg/types/pb"
@@ -66,6 +67,25 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 	userRec, err := o.database.GetUser(ctx, payload.UserId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user config: %w", err)
+	}
+
+	// 1.1. Check Tier Limits
+	if tier.ShouldResetSyncCount(userRec) {
+		// Reset monthly counter
+		if err := o.database.ResetSyncCount(ctx, payload.UserId); err != nil {
+			slog.Warn("Failed to reset sync count", "error", err, "userId", payload.UserId)
+		}
+		userRec.SyncCountThisMonth = 0
+	}
+
+	allowed, reason := tier.CanSync(userRec)
+	if !allowed {
+		slog.Info("Sync blocked by tier limit", "userId", payload.UserId, "reason", reason)
+		return &ProcessResult{
+			Events:             []*pb.EnrichedActivityEvent{},
+			ProviderExecutions: []ProviderExecution{},
+			Status:             pb.ExecutionStatus_STATUS_SKIPPED,
+		}, fmt.Errorf("tier limit: %s", reason)
 	}
 
 	// 1.5. Validate Payload
@@ -353,6 +373,11 @@ func (o *Orchestrator) Process(ctx context.Context, payload *pb.ActivityPayload,
 		}
 
 		allEvents = append(allEvents, finalEvent)
+	}
+
+	// Increment sync count on success
+	if err := o.database.IncrementSyncCount(ctx, payload.UserId); err != nil {
+		slog.Warn("Failed to increment sync count", "error", err, "userId", payload.UserId)
 	}
 
 	return &ProcessResult{

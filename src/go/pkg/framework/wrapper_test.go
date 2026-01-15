@@ -58,6 +58,12 @@ func (m *MockDB) SetCounter(ctx context.Context, userId string, counter *pb.Coun
 func (m *MockDB) SetSynchronizedActivity(ctx context.Context, userId string, activity *pb.SynchronizedActivity) error {
 	return nil
 }
+func (m *MockDB) IncrementSyncCount(ctx context.Context, userID string) error {
+	return nil
+}
+func (m *MockDB) ResetSyncCount(ctx context.Context, userID string) error {
+	return nil
+}
 
 // Update Wrapper Test to expect metadata in LogStart updates
 func TestWrapCloudEvent(t *testing.T) {

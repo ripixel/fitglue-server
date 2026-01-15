@@ -321,10 +321,21 @@ type UserRecord struct {
 	CreatedAt    *timestamp.Timestamp   `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Integrations *UserIntegrations      `protobuf:"bytes,3,opt,name=integrations,proto3" json:"integrations,omitempty"`
 	// Pipelines define the data flow: Source -> Enrichers -> Routing
-	Pipelines     []*PipelineConfig `protobuf:"bytes,4,rep,name=pipelines,proto3" json:"pipelines,omitempty"`
-	FcmTokens     []string          `protobuf:"bytes,5,rep,name=fcm_tokens,json=fcmTokens,proto3" json:"fcm_tokens,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Pipelines []*PipelineConfig `protobuf:"bytes,4,rep,name=pipelines,proto3" json:"pipelines,omitempty"`
+	FcmTokens []string          `protobuf:"bytes,5,rep,name=fcm_tokens,json=fcmTokens,proto3" json:"fcm_tokens,omitempty"`
+	// Pricing tier: 'free' or 'pro'
+	Tier string `protobuf:"bytes,6,opt,name=tier,proto3" json:"tier,omitempty"`
+	// Pro trial end date (null = no trial, set to now+30d on signup)
+	TrialEndsAt *timestamp.Timestamp `protobuf:"bytes,7,opt,name=trial_ends_at,json=trialEndsAt,proto3" json:"trial_ends_at,omitempty"`
+	// Admin override - grants Pro access without payment
+	IsAdmin bool `protobuf:"varint,8,opt,name=is_admin,json=isAdmin,proto3" json:"is_admin,omitempty"`
+	// Monthly sync tracking
+	SyncCountThisMonth int32                `protobuf:"varint,9,opt,name=sync_count_this_month,json=syncCountThisMonth,proto3" json:"sync_count_this_month,omitempty"`
+	SyncCountResetAt   *timestamp.Timestamp `protobuf:"bytes,10,opt,name=sync_count_reset_at,json=syncCountResetAt,proto3" json:"sync_count_reset_at,omitempty"`
+	// Stripe customer ID for billing
+	StripeCustomerId string `protobuf:"bytes,11,opt,name=stripe_customer_id,json=stripeCustomerId,proto3" json:"stripe_customer_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *UserRecord) Reset() {
@@ -390,6 +401,48 @@ func (x *UserRecord) GetFcmTokens() []string {
 		return x.FcmTokens
 	}
 	return nil
+}
+
+func (x *UserRecord) GetTier() string {
+	if x != nil {
+		return x.Tier
+	}
+	return ""
+}
+
+func (x *UserRecord) GetTrialEndsAt() *timestamp.Timestamp {
+	if x != nil {
+		return x.TrialEndsAt
+	}
+	return nil
+}
+
+func (x *UserRecord) GetIsAdmin() bool {
+	if x != nil {
+		return x.IsAdmin
+	}
+	return false
+}
+
+func (x *UserRecord) GetSyncCountThisMonth() int32 {
+	if x != nil {
+		return x.SyncCountThisMonth
+	}
+	return 0
+}
+
+func (x *UserRecord) GetSyncCountResetAt() *timestamp.Timestamp {
+	if x != nil {
+		return x.SyncCountResetAt
+	}
+	return nil
+}
+
+func (x *UserRecord) GetStripeCustomerId() string {
+	if x != nil {
+		return x.StripeCustomerId
+	}
+	return ""
 }
 
 type PipelineConfig struct {
@@ -1188,7 +1241,7 @@ var File_user_proto protoreflect.FileDescriptor
 const file_user_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"user.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bstandardized_activity.proto\x1a\fevents.proto\"\xf5\x01\n" +
+	"user.proto\x12\afitglue\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bstandardized_activity.proto\x1a\fevents.proto\"\x90\x04\n" +
 	"\n" +
 	"UserRecord\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x129\n" +
@@ -1197,7 +1250,14 @@ const file_user_proto_rawDesc = "" +
 	"\fintegrations\x18\x03 \x01(\v2\x19.fitglue.UserIntegrationsR\fintegrations\x125\n" +
 	"\tpipelines\x18\x04 \x03(\v2\x17.fitglue.PipelineConfigR\tpipelines\x12\x1d\n" +
 	"\n" +
-	"fcm_tokens\x18\x05 \x03(\tR\tfcmTokens\"\xb0\x01\n" +
+	"fcm_tokens\x18\x05 \x03(\tR\tfcmTokens\x12\x12\n" +
+	"\x04tier\x18\x06 \x01(\tR\x04tier\x12>\n" +
+	"\rtrial_ends_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vtrialEndsAt\x12\x19\n" +
+	"\bis_admin\x18\b \x01(\bR\aisAdmin\x121\n" +
+	"\x15sync_count_this_month\x18\t \x01(\x05R\x12syncCountThisMonth\x12I\n" +
+	"\x13sync_count_reset_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\x10syncCountResetAt\x12,\n" +
+	"\x12stripe_customer_id\x18\v \x01(\tR\x10stripeCustomerId\"\xb0\x01\n" +
 	"\x0ePipelineConfig\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x125\n" +
@@ -1358,36 +1418,38 @@ var file_user_proto_depIdxs = []int32{
 	19, // 0: fitglue.UserRecord.created_at:type_name -> google.protobuf.Timestamp
 	7,  // 1: fitglue.UserRecord.integrations:type_name -> fitglue.UserIntegrations
 	6,  // 2: fitglue.UserRecord.pipelines:type_name -> fitglue.PipelineConfig
-	12, // 3: fitglue.PipelineConfig.enrichers:type_name -> fitglue.EnricherConfig
-	20, // 4: fitglue.PipelineConfig.destinations:type_name -> fitglue.events.Destination
-	9,  // 5: fitglue.UserIntegrations.hevy:type_name -> fitglue.HevyIntegration
-	10, // 6: fitglue.UserIntegrations.fitbit:type_name -> fitglue.FitbitIntegration
-	13, // 7: fitglue.UserIntegrations.strava:type_name -> fitglue.StravaIntegration
-	8,  // 8: fitglue.UserIntegrations.mock:type_name -> fitglue.MockIntegration
-	19, // 9: fitglue.MockIntegration.created_at:type_name -> google.protobuf.Timestamp
-	19, // 10: fitglue.MockIntegration.last_used_at:type_name -> google.protobuf.Timestamp
-	19, // 11: fitglue.HevyIntegration.created_at:type_name -> google.protobuf.Timestamp
-	19, // 12: fitglue.HevyIntegration.last_used_at:type_name -> google.protobuf.Timestamp
-	19, // 13: fitglue.FitbitIntegration.expires_at:type_name -> google.protobuf.Timestamp
-	19, // 14: fitglue.FitbitIntegration.created_at:type_name -> google.protobuf.Timestamp
-	19, // 15: fitglue.FitbitIntegration.last_used_at:type_name -> google.protobuf.Timestamp
-	12, // 16: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
-	0,  // 17: fitglue.EnricherConfig.provider_type:type_name -> fitglue.EnricherProviderType
-	17, // 18: fitglue.EnricherConfig.typed_config:type_name -> fitglue.EnricherConfig.TypedConfigEntry
-	19, // 19: fitglue.StravaIntegration.expires_at:type_name -> google.protobuf.Timestamp
-	19, // 20: fitglue.StravaIntegration.created_at:type_name -> google.protobuf.Timestamp
-	19, // 21: fitglue.StravaIntegration.last_used_at:type_name -> google.protobuf.Timestamp
-	19, // 22: fitglue.ProcessedActivityRecord.processed_at:type_name -> google.protobuf.Timestamp
-	19, // 23: fitglue.Counter.last_updated:type_name -> google.protobuf.Timestamp
-	21, // 24: fitglue.SynchronizedActivity.type:type_name -> fitglue.ActivityType
-	19, // 25: fitglue.SynchronizedActivity.start_time:type_name -> google.protobuf.Timestamp
-	18, // 26: fitglue.SynchronizedActivity.destinations:type_name -> fitglue.SynchronizedActivity.DestinationsEntry
-	19, // 27: fitglue.SynchronizedActivity.synced_at:type_name -> google.protobuf.Timestamp
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	19, // 3: fitglue.UserRecord.trial_ends_at:type_name -> google.protobuf.Timestamp
+	19, // 4: fitglue.UserRecord.sync_count_reset_at:type_name -> google.protobuf.Timestamp
+	12, // 5: fitglue.PipelineConfig.enrichers:type_name -> fitglue.EnricherConfig
+	20, // 6: fitglue.PipelineConfig.destinations:type_name -> fitglue.events.Destination
+	9,  // 7: fitglue.UserIntegrations.hevy:type_name -> fitglue.HevyIntegration
+	10, // 8: fitglue.UserIntegrations.fitbit:type_name -> fitglue.FitbitIntegration
+	13, // 9: fitglue.UserIntegrations.strava:type_name -> fitglue.StravaIntegration
+	8,  // 10: fitglue.UserIntegrations.mock:type_name -> fitglue.MockIntegration
+	19, // 11: fitglue.MockIntegration.created_at:type_name -> google.protobuf.Timestamp
+	19, // 12: fitglue.MockIntegration.last_used_at:type_name -> google.protobuf.Timestamp
+	19, // 13: fitglue.HevyIntegration.created_at:type_name -> google.protobuf.Timestamp
+	19, // 14: fitglue.HevyIntegration.last_used_at:type_name -> google.protobuf.Timestamp
+	19, // 15: fitglue.FitbitIntegration.expires_at:type_name -> google.protobuf.Timestamp
+	19, // 16: fitglue.FitbitIntegration.created_at:type_name -> google.protobuf.Timestamp
+	19, // 17: fitglue.FitbitIntegration.last_used_at:type_name -> google.protobuf.Timestamp
+	12, // 18: fitglue.SourceEnrichmentConfig.enrichers:type_name -> fitglue.EnricherConfig
+	0,  // 19: fitglue.EnricherConfig.provider_type:type_name -> fitglue.EnricherProviderType
+	17, // 20: fitglue.EnricherConfig.typed_config:type_name -> fitglue.EnricherConfig.TypedConfigEntry
+	19, // 21: fitglue.StravaIntegration.expires_at:type_name -> google.protobuf.Timestamp
+	19, // 22: fitglue.StravaIntegration.created_at:type_name -> google.protobuf.Timestamp
+	19, // 23: fitglue.StravaIntegration.last_used_at:type_name -> google.protobuf.Timestamp
+	19, // 24: fitglue.ProcessedActivityRecord.processed_at:type_name -> google.protobuf.Timestamp
+	19, // 25: fitglue.Counter.last_updated:type_name -> google.protobuf.Timestamp
+	21, // 26: fitglue.SynchronizedActivity.type:type_name -> fitglue.ActivityType
+	19, // 27: fitglue.SynchronizedActivity.start_time:type_name -> google.protobuf.Timestamp
+	18, // 28: fitglue.SynchronizedActivity.destinations:type_name -> fitglue.SynchronizedActivity.DestinationsEntry
+	19, // 29: fitglue.SynchronizedActivity.synced_at:type_name -> google.protobuf.Timestamp
+	30, // [30:30] is the sub-list for method output_type
+	30, // [30:30] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_user_proto_init() }

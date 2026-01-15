@@ -41,7 +41,13 @@ export function registerUserTools(registerTool: (tool: any, handler: (args: any)
             strava: !!data.integrations?.strava?.enabled,
             fitbit: !!data.integrations?.fitbit?.enabled
           },
-          pipeline_count: data.pipelines?.length || 0
+          pipeline_count: data.pipelines?.length || 0,
+          // Tier info
+          tier: data.tier || 'free',
+          trial_ends_at: data.trial_ends_at,
+          is_admin: data.is_admin || false,
+          sync_count_this_month: data.sync_count_this_month || 0,
+          stripe_customer_id: data.stripe_customer_id || null,
         };
       });
       return users;
@@ -255,11 +261,16 @@ export function registerUserTools(registerTool: (tool: any, handler: (args: any)
   registerTool(
     {
       name: "user_update",
-      description: "Update existing integration credentials directly.",
+      description: "Update user tier, admin status, or integration credentials.",
       inputSchema: {
         type: "object",
         properties: {
           userId: { type: "string" },
+          // Tier management fields
+          tier: { type: "string", enum: ["free", "pro"], description: "Set user tier directly" },
+          isAdmin: { type: "boolean", description: "Grant/revoke admin (Pro) access" },
+          trialEndsAt: { type: ["string", "null"], description: "ISO date or null to clear trial" },
+          // Integration fields
           strava: {
             type: "object",
             properties: {
@@ -282,7 +293,20 @@ export function registerUserTools(registerTool: (tool: any, handler: (args: any)
         required: ["userId"]
       }
     },
-    async ({ userId, strava, fitbit }: any) => {
+    async ({ userId, tier, isAdmin, trialEndsAt, strava, fitbit }: any) => {
+      // Handle tier management updates
+      const tierUpdates: Record<string, any> = {};
+      if (tier !== undefined) tierUpdates.tier = tier;
+      if (isAdmin !== undefined) tierUpdates.is_admin = isAdmin;
+      if (trialEndsAt !== undefined) {
+        tierUpdates.trial_ends_at = trialEndsAt ? new Date(trialEndsAt) : null;
+      }
+
+      if (Object.keys(tierUpdates).length > 0) {
+        await db.collection('users').doc(userId).update(tierUpdates);
+      }
+
+      // Handle integration updates
       if (strava) {
         await userService.setStravaIntegration(
           userId,
@@ -301,7 +325,7 @@ export function registerUserTools(registerTool: (tool: any, handler: (args: any)
           fitbit.fitbitUserId
         );
       }
-      return { message: "User updated" };
+      return { message: "User updated", tierUpdates };
     }
   );
 

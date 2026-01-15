@@ -15,6 +15,10 @@ type Database interface {
 	GetUser(ctx context.Context, id string) (*pb.UserRecord, error)
 	UpdateUser(ctx context.Context, id string, data map[string]interface{}) error
 
+	// Sync Count (for tier limits)
+	IncrementSyncCount(ctx context.Context, userID string) error
+	ResetSyncCount(ctx context.Context, userID string) error
+
 	// Pending Inputs
 	GetPendingInput(ctx context.Context, id string) (*pb.PendingInput, error)
 	CreatePendingInput(ctx context.Context, input *pb.PendingInput) error

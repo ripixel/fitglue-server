@@ -39,7 +39,7 @@ describe('user-profile-handler', () => {
     req = {
       method: 'GET',
       body: {},
-      path: ''
+      path: '/users/me'
     };
     res = {
       status: jest.fn().mockReturnThis(),

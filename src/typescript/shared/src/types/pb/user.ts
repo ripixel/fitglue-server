@@ -85,6 +85,21 @@ export interface UserRecord {
   /** Pipelines define the data flow: Source -> Enrichers -> Routing */
   pipelines: PipelineConfig[];
   fcmTokens: string[];
+  /** Pricing tier: 'free' or 'pro' */
+  tier: string;
+  /** Pro trial end date (null = no trial, set to now+30d on signup) */
+  trialEndsAt?:
+    | Date
+    | undefined;
+  /** Admin override - grants Pro access without payment */
+  isAdmin: boolean;
+  /** Monthly sync tracking */
+  syncCountThisMonth: number;
+  syncCountResetAt?:
+    | Date
+    | undefined;
+  /** Stripe customer ID for billing */
+  stripeCustomerId: string;
 }
 
 export interface PipelineConfig {

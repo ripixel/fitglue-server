@@ -95,6 +95,12 @@ describe('user-integrations-handler', () => {
     beforeEach(() => {
       req.method = 'POST';
       req.path = '/strava/connect';
+      // Mock user for connection limit checks
+      mockUserService.get.mockResolvedValue({
+        userId: 'user-1',
+        tier: 'free',
+        integrations: {}
+      });
     });
 
     it('returns 400 for invalid provider', async () => {

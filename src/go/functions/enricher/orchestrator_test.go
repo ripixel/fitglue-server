@@ -52,6 +52,12 @@ func (m *MockDatabase) SetCounter(ctx context.Context, userId string, counter *p
 func (m *MockDatabase) SetSynchronizedActivity(ctx context.Context, userId string, activity *pb.SynchronizedActivity) error {
 	return nil
 }
+func (m *MockDatabase) IncrementSyncCount(ctx context.Context, userID string) error {
+	return nil
+}
+func (m *MockDatabase) ResetSyncCount(ctx context.Context, userID string) error {
+	return nil
+}
 
 // MockBlobStore implements shared.BlobStore
 type MockBlobStore struct {

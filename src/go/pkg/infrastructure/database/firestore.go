@@ -46,6 +46,23 @@ func (a *FirestoreAdapter) UpdateUser(ctx context.Context, id string, data map[s
 	return a.storage.Users().Doc(id).Update(ctx, data)
 }
 
+// --- Sync Count (for tier limits) ---
+
+func (a *FirestoreAdapter) IncrementSyncCount(ctx context.Context, userID string) error {
+	_, err := a.Client.Collection("users").Doc(userID).Update(ctx, []firestore.Update{
+		{Path: "sync_count_this_month", Value: firestore.Increment(1)},
+	})
+	return err
+}
+
+func (a *FirestoreAdapter) ResetSyncCount(ctx context.Context, userID string) error {
+	_, err := a.Client.Collection("users").Doc(userID).Update(ctx, []firestore.Update{
+		{Path: "sync_count_this_month", Value: 0},
+		{Path: "sync_count_reset_at", Value: firestore.ServerTimestamp},
+	})
+	return err
+}
+
 // --- Pending Inputs ---
 
 func (a *FirestoreAdapter) GetPendingInput(ctx context.Context, id string) (*pb.PendingInput, error) {
