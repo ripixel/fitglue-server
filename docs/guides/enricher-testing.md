@@ -11,14 +11,18 @@ Enrichers transform and enhance standardized activities before they are sent to 
 
 ## Available Enrichers
 
+> [!NOTE]
+> Enricher configuration is defined in `registry.ts` and served via `GET /api/registry`. See [Registry Reference](../reference/registry.md) for details.
+
 | Provider | Purpose | Trigger Condition | Output |
 |----------|---------|-------------------|--------|
-| **Metadata Passthrough** | Preserves source metadata | Always | Name, Description |
 | **Workout Summary** | Exercise breakdown | `StrengthSets` present | Description text |
 | **Muscle Heatmap** | Muscle activation visualization | `StrengthSets` present | Description (emoji chart) |
 | **Virtual GPS** | Synthetic GPS routes | `TotalDistance > 0` AND no GPS | Lat/Long streams |
 | **Source Link** | Links back to source | `ExternalId` present | Description (URL) |
 | **Fitbit Heart Rate** | HR data from Fitbit | Fitbit integration enabled | Heart rate stream |
+| **Type Mapper** | Remaps activity types | Title keyword match | Activity type |
+| **Parkrun** | Detects Parkrun events | Location/time match | Title, tags |
 
 ---
 
@@ -401,7 +405,7 @@ npm run test:local
 npm run test:dev
 ```
 
-See [INTEGRATION_TESTS.md](INTEGRATION_TESTS.md) for detailed integration testing procedures.
+See [Testing Guide](../development/testing.md) for detailed integration testing procedures.
 
 ---
 

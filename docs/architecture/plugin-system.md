@@ -2,6 +2,9 @@
 
 FitGlue uses a **type-safe, self-registering plugin architecture** for extensible data processing.
 
+> [!IMPORTANT]
+> The **Plugin Registry** (`src/typescript/shared/src/plugin/registry.ts`) is the single source of truth for all plugin manifests. Configuration is served dynamically via `GET /api/registry`.
+
 ## Plugin Types
 
 | Type | Language | Purpose | Example |
@@ -22,7 +25,7 @@ FitGlue uses a **type-safe, self-registering plugin architecture** for extensibl
                            ▼
                  ┌──────────────────┐
                  │  Plugin Registry │
-                 │    GET /api/plugins   │
+                 │  GET /api/registry│
                  └──────────────────┘
 ```
 
@@ -48,9 +51,9 @@ func init() {
 }
 ```
 
-### TypeScript Sources
+### TypeScript Sources & Destinations
 
-Sources register in `shared/src/plugin/registry.ts`:
+Sources and destinations register in `shared/src/plugin/registry.ts`:
 
 ```typescript
 registerSource({
@@ -58,6 +61,14 @@ registerSource({
   name: 'Hevy',
   icon: '💪',
   enabled: true,
+  marketingDescription: `
+    ### Strength Training Source
+    Import your weight training workouts from Hevy...
+  `,
+  features: [
+    '✅ Import strength workouts with full exercise details',
+    '✅ Real-time sync via webhooks',
+  ],
 });
 ```
 
@@ -79,7 +90,7 @@ Plugins define their configuration using `ConfigFieldSchema`:
 The plugin registry is exposed via:
 
 ```
-GET /api/plugins
+GET /api/registry
 ```
 
 Returns:
@@ -87,13 +98,110 @@ Returns:
 {
   "sources": [...],
   "enrichers": [...],
-  "destinations": [...]
+  "destinations": [...],
+  "integrations": [...]
 }
 ```
 
 Used by the frontend to dynamically render plugin selection and configuration forms.
 
-## Related Docs
+---
 
-- [Adding Plugins](../development/adding-plugins.md) - Scaffolding new plugins
-- [Enricher Config](./ENRICHER_CONFIG.md) - Configuring pipelines
+## Scaffolding New Plugins
+
+FitGlue provides scaffolding commands to minimize boilerplate when adding new plugins.
+
+### Quick Start
+
+```bash
+# Add a new data source (TypeScript webhook handler)
+make plugin-source name=garmin
+
+# Add a new enricher (Go pipeline step)
+make plugin-enricher name=weather
+
+# Add a new destination (Go uploader)
+make plugin-destination name=runkeeper
+```
+
+### What Gets Generated
+
+#### Source (`make plugin-source name=NAME`)
+
+| Generated | Location |
+|-----------|----------|
+| Handler directory | `src/typescript/{name}-handler/` |
+| package.json | Standard dependencies |
+| Connector class | `src/connector.ts` with TODO markers |
+| Terraform config | Appended to `functions.tf` |
+| index.js export | Appended automatically |
+
+**Remaining manual steps:**
+1. Add `CloudEventSource.CLOUD_EVENT_SOURCE_{NAME}` to `events.proto`
+2. Add `ActivitySource.SOURCE_{NAME}` to `activity.proto`
+3. Run `make generate`
+4. Add Firebase rewrite to `web/firebase.json`
+5. Implement the connector logic
+
+#### Enricher (`make plugin-enricher name=NAME`)
+
+| Generated | Location |
+|-----------|----------|
+| Provider file | `src/go/pkg/enricher_providers/{name}.go` |
+| Proto enum | Auto-added to `user.proto` |
+| Type regeneration | Runs `make generate` automatically |
+
+**Remaining manual steps:**
+1. Implement the `Enrich()` method
+2. Add config fields to the manifest
+
+#### Destination (`make plugin-destination name=NAME`)
+
+| Generated | Location |
+|-----------|----------|
+| Uploader function | `src/go/functions/{name}-uploader/` |
+| Proto enum | Auto-added to `events.proto` |
+| Terraform config | Appended to `functions.tf` |
+| Type regeneration | Runs `make generate` automatically |
+
+**Remaining manual steps:**
+1. Implement upload logic
+2. Add routing case in `router/function.go`
+
+### Example: Adding a Weather Enricher
+
+```bash
+make plugin-enricher name=weather
+```
+
+Output:
+```
+Creating enricher: weather
+  Using enum value: 13
+✓ Added ENRICHER_PROVIDER_WEATHER = 13 to user.proto
+✓ Created src/go/pkg/enricher_providers/weather.go
+Running 'make generate' to regenerate types...
+✓ Enricher scaffolding complete!
+
+Next steps:
+  1. Implement the Enrich() method
+  2. Add config fields to the manifest if needed
+  3. Run 'make test-go' to verify
+```
+
+### Naming Conventions
+
+| Input | Generated Names |
+|-------|-----------------|
+| `garmin` | `GarminConnector`, `garmin-handler`, `GARMIN` |
+| `heart_rate` | `HeartRateProvider`, `heart_rate.go`, `HEART_RATE` |
+
+Use lowercase with underscores. The script handles case conversion.
+
+---
+
+## Related Documentation
+
+- [Registry Reference](../reference/registry.md) - API and manifest structure
+- [Architecture Overview](overview.md) - System components
+- [Enricher Testing](../guides/enricher-testing.md) - Testing enrichers

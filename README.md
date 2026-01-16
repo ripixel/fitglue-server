@@ -87,40 +87,38 @@ See [Plugin System Architecture](docs/architecture/plugin-system.md) for details
 ## Documentation
 
 ### Getting Started
-- **[Local Development](docs/LOCAL_DEVELOPMENT.md)** - Running the stack locally
-- **[Admin CLI](docs/ADMIN_CLI.md)** - User management and pipeline configuration
+- **[Architecture Overview](docs/architecture/overview.md)** - System components and data flow
+- **[Local Development](docs/development/local-development.md)** - Running the stack locally
+- **[Admin CLI](docs/reference/admin-cli.md)** - User management and pipeline configuration
 
 ### Plugin Development
-- **[Plugin System Architecture](docs/architecture/plugin-system.md)** - How plugins work
-- **[Adding Plugins](docs/development/adding-plugins.md)** - Scaffolding new sources, enrichers, destinations
+- **[Plugin System](docs/architecture/plugin-system.md)** - Architecture and scaffolding
+- **[Plugin Registry](docs/reference/registry.md)** - Self-describing plugin API
 
-### Enrichment & Testing
-- **[Enricher Configuration](docs/ENRICHER_CONFIG.md)** - Configuring enrichment pipelines
-- **[Enricher Testing](docs/ENRICHER_TESTING.md)** - Testing guide for enrichment providers
-- **[Manual QA Guide](docs/MANUAL_QA_GUIDE.md)** - End-to-end manual testing procedures
-- **[Integration Tests](docs/INTEGRATION_TESTS.md)** - Automated integration tests
-- **[Debugging Guide](docs/DEBUGGING.md)** - Troubleshooting integrations and scripts
+### Testing
+- **[Testing Guide](docs/development/testing.md)** - Unit, integration, and manual QA
+- **[Enricher Testing](docs/guides/enricher-testing.md)** - Testing enrichment providers
+- **[Debugging](docs/development/debugging.md)** - Troubleshooting guide
 
-### Infrastructure & Architecture
-- **[CI/CD Guide](docs/CICD.md)** - Deployment pipeline and infrastructure
-- **[Execution Logging](docs/EXECUTION_LOGGING.md)** - Framework architecture and patterns
-- **[Services & Stores](docs/SERVICES_AND_STORES.md)** - Architecture guide for business logic vs data access
-- **[Connector Framework](docs/CONNECTORS.md)** - Guide to implementing data source integrations
-- **[Architecture Decisions](docs/DECISIONS.md)** - Key design choices and rationale
+### Architecture
+- **[Services & Stores](docs/architecture/services-and-stores.md)** - Business logic vs data access
+- **[Security](docs/architecture/security.md)** - Authorization and access control
+- **[Connectors](docs/architecture/connectors.md)** - Data source integrations
+- **[Execution Logging](docs/architecture/execution-logging.md)** - Observability framework
+- **[Architecture Decisions](docs/decisions/ADR.md)** - Key design choices
+
+### Infrastructure
+- **[CI/CD Guide](docs/infrastructure/cicd.md)** - Deployment pipeline
+- **[Terraform](docs/infrastructure/terraform.md)** - Infrastructure as code
 
 ### Reference
-- **[Error Codes](docs/reference/errors.md)** - Structured error types and codes
+- **[Error Codes](docs/reference/errors.md)** - Structured error types
 
-### Specialized Guides
-- **[FIT Generation](docs/FIT_GENERATION.md)** - Guide to generating FIT files and test data
-- **[OAuth Integration](docs/OAUTH.md)** - OAuth flow for Strava and Fitbit
-- **[OpenAPI Clients](docs/OPENAPI_CLIENTS.md)** - API client generation
-- **[Fitbit Setup](docs/FITBIT_SETUP.md)** - Step-by-step Fitbit configuration
-
-### Research
-
-- **[Initial Research](docs/research/INITIAL_RESEARCH.md)** - Background and feasibility analysis
-- **[API Integration Research](docs/research/API_INTEGRATION_RESEARCH.md)** - Specific API integrations
+### Guides
+- **[OAuth Integration](docs/guides/oauth-integration.md)** - Strava and Fitbit OAuth
+- **[Fitbit Setup](docs/guides/fitbit-setup.md)** - Step-by-step configuration
+- **[FIT Generation](docs/guides/fit-generation.md)** - Generating FIT files
+- **[OpenAPI Clients](docs/guides/openapi-clients.md)** - API client generation
 
 ## Quick Start
 

@@ -9,10 +9,26 @@ We use **CircleCI** for our CI/CD pipeline, connecting to **GCP** using **OpenID
 ## Pipeline Workflow
 
 The CI/CD pipeline automatically:
-1. **Builds and tests** all code on every commit
-2. **Deploys to Dev** automatically on `main` branch
-3. **Deploys to Test** automatically after Dev deployment succeeds
-4. **Deploys to Prod** after manual approval
+1. **Lints codebase** - Runs `make lint-codebase` for consistency checks
+2. **Builds and tests** all code on every commit
+3. **Deploys to Dev** automatically on `main` branch
+4. **Deploys to Test** automatically after Dev deployment succeeds
+5. **Deploys to Prod** after manual approval
+
+### Codebase Linter
+
+The `lint-codebase` step runs automated consistency checks:
+
+| Check | Description |
+|-------|-------------|
+| Enricher Registration | All proto enum values have registry entries |
+| Function Exports | All Cloud Functions export correctly |
+| Terraform Coverage | All functions have Terraform definitions |
+| Proto Sync | TypeScript and Go types match proto definitions |
+| Store Types | No `any` types in Store methods |
+| Service Boundaries | Services don't access database drivers directly |
+
+See `scripts/lint-codebase.ts` for implementation details.
 
 All three environments (Dev, Test, Prod) are configured with OIDC authentication.
 

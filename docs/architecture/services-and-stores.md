@@ -157,3 +157,39 @@ message ExecutionRecord {
 This generates TypeScript types where:
 - Required fields have no `?`: `executionId: string`
 - Optional fields have `?`: `userId?: string | undefined`
+
+## AuthorizationService
+
+The `AuthorizationService` is a specialized service for centralized access control.
+
+### Purpose
+
+Instead of scattering authorization checks across handlers, all access control is delegated to a single service:
+
+```typescript
+// In any handler that accesses user resources
+const pipeline = await ctx.stores.pipeline.get(pipelineId);
+ctx.services.authorization.requireAccess(ctx.auth.userId, pipeline.userId);
+```
+
+### Key Methods
+
+| Method | Purpose |
+|--------|---------|
+| `requireAccess(userId, resourceOwnerId)` | Verifies user can access a resource |
+| `requireAdmin()` | Verifies user has admin privileges |
+
+### Why a Service?
+
+Authorization is **business logic**, not data access:
+- It enforces rules ("user can only access their own data")
+- It doesn't interact with the database directly
+- It throws business exceptions (`ForbiddenError`)
+
+See [Security](security.md) for detailed authorization patterns.
+
+## Related Documentation
+
+- [Security](security.md) - Authorization and access control
+- [Architecture Overview](overview.md) - System components
+- [Plugin System](plugin-system.md) - How plugins work

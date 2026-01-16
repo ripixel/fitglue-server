@@ -238,3 +238,65 @@ We formally separated responsibilities between **Services** and **Stores**:
 ### Consequences
 *   **Pros**: Decouples business logic from database technology. Improves testability by allowing Services to run with mocked Stores.
 *   **Cons**: Requires a strict "pass-through" method in Stores for every distinct update operation required by Services.
+
+## 012 - Self-Describing Plugin Registry v4.3 (2026-01-15)
+
+### Context
+Plugin configuration was documented in a static markdown file (`ENRICHER_CONFIG.md`). This led to:
+-   Documentation drift as new plugins were added without updating the doc.
+-   No programmatic access to configuration schemas for the frontend.
+-   Duplicate maintenance burden (code + docs).
+
+### Decision
+We implemented a **Self-Describing Plugin Registry**:
+
+1.  **Single Source of Truth**: Plugin manifests are defined in code (`registry.ts` for TypeScript, `init()` functions for Go enrichers).
+2.  **API Endpoint**: `GET /api/registry` returns all plugin manifests with full configuration schemas.
+3.  **Rich Manifests**: Each plugin includes `configSchema`, `marketingDescription`, `features`, and `transformations` for UI rendering.
+4.  **Obsolete Docs Deleted**: `ENRICHER_CONFIG.md` was removed as it's now redundant.
+
+### Consequences
+-   **Pros**: Zero documentation drift. Frontend dynamically generates config forms. Single place to update plugin metadata.
+-   **Cons**: Slightly larger registry.ts file. Requires discipline to add marketing content.
+
+## 013 - Unified Authorization Layer (2026-01-15)
+
+### Context
+Authorization checks were scattered across handlers with inconsistent patterns. Some checked ownership inline, others delegated to Services, and the logic for "admin bypass" varied.
+
+### Decision
+We introduced a centralized **AuthorizationService**:
+
+1.  **requireAccess(userId, resourceOwnerId)**: Checks if user can access a resource (owner match OR admin).
+2.  **requireAdmin()**: Checks if user has admin privileges.
+3.  **ForbiddenError**: Standard error thrown on authorization failure.
+4.  **Service Location**: Part of `ctx.services.authorization` in the FrameworkContext.
+
+### Consequences
+-   **Pros**: Consistent authorization across all handlers. Single point for audit. Easy to extend with roles/permissions.
+-   **Cons**: Handlers must explicitly call authorization (not automatic).
+
+## 014 - Codebase Consistency Linter (2026-01-16)
+
+### Context
+As the codebase grew, inconsistencies emerged:
+-   Proto enum values without corresponding registry entries.
+-   Cloud Functions missing Terraform definitions.
+-   Store methods using `any` types.
+-   Services directly accessing `admin.firestore()`.
+
+### Decision
+We implemented `scripts/lint-codebase.ts` with automated checks:
+
+1.  **Enricher Registration**: All proto enum values have registry entries.
+2.  **Function Exports**: All Cloud Functions export correctly.
+3.  **Terraform Coverage**: All functions have Terraform definitions.
+4.  **Proto Sync**: TypeScript and Go types match proto definitions.
+5.  **Store Types**: No `any` types in Store methods.
+6.  **Service Boundaries**: Services don't access database drivers directly.
+
+Integrated into CI/CD as `make lint-codebase`.
+
+### Consequences
+-   **Pros**: Catches consistency issues before deployment. Enforces architectural boundaries automatically.
+-   **Cons**: Additional CI step (~10s). False positives require explicit ignores.
